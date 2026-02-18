@@ -3,7 +3,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { ArrowLeft, Upload, Save, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload,
+  Save,
+  Loader2,
+  Image as ImageIcon,
+  Plus,
+  X,
+} from "lucide-react";
 import { updateBookThunk, clearBookError } from "../../store/slices/bookSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
 import { bookApi } from "../../api/bookApi";
@@ -19,9 +27,12 @@ const EditBook = () => {
   const { loading, error } = useSelector((state) => state.books);
   const { categories } = useSelector((state) => state.categories);
 
-  const [thumbnail, setThumbnail] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const [existingGallery, setExistingGallery] = useState([]);
+
   const [pdfFile, setPdfFile] = useState(null);
-  const [preview, setPreview] = useState(null);
   const [existingPdf, setExistingPdf] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
 
@@ -44,8 +55,14 @@ const EditBook = () => {
     language: Yup.string(),
     condition: Yup.string().required("Condition is required"),
     is_premium: Yup.boolean(),
-    pdf_file: Yup.mixed().optional(),
-    thumbnail: Yup.mixed().optional(),
+    is_bestselling: Yup.boolean(),
+    is_trending: Yup.boolean(),
+    highlights: Yup.string(),
+    otherdescription: Yup.string(),
+    pdf_file: Yup.mixed().nullable().optional(),
+    thumbnail: Yup.mixed().nullable().optional(),
+    cover_image: Yup.mixed().nullable().optional(),
+    images: Yup.array().nullable().optional(),
   });
 
   const formik = useFormik({
@@ -60,27 +77,84 @@ const EditBook = () => {
       category_id: "",
       published_date: "",
       is_premium: false,
+      is_bestselling: false,
+      is_trending: false,
+      highlights: "",
+      otherdescription: "",
       isbn: "",
       language: "",
       pdf_file: null,
       thumbnail: null,
+      cover_image: null,
+      images: [],
     },
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
+      console.log("Submitting book update for ID:", bookId, values);
       const data = new FormData();
-      Object.keys(values).forEach((key) => {
-        data.append(key, values[key]);
+
+      // 1. Handle regular text/boolean fields
+      const textFields = [
+        "title",
+        "author",
+        "description",
+        "price",
+        "original_price",
+        "condition",
+        "stock",
+        "category_id",
+        "published_date",
+        "is_premium",
+        "is_bestselling",
+        "is_trending",
+        "highlights",
+        "otherdescription",
+        "isbn",
+        "language",
+      ];
+
+      textFields.forEach((key) => {
+        if (values[key] !== null && values[key] !== undefined) {
+          data.append(key, values[key]);
+        }
       });
+
+      // 2. Handle file fields - ONLY append if it's a new file (not the initial null)
+      const fileFields = ["pdf_file", "thumbnail", "cover_image"];
+      fileFields.forEach((key) => {
+        if (values[key] instanceof File || values[key] instanceof Blob) {
+          data.append(key, values[key]);
+        }
+      });
+
+      // 3. Handle multiple images (gallery)
+      if (values.images && values.images.length > 0) {
+        values.images.forEach((file) => {
+          if (file instanceof File || file instanceof Blob) {
+            data.append("images", file);
+          }
+        });
+      }
 
       const result = await dispatch(
         updateBookThunk({ id: bookId, formData: data }),
       );
       if (updateBookThunk.fulfilled.match(result)) {
+        console.log("Update successful!");
         navigate("/books");
+      } else {
+        console.error("Update failed:", result.payload);
       }
     },
   });
+
+  // Log validation errors to console for developer help
+  useEffect(() => {
+    if (formik.submitCount > 0 && Object.keys(formik.errors).length > 0) {
+      console.warn("Formik Validation Errors:", formik.errors);
+    }
+  }, [formik.submitCount, formik.errors]);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -88,11 +162,13 @@ const EditBook = () => {
     const fetchBookDetails = async () => {
       try {
         const response = await bookApi.getBookBySlug(slug);
-        if (response.success) {
-          const book = response.data;
+        const book = response.data || response;
+        if (book) {
           setBookId(book.id || book._id);
+
+          // Use category_id directly if possible, else look in the populated category object
           const catId =
-            book.category_id || book.category?._id || book.category?.id || "";
+            book.category_id || book.category?.id || book.category?._id || "";
 
           formik.setValues({
             title: book.title || "",
@@ -101,28 +177,50 @@ const EditBook = () => {
             price: book.price || "",
             original_price: book.original_price || "",
             condition: book.condition || "good",
-            stock: book.stock || "1",
+            stock: book.stock !== undefined ? book.stock : "1",
             category_id: catId,
             published_date: book.published_date
               ? book.published_date.split("T")[0]
               : "",
             is_premium: book.is_premium || false,
+            is_bestselling: book.is_bestselling || false,
+            is_trending: book.is_trending || false,
+            highlights: book.highlights || "",
+            otherdescription: book.otherdescription || "",
             isbn: book.isbn || "",
             language: book.language || "",
+            pdf_file: null,
+            thumbnail: null,
+            cover_image: null,
+            images: [],
           });
 
           if (book.pdf_file) {
-            setExistingPdf(book.pdf_file.url);
+            setExistingPdf(
+              typeof book.pdf_file === "string"
+                ? book.pdf_file
+                : book.pdf_file.url,
+            );
           }
 
           if (book.thumbnail) {
-            const url =
+            setThumbnailPreview(
               typeof book.thumbnail === "string"
-                ? book.thumbnail.startsWith("{")
-                  ? JSON.parse(book.thumbnail).url
-                  : book.thumbnail
-                : book.thumbnail.url;
-            setPreview(url);
+                ? book.thumbnail
+                : book.thumbnail.url,
+            );
+          }
+
+          if (book.cover_image) {
+            setCoverPreview(
+              typeof book.cover_image === "string"
+                ? book.cover_image
+                : book.cover_image.url,
+            );
+          }
+
+          if (book.images && Array.isArray(book.images)) {
+            setExistingGallery(book.images);
           }
         }
       } catch (err) {
@@ -138,19 +236,49 @@ const EditBook = () => {
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    const file = files[0];
-    if (file) {
+    if (files && files.length > 0) {
       if (name === "thumbnail") {
-        setThumbnail(file);
+        const file = files[0];
         formik.setFieldValue("thumbnail", file);
         const reader = new FileReader();
-        reader.onloadend = () => setPreview(reader.result);
+        reader.onloadend = () => setThumbnailPreview(reader.result);
+        reader.readAsDataURL(file);
+      } else if (name === "cover_image") {
+        const file = files[0];
+        formik.setFieldValue("cover_image", file);
+        const reader = new FileReader();
+        reader.onloadend = () => setCoverPreview(reader.result);
         reader.readAsDataURL(file);
       } else if (name === "pdf_file") {
+        const file = files[0];
         setPdfFile(file);
         formik.setFieldValue("pdf_file", file);
+      } else if (name === "images") {
+        const selectedFiles = Array.from(files);
+        const currentImages = [...formik.values.images];
+        const newImages = [...currentImages, ...selectedFiles];
+        formik.setFieldValue("images", newImages);
+
+        const newPreviews = selectedFiles.map((file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          });
+        });
+
+        Promise.all(newPreviews).then((results) => {
+          setGalleryPreviews((prev) => [...prev, ...results]);
+        });
       }
     }
+  };
+
+  const removeGalleryImage = (index) => {
+    const newImages = formik.values.images.filter((_, i) => i !== index);
+    const newPreviews = galleryPreviews.filter((_, i) => i !== index);
+    formik.setFieldValue("images", newImages);
+    setGalleryPreviews(newPreviews);
   };
 
   if (pageLoading) {
@@ -192,7 +320,6 @@ const EditBook = () => {
 
       <div className="bg-surface/70 backdrop-blur-lg border border-white/10 p-8 sm:p-10 rounded-[2.5rem] shadow-xl max-w-[1100px]">
         <form onSubmit={formik.handleSubmit} className="flex flex-col gap-10">
-          {/* Section 1: General Info */}
           <div className="pb-10 border-b border-border">
             <h3 className="text-lg font-bold text-primary mb-8 flex items-center gap-2 uppercase tracking-[0.1em]">
               <span className="w-1.5 h-6 bg-primary rounded-full"></span>
@@ -242,18 +369,44 @@ const EditBook = () => {
                 placeholder="e.g. English, Hindi"
               />
             </div>
-            <TextArea
-              label="Description / Summary"
-              name="description"
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.description && formik.errors.description}
-              placeholder="Briefly describe what the book is about..."
-            />
+
+            <div className="flex flex-col gap-6">
+              <TextArea
+                label="Main Description"
+                name="description"
+                value={formik.values.description}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.description && formik.errors.description}
+                placeholder="Briefly describe what the book is about..."
+                required
+              />
+
+              <TextArea
+                label="Other Description / Notes"
+                name="otherdescription"
+                value={formik.values.otherdescription}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.otherdescription &&
+                  formik.errors.otherdescription
+                }
+                placeholder="Additional details, summary or notes..."
+              />
+
+              <TextArea
+                label="Key Highlights"
+                name="highlights"
+                value={formik.values.highlights}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.highlights && formik.errors.highlights}
+                placeholder="List major takeaways or highlights..."
+              />
+            </div>
           </div>
 
-          {/* Section 2: Details & Pricing */}
           <div className="pb-10 border-b border-border">
             <h3 className="text-lg font-bold text-primary mb-8 flex items-center gap-2 uppercase tracking-[0.1em]">
               <span className="w-1.5 h-6 bg-primary rounded-full"></span>
@@ -269,7 +422,6 @@ const EditBook = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.price && formik.errors.price}
                 required
-                placeholder="0.00"
               />
               <FormInput
                 label="Original Price"
@@ -282,7 +434,6 @@ const EditBook = () => {
                   formik.touched.original_price && formik.errors.original_price
                 }
                 required
-                placeholder="0.00"
               />
               <FormInput
                 label="Condition"
@@ -309,11 +460,10 @@ const EditBook = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.stock && formik.errors.stock}
                 required
-                placeholder="Quantity"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
               <FormInput
                 label="Category"
                 name="category_id"
@@ -323,13 +473,11 @@ const EditBook = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.category_id && formik.errors.category_id}
                 required
-                placeholder="Select Category"
                 options={categories.map((cat) => ({
                   value: cat.id || cat._id,
                   label: cat.name,
                 }))}
               />
-
               <FormInput
                 label="Release Date"
                 name="published_date"
@@ -343,183 +491,304 @@ const EditBook = () => {
                 required
               />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      id="is_premium"
+                      name="is_premium"
+                      checked={formik.values.is_premium}
+                      onChange={formik.handleChange}
+                      className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-primary/40 checked:bg-primary"
+                    />
+                    <X
+                      size={14}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 text-white pointer-events-none"
+                    />
+                  </div>
+                  <label
+                    htmlFor="is_premium"
+                    className="text-sm font-bold text-text-primary cursor-pointer rotate-0"
+                  >
+                    Premium Content
+                  </label>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="is_bestselling"
+                    name="is_bestselling"
+                    checked={formik.values.is_bestselling}
+                    onChange={formik.handleChange}
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-amber-500/40 checked:bg-amber-500"
+                  />
+                  <label
+                    htmlFor="is_bestselling"
+                    className="text-sm font-bold text-text-primary cursor-pointer"
+                  >
+                    Bestseller
+                  </label>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="is_trending"
+                    name="is_trending"
+                    checked={formik.values.is_trending}
+                    onChange={formik.handleChange}
+                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-indigo-500/40 checked:bg-indigo-500"
+                  />
+                  <label
+                    htmlFor="is_trending"
+                    className="text-sm font-bold text-text-primary cursor-pointer"
+                  >
+                    Trending
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Section 3: Media & Files */}
           <div>
             <h3 className="text-lg font-bold text-primary mb-8 flex items-center gap-2 uppercase tracking-[0.1em]">
               <span className="w-1.5 h-6 bg-primary rounded-full"></span>
-              3. Files & Assets
+              3. Files & Media Assets
             </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-              <div className="flex flex-col gap-6">
+
+            <div className="space-y-10">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-text-primary ml-1 block">
+                      PDF Manuscript (optional upgrade)
+                    </label>
+                    {existingPdf && (
+                      <div className="mb-2 p-3 bg-primary/5 rounded-xl border border-primary/10 flex items-center justify-between">
+                        <span className="text-xs font-bold text-primary truncate max-w-[200px]">
+                          Current: {existingPdf.split("/").pop()}
+                        </span>
+                        <a
+                          href={existingPdf}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[0.6rem] font-black uppercase text-primary hover:underline"
+                        >
+                          View
+                        </a>
+                      </div>
+                    )}
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        name="pdf_file"
+                        accept=".pdf"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="pdf-upload"
+                      />
+                      <label
+                        htmlFor="pdf-upload"
+                        className="w-full bg-background border-2 border-dashed border-border hover:border-primary transition-all rounded-2xl py-4 px-6 cursor-pointer flex items-center justify-between text-text-primary"
+                      >
+                        <span className="font-bold flex items-center gap-2 truncate pr-4">
+                          {pdfFile ? (
+                            <span className="text-primary truncate">
+                              {pdfFile.name}
+                            </span>
+                          ) : (
+                            <span className="text-text-secondary/50">
+                              Replace PDF...
+                            </span>
+                          )}
+                        </span>
+                        <Upload
+                          size={20}
+                          className="text-primary group-hover:animate-bounce shrink-0"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-text-primary ml-1 block">
+                      Thumbnail
+                    </label>
+                    <div className="border-2 border-dashed border-border rounded-3xl p-6 bg-slate-50/50 flex flex-col items-center justify-center min-h-[200px] relative group overflow-hidden">
+                      {thumbnailPreview ? (
+                        <div className="relative aspect-[3/4] h-40 rounded-xl overflow-hidden shadow-lg">
+                          <img
+                            src={thumbnailPreview}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                          <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <Upload size={24} className="text-white" />
+                            <input
+                              type="file"
+                              hidden
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              name="thumbnail"
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <label className="cursor-pointer flex flex-col items-center">
+                          <Upload size={32} className="text-primary mb-2" />
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            name="thumbnail"
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-text-primary ml-1 block">
-                    PDF Manuscript (optional)
+                    Large Cover Image
                   </label>
-                  {existingPdf && (
-                    <div className="mb-3 flex items-center gap-2 text-sm">
-                      <span className="text-text-secondary font-medium">
-                        Current:
-                      </span>
-                      <a
-                        href={existingPdf}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary font-bold hover:underline decoration-2 flex items-center gap-1"
-                      >
-                        View Manuscript{" "}
-                        <ArrowLeft className="rotate-180" size={14} />
-                      </a>
-                    </div>
-                  )}
-                  <div className="relative group">
-                    <input
-                      type="file"
-                      name="pdf_file"
-                      accept=".pdf"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="pdf-upload"
-                    />
-                    <label
-                      htmlFor="pdf-upload"
-                      className={`w-full bg-background border-2 border-dashed ${
-                        formik.touched.pdf_file && formik.errors.pdf_file
-                          ? "border-rose-500"
-                          : "border-border hover:border-primary"
-                      } transition-all rounded-2xl py-4 px-6 cursor-pointer flex items-center justify-between text-text-primary`}
-                    >
-                      <span className="font-bold flex items-center gap-2 truncate pr-4">
-                        {pdfFile ? (
-                          <span className="text-primary truncate">
-                            {pdfFile.name}
-                          </span>
-                        ) : (
-                          <span className="text-text-secondary/50">
-                            Replace PDF File...
-                          </span>
-                        )}
-                      </span>
-                      <Upload
-                        size={20}
-                        className="text-primary group-hover:animate-bounce shrink-0"
-                      />
-                    </label>
-                  </div>
-                  {formik.touched.pdf_file && formik.errors.pdf_file && (
-                    <p className="text-rose-500 text-xs font-bold ml-1 mt-1 italic animate-in fade-in slide-in-from-top-1">
-                      {formik.errors.pdf_file}
-                    </p>
-                  )}
-                  <p className="text-[0.65rem] font-bold text-text-secondary mt-1 px-1 uppercase tracking-wider">
-                    Only upload if you want to replace the existing file.
-                  </p>
-                </div>
-                <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20 shadow-sm mt-2">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex items-center">
-                      <input
-                        type="checkbox"
-                        id="is_premium"
-                        name="is_premium"
-                        checked={formik.values.is_premium}
-                        onChange={formik.handleChange}
-                        className="peer h-6 w-6 cursor-pointer appearance-none rounded-md border border-primary/40 transition-all checked:bg-primary checked:border-primary"
-                      />
-                      <svg
-                        className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 text-white transition-opacity pointer-events-none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <label
-                      htmlFor="is_premium"
-                      className="text-base font-bold text-text-primary cursor-pointer"
-                    >
-                      Mark as Premium Content
-                    </label>
-                  </div>
-                  <p className="text-[0.75rem] font-medium text-text-secondary mt-2 ml-9">
-                    Premium books require a subscription or purchase to read and
-                    enjoy full features.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-text-primary ml-1 block">
-                  Cover Thumbnail
-                </label>
-                <div
-                  className={`border-2 border-dashed ${
-                    formik.touched.thumbnail && formik.errors.thumbnail
-                      ? "border-rose-500"
-                      : "border-border"
-                  } rounded-3xl p-8 bg-primary/[0.02] hover:bg-primary/[0.04] transition-all flex flex-col items-center justify-center min-h-[260px] relative group overflow-hidden`}
-                >
-                  {preview ? (
-                    <div className="relative aspect-[3/4] h-48 rounded-xl overflow-hidden shadow-2xl group/preview">
-                      <img
-                        src={preview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <label className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer shadow-xl transform scale-90 group-hover/preview:scale-100 transition-transform hover:bg-primary-hover">
-                        <Upload size={20} />
+                  <div className="border-2 border-dashed border-border rounded-[2.5rem] p-8 bg-slate-50/50 flex flex-col items-center justify-center min-h-[300px] relative group overflow-hidden">
+                    {coverPreview ? (
+                      <div className="relative aspect-[3/4] h-64 rounded-2xl overflow-hidden shadow-2xl">
+                        <img
+                          src={coverPreview}
+                          alt="Cover"
+                          className="w-full h-full object-cover"
+                        />
+                        <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                          <ImageIcon size={32} className="text-white" />
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            name="cover_image"
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center">
+                        <ImageIcon size={48} className="text-primary/40 mb-4" />
                         <input
                           type="file"
                           hidden
                           accept="image/*"
                           onChange={handleFileChange}
-                          name="thumbnail"
+                          name="cover_image"
                         />
                       </label>
-                    </div>
-                  ) : (
-                    <label className="cursor-pointer flex flex-col items-center text-center">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Upload size={32} className="text-primary" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-text-primary">
+                    Gallery & Extra Images
+                  </label>
+                  <p className="text-[0.6rem] font-bold text-rose-500 uppercase tracking-widest italic">
+                    Note: Uploading new images will replace existing gallery
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                  {/* Show existing gallery first */}
+                  {galleryPreviews.length === 0 &&
+                    existingGallery.map((img, idx) => (
+                      <div
+                        key={`exist-${idx}`}
+                        className="relative aspect-square rounded-xl overflow-hidden border border-border bg-surface opacity-70"
+                      >
+                        <img
+                          src={typeof img === "string" ? img : img.url}
+                          alt="Existing"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <p className="font-bold text-text-primary uppercase tracking-tight">
-                        Update Cover
-                      </p>
-                      <p className="text-[0.7rem] font-bold text-text-secondary mt-1">
-                        JPG, PNG or WebP
-                      </p>
+                    ))}
+
+                  {/* Show new uploads */}
+                  {galleryPreviews.map((preview, index) => (
+                    <div
+                      key={`new-${index}`}
+                      className="relative aspect-square rounded-xl overflow-hidden border border-primary group"
+                    >
+                      <img
+                        src={preview}
+                        alt="New"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(index)}
+                        className="absolute top-1 right-1 p-1 bg-rose-500 text-white rounded-full"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {galleryPreviews.length < 10 && (
+                    <label className="relative aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
+                      <Plus size={20} className="text-primary/40" />
                       <input
                         type="file"
                         hidden
+                        multiple
                         accept="image/*"
                         onChange={handleFileChange}
-                        name="thumbnail"
+                        name="images"
                       />
                     </label>
                   )}
                 </div>
-                {formik.touched.thumbnail && formik.errors.thumbnail && (
-                  <p className="text-rose-500 text-xs font-bold ml-1 mt-1 italic animate-in fade-in slide-in-from-top-1">
-                    {formik.errors.thumbnail}
-                  </p>
-                )}
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-sm font-bold flex items-center gap-3">
-              <span className="flex-1 italic">{error}</span>
+            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 text-[0.8rem] font-black italic flex items-center gap-2">
+              <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+              API ERROR: {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+          {Object.keys(formik.errors).length > 0 && formik.submitCount > 0 && (
+            <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+              <p className="text-[0.65rem] font-black text-amber-600 uppercase tracking-widest mb-3">
+                Validation Errors Detected
+              </p>
+              <ul className="m-0 p-0 list-none space-y-1.5">
+                {Object.entries(formik.errors).map(([field, msg]) => (
+                  <li
+                    key={field}
+                    className="text-xs font-bold text-text-primary flex items-center gap-2"
+                  >
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0" />
+                    <span className="capitalize">
+                      {field.replace("_", " ")}
+                    </span>
+                    : <span className="opacity-70">{msg}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-border">
             <Button type="submit" icon={Save} loading={loading} size="lg">
               {loading ? "Updating..." : "Update Book Details"}
             </Button>

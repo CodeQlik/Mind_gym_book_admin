@@ -19,6 +19,7 @@ const getSafeUser = () => {
 
 const initialState = {
   token: getSafeToken(),
+  refreshToken: localStorage.getItem("refreshToken"),
   user: getSafeUser(),
   loading: false,
   error: null,
@@ -31,17 +32,16 @@ export const loginUser = createAsyncThunk(
     try {
       const data = await authApi.login(credentials);
       if (data.success) {
-        const token = data.token || data.data?.token;
+        // Handle new response structure: data.data.accessToken
+        const token = data.data?.accessToken || data.token || data.data?.token;
+        const refreshToken = data.data?.refreshToken;
 
-        // Improved user extraction: check data.user first,
-        // then check if data.data IS the user object (has user_type),
-        // otherwise try to get data.data.user
-        let user = data.user;
+        // Extract user: check data.data.user first
+        let user = data.data?.user || data.user;
+
         if (!user) {
           if (data.data?.user_type || data.data?.role) {
             user = data.data;
-          } else {
-            user = data.data?.user;
           }
         }
 
@@ -51,13 +51,17 @@ export const loginUser = createAsyncThunk(
         const userRole = user?.role || user?.user_type;
         if (userRole !== "Admin" && userRole !== "admin") {
           localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           return rejectWithValue("Access Denied: Only Admins can log in here.");
         }
 
         localStorage.setItem("token", token);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        }
         localStorage.setItem("user", JSON.stringify(user || null));
-        return { token, user };
+        return { token, refreshToken, user };
       } else {
         return rejectWithValue(data.message || "Login failed");
       }
@@ -115,9 +119,11 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.token = null;
+      state.refreshToken = null;
       state.user = null;
       state.isAuthenticated = false;
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     },
     clearError: (state) => {
@@ -134,6 +140,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
+        state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -156,9 +163,11 @@ const authSlice = createSlice({
 
         if (authErrors.includes(action.payload)) {
           state.token = null;
+          state.refreshToken = null;
           state.user = null;
           state.isAuthenticated = false;
           localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
         }
       })

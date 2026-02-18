@@ -44,8 +44,18 @@ const EditCategory = () => {
     enableReinitialize: true,
     onSubmit: async (values) => {
       const data = new FormData();
-      Object.keys(values).forEach((key) => {
-        data.append(key, values[key]);
+
+      // Explicitly append only the fields that the API expects
+      const allowedFields = ["name", "description", "image"];
+
+      allowedFields.forEach((key) => {
+        if (
+          values[key] !== null &&
+          values[key] !== undefined &&
+          values[key] !== ""
+        ) {
+          data.append(key, values[key]);
+        }
       });
 
       const result = await dispatch(

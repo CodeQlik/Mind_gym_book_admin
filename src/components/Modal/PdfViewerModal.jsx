@@ -21,6 +21,8 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
     let active = true;
 
     const fetchPdf = async () => {
+      // If pdfUrl is already a direct external link (e.g. Cloudinary) that is already signed or public,
+      // we don't need to fetch it via our backend.
       const isStream = pdfUrl && pdfUrl.includes("/book/readBook/");
 
       if (!isStream) {
@@ -33,12 +35,70 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
       setIsChecking(true);
 
       try {
+        // Use our API instance which already has the interceptors and base URL
         const response = await API.get(pdfUrl, {
-          responseType: "blob",
+          // We don't specify responseType: 'blob' yet because we want to check
+          // if it's JSON first. If it's HTML, we'll handle it accordingly.
         });
 
-        if (active) {
-          const newBlobUrl = URL.createObjectURL(response.data);
+        if (!active) return;
+
+        // Extract content type to decide how to handle the response
+        const contentType = response.headers["content-type"];
+        console.log(`[PDF] Fetch response type: ${contentType}`, response.data);
+
+        if (contentType && contentType.includes("application/json")) {
+          // If the backend returns JSON with a signed URL (best practice)
+          if (response.data && response.data.url) {
+            const signedUrl = response.data.url;
+            console.log(`[PDF] Fetching actual blob from signed URL...`);
+
+            try {
+              // Fetch the PDF content as a blob from Cloudinary
+              // Use a fresh axios instance or a direct call to avoid our app's interceptors
+              const blobResponse = await API.get(signedUrl, {
+                responseType: "blob",
+                transformRequest: [
+                  (data, headers) => {
+                    // CRITICAL: Strip Authorization header for external Cloudinary request
+                    delete headers.Authorization;
+                    delete headers.common?.Authorization;
+                    return data;
+                  },
+                ],
+              });
+
+              const pdfBlob = new Blob([blobResponse.data], {
+                type: "application/pdf",
+              });
+              const newBlobUrl = URL.createObjectURL(pdfBlob);
+              setBlobUrl(newBlobUrl);
+            } catch (blobErr) {
+              console.warn(
+                "[PDF] Blob fetch failed, falling back to direct URL",
+                blobErr,
+              );
+              setBlobUrl(signedUrl);
+            }
+          } else if (response.data && typeof response.data === "string") {
+            setBlobUrl(response.data);
+          } else {
+            throw new Error("Invalid JSON response format");
+          }
+          setIsChecking(false);
+        } else if (contentType && contentType.includes("text/html")) {
+          // If the backend returns HTML (like the user's manual redirect strategy)
+          // we create a blob from the HTML string so the iframe can render it.
+          const htmlBlob = new Blob([response.data], { type: "text/html" });
+          const newBlobUrl = URL.createObjectURL(htmlBlob);
+          setBlobUrl(newBlobUrl);
+          setIsChecking(false);
+        } else {
+          // Fallback for direct binary/blob responses (if the backend sends the PDF byte stream)
+          const dataBlob = new Blob([response.data], {
+            type: "application/pdf",
+          });
+          const newBlobUrl = URL.createObjectURL(dataBlob);
           setBlobUrl(newBlobUrl);
           setIsChecking(false);
         }
@@ -102,7 +162,12 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
 
           <div className="flex items-center gap-4">
             <a
-              href={blobUrl || pdfUrl}
+              href={
+                blobUrl ||
+                (pdfUrl?.startsWith("http")
+                  ? pdfUrl
+                  : `${API.defaults.baseURL}${pdfUrl}`)
+              }
               download={title ? `${title}.pdf` : "document.pdf"}
               target="_blank"
               rel="noopener noreferrer"

@@ -243,16 +243,6 @@ const ViewUser = () => {
 
             <div className="space-y-3">
               <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
-                Registered Location
-              </label>
-              <div className="bg-background px-6 py-4 rounded-2xl font-bold text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20">
-                <MapPin size={20} className="text-primary" />{" "}
-                {user.location || "Location not cataloged"}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
                 Onboarding Data
               </label>
               <div className="bg-background px-6 py-4 rounded-2xl font-bold text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20">

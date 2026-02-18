@@ -35,7 +35,6 @@ const EditUser = () => {
       .email("Invalid email address")
       .required("Email is required"),
     phone: Yup.string(),
-    location: Yup.string(),
     role: Yup.string().required("Role is required"),
     profile_image: Yup.mixed().optional(),
   });
@@ -45,7 +44,6 @@ const EditUser = () => {
       name: "",
       email: "",
       phone: "",
-      location: "",
       role: "User",
       profile_image: null,
     },
@@ -54,8 +52,19 @@ const EditUser = () => {
     onSubmit: async (values) => {
       setUpdating(true);
       const data = new FormData();
-      Object.keys(values).forEach((key) => {
-        data.append(key, values[key]);
+
+      // Explicitly append only the fields that the API expects
+      // Note: 'location' and 'role' are excluded as they cause validation errors
+      const allowedFields = ["name", "email", "phone", "profile_image"];
+
+      allowedFields.forEach((key) => {
+        if (
+          values[key] !== null &&
+          values[key] !== undefined &&
+          values[key] !== ""
+        ) {
+          data.append(key, values[key]);
+        }
       });
 
       try {
@@ -83,7 +92,6 @@ const EditUser = () => {
             name: user.name || "",
             email: user.email || "",
             phone: user.phone || "",
-            location: user.location || "",
             role: user.role || "User",
           });
 
@@ -265,30 +273,6 @@ const EditUser = () => {
                   onBlur={formik.handleBlur}
                   className={`w-full bg-background border ${
                     formik.touched.phone && formik.errors.phone
-                      ? "border-rose-500"
-                      : "border-border"
-                  } focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-2xl py-3.5 pl-12 pr-4 outline-hidden transition-all text-text-primary font-medium`}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-text-primary ml-1 block">
-                Location
-              </label>
-              <div className="relative group">
-                <MapPin
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors"
-                />
-                <input
-                  type="text"
-                  name="location"
-                  value={formik.values.location}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full bg-background border ${
-                    formik.touched.location && formik.errors.location
                       ? "border-rose-500"
                       : "border-border"
                   } focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-2xl py-3.5 pl-12 pr-4 outline-hidden transition-all text-text-primary font-medium`}

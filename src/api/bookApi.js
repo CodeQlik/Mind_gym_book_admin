@@ -2,7 +2,7 @@ import API from "./axiosInstance";
 
 export const bookApi = {
   getAllBooks: async (page = 1, limit = 10, status = "") => {
-    let url = `/book/all?page=${page}&limit=${limit}`;
+    let url = `/book/admin/all?page=${page}&limit=${limit}`;
     if (status) url += `&status=${status}`;
     const response = await API.get(url);
     return response.data;

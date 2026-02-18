@@ -23,7 +23,6 @@ const Profile = () => {
     name: "",
     email: "",
     phone: "",
-    location: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -34,7 +33,6 @@ const Profile = () => {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        location: user.location || "",
       });
     }
   }, [user]);
@@ -62,7 +60,6 @@ const Profile = () => {
     data.append("name", formData.name);
     data.append("email", formData.email);
     data.append("phone", formData.phone);
-    data.append("location", formData.location);
     if (imageFile) {
       data.append("profile_image", imageFile);
     }
@@ -94,12 +91,6 @@ const Profile = () => {
       name: "phone",
       value: formData.phone || "+91 98765 43210",
       icon: <Phone size={18} />,
-    },
-    {
-      label: "Location",
-      name: "location",
-      value: formData.location || "Jaipur, India",
-      icon: <MapPin size={18} />,
     },
     {
       label: "Joined Date",

@@ -20,7 +20,9 @@ export const toggleBookStatus = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await bookApi.toggleBookStatus(id);
-      return { id, data: response.data };
+      // Handle { success: true, message: "...", data: { ...book } }
+      const bookData = response.data || response;
+      return { id, data: bookData };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to toggle status",
@@ -108,10 +110,11 @@ const bookSlice = createSlice({
       })
       .addCase(fetchBooks.fulfilled, (state, action) => {
         state.loading = false;
-        state.books = action.payload.books || [];
-        state.totalItems = action.payload.totalItems || 0;
-        state.totalPages = action.payload.totalPages || 0;
-        state.currentPage = action.payload.currentPage || 1;
+        const data = action.payload.data || action.payload;
+        state.books = data.books || [];
+        state.totalItems = data.totalItems || 0;
+        state.totalPages = data.totalPages || 0;
+        state.currentPage = data.currentPage || 1;
       })
       .addCase(fetchBooks.rejected, (state, action) => {
         state.loading = false;
@@ -133,7 +136,9 @@ const bookSlice = createSlice({
       })
       .addCase(createBook.fulfilled, (state, action) => {
         state.loading = false;
-        state.books.unshift(action.payload);
+        // The API response now follows { success: true, data: { ...book } }
+        const newBook = action.payload.data || action.payload;
+        state.books.unshift(newBook);
       })
       .addCase(createBook.rejected, (state, action) => {
         state.loading = false;
@@ -145,12 +150,12 @@ const bookSlice = createSlice({
       })
       .addCase(updateBookThunk.fulfilled, (state, action) => {
         state.loading = false;
+        const updatedBook = action.payload.data || action.payload;
         const index = state.books.findIndex(
-          (book) =>
-            book.id === action.payload.id || book._id === action.payload.id,
+          (book) => book.id === updatedBook.id || book._id === updatedBook.id,
         );
         if (index !== -1) {
-          state.books[index] = action.payload;
+          state.books[index] = updatedBook;
         }
       })
       .addCase(updateBookThunk.rejected, (state, action) => {
@@ -171,10 +176,11 @@ const bookSlice = createSlice({
       })
       .addCase(searchBooksThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.books = action.payload.books || [];
-        state.totalItems = action.payload.totalItems || 0;
-        state.totalPages = action.payload.totalPages || 0;
-        state.currentPage = action.payload.currentPage || 1;
+        const data = action.payload.data || action.payload;
+        state.books = data.books || [];
+        state.totalItems = data.totalItems || 0;
+        state.totalPages = data.totalPages || 0;
+        state.currentPage = data.currentPage || 1;
       })
       .addCase(searchBooksThunk.rejected, (state, action) => {
         state.loading = false;
