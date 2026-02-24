@@ -11,8 +11,8 @@ export const authApi = {
     return response.data;
   },
 
-  updateProfile: async (id, formData) => {
-    const response = await API.put(`/users/update/${id}`, formData, {
+  updateProfile: async (formData) => {
+    const response = await API.put("/users/update-profile", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

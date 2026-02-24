@@ -123,7 +123,10 @@ const Users = () => {
     setTogglingId(null);
   };
 
-  const currentData = users;
+  const currentData = users.filter((u) => {
+    const role = (u.role || u.user_type || "").toLowerCase();
+    return role === "user";
+  });
 
   const columns = [
     {

@@ -14,28 +14,36 @@ import {
   Hash,
 } from "lucide-react";
 import { userApi } from "../../api/userApi";
+import { subscriptionApi } from "../../api/subscriptionApi";
 import Button from "../../components/UI/Button";
 
 const ViewUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const response = await userApi.getUserById(id);
-        if (response.success) {
-          setUser(response.data);
+        const userRes = await userApi.getUserById(id);
+        if (userRes.success) {
+          setUser(userRes.data);
+
+          // Fetch subscription details if user is found
+          const subRes = await subscriptionApi.getSubscriptionByUserId(id);
+          if (subRes.success) {
+            setSubscription(subRes.data);
+          }
         }
       } catch (error) {
-        console.error("Failed to fetch user:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
+    fetchData();
   }, [id]);
 
   if (loading) {
@@ -270,6 +278,85 @@ const ViewUser = () => {
                 {role}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Subscription Details Card */}
+        <div className="bg-surface border border-border p-10 sm:p-14 rounded-[3rem] shadow-sm">
+          <h3 className="text-[0.8rem] font-black text-primary mb-12 flex items-center gap-4 uppercase tracking-[0.3em]">
+            <span className="w-2.5 h-8 bg-primary rounded-full shadow-lg shadow-primary/30"></span>
+            Subscription Status
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+            <div className="space-y-3">
+              <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
+                Plan Type
+              </label>
+              <div className="bg-background px-6 py-4 rounded-2xl font-bold text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20 capitalize">
+                <Shield size={20} className="text-primary" />{" "}
+                {user.subscription_plan || "Free Tier"}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
+                Current Status
+              </label>
+              <div className="flex items-center">
+                <div
+                  className={`px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest border ${
+                    user.subscription_status === "active"
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                      : "bg-rose-50 text-rose-600 border-rose-100"
+                  }`}
+                >
+                  {user.subscription_status || "Inactive"}
+                </div>
+              </div>
+            </div>
+
+            {user.subscription_end_date && (
+              <div className="space-y-3">
+                <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
+                  Expirations Date
+                </label>
+                <div className="bg-background px-6 py-4 rounded-2xl font-bold text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20">
+                  <Calendar size={20} className="text-rose-400" />
+                  {new Date(user.subscription_end_date).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
+                </div>
+              </div>
+            )}
+
+            {subscription && (
+              <>
+                <div className="space-y-3">
+                  <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
+                    Payment Reference
+                  </label>
+                  <div className="bg-background px-6 py-4 rounded-2xl font-bold text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20">
+                    <Hash size={20} className="text-indigo-400" />{" "}
+                    {subscription.payment_id || "N/A"}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.25em] ml-1 block">
+                    Transactional Amount
+                  </label>
+                  <div className="bg-background px-6 py-4 rounded-2xl font-black text-text-primary border border-border flex items-center gap-4 transition-all hover:border-primary/20">
+                    <span className="text-primary text-xl">₹</span>{" "}
+                    {subscription.amount}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

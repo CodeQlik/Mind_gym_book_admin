@@ -1,18 +1,27 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFormik, FieldArray, FormikProvider } from "formik";
 import * as Yup from "yup";
 import { ArrowLeft, Plus, Save, Trash2, CheckCircle2 } from "lucide-react";
 import FormInput from "../../components/Form/FormInput";
 import Button from "../../components/UI/Button";
 import { useDispatch, useSelector } from "react-redux";
-import { createPlan } from "../../store/slices/planSlice";
+import { fetchPlans, updatePlan } from "../../store/slices/planSlice";
 import { toast } from "react-hot-toast";
 
-const AddPlan = () => {
+const EditPlan = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.plans);
+  const { plans, loading } = useSelector((state) => state.plans);
+
+  const planToEdit = plans.find((p) => String(p.id) === String(id));
+
+  useEffect(() => {
+    if (plans.length === 0) {
+      dispatch(fetchPlans());
+    }
+  }, [dispatch, plans.length]);
 
   const planTypeOptions = [
     { value: "one_month", label: "One Month" },
@@ -38,13 +47,14 @@ const AddPlan = () => {
 
   const formik = useFormik({
     initialValues: {
-      name: "",
-      plan_type: "one_month",
-      price: "",
-      duration_months: 1,
-      description: "",
-      features: [""],
+      name: planToEdit?.name || "",
+      plan_type: planToEdit?.plan_type || "one_month",
+      price: planToEdit?.price || "",
+      duration_months: planToEdit?.duration_months || 1,
+      description: planToEdit?.description || "",
+      features: planToEdit?.features || [""],
     },
+    enableReinitialize: true,
     validationSchema,
     onSubmit: async (values) => {
       try {
@@ -54,24 +64,31 @@ const AddPlan = () => {
           price: Number(values.price),
           duration_months: Number(values.duration_months),
           description: values.description,
-          // Optional fields if your backend supports them:
-          // features: values.features.filter((f) => f.trim() !== ""),
-          // color: values.color,
-          // is_premium: values.is_premium
         };
 
-        const resultAction = await dispatch(createPlan(payload));
-        if (createPlan.fulfilled.match(resultAction)) {
-          toast.success("Plan created successfully");
+        const resultAction = await dispatch(
+          updatePlan({ id, planData: payload }),
+        );
+        if (updatePlan.fulfilled.match(resultAction)) {
+          toast.success("Plan updated successfully");
           navigate("/subscribe");
         } else {
-          toast.error(resultAction.payload || "Failed to create plan");
+          toast.error(resultAction.payload || "Failed to update plan");
         }
       } catch (error) {
         toast.error("An unexpected error occurred");
       }
     },
   });
+
+  if (!planToEdit && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-text-secondary font-bold">Plan not found</p>
+        <Button onClick={() => navigate("/subscribe")}>Back to Plans</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in font-['Outfit']">
@@ -87,10 +104,10 @@ const AddPlan = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-text-primary">
-            Create New Plan
+            Edit Subscription Plan
           </h1>
           <p className="text-text-secondary mt-1">
-            Design a new subscription tier for your readers.
+            Modify the details of your subscription tier.
           </p>
         </div>
       </div>
@@ -228,7 +245,7 @@ const AddPlan = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
               <Button type="submit" icon={Save} size="lg" loading={loading}>
-                Save Subscription Plan
+                Update Subscription Plan
               </Button>
               <Button
                 variant="secondary"
@@ -246,4 +263,4 @@ const AddPlan = () => {
   );
 };
 
-export default AddPlan;
+export default EditPlan;

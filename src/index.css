@@ -18,54 +18,86 @@
 
 @layer base {
   :root {
+    /* Premium Indigo/Violet Palette */
     --primary: #6366f1;
     --primary-hover: #4f46e5;
     --secondary: #64748b;
     --accent: #8b5cf6;
 
+    /* Light Mode: Clean Slate/Blue Greys */
     --background: #f8fafc;
     --surface: #ffffff;
-
     --text-primary: #0f172a;
-    --text-secondary: #64748b;
-
+    --text-secondary: #475569;
     --border: #e2e8f0;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
     --sidebar-width: 280px;
     --header-height: 80px;
   }
 
   .dark {
     --primary: #818cf8;
-    --primary-hover: #6366f1;
+    --primary-hover: #a5b4fc;
     --secondary: #94a3b8;
-    --accent: #a78bfa;
+    --accent: #c084fc;
 
-    --background: #020617; /* Slate 950 */
-    --surface: #0f172a; /* Slate 900 */
-
-    --text-primary: #f1f5f9; /* Slate 100 */
-    --text-secondary: #94a3b8; /* Slate 400 */
-
-    --border: #1e293b; /* Slate 800 */
+    /* Dark Mode: Deep Midnight Navy */
+    --background: #020617;
+    --surface: #0f172a;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border: #1e293b;
   }
 
   body {
-    @apply bg-background text-text-primary transition-colors duration-300;
+    @apply bg-background text-text-primary transition-colors duration-300 font-['Outfit',sans-serif];
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
 @layer components {
+  /* Glassmorphism Effect */
+  .glass {
+    @apply bg-surface/70 backdrop-blur-xl border border-white/20 dark:border-white/5;
+  }
+
   .card-premium {
-    @apply bg-surface border border-border rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 p-8;
+    @apply bg-surface border border-border rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(99,102,241,0.1)] dark:hover:shadow-[0_20px_50px_rgba(99,102,241,0.05)] transition-all duration-500 p-8 relative overflow-hidden;
   }
 
+  /* Refined Input Fields */
   .input-field {
-    @apply w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-text-primary placeholder:text-text-secondary/50;
+    @apply w-full bg-surface/50 dark:bg-slate-900/50 border border-border rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 text-text-primary placeholder:text-text-secondary/40 font-medium;
   }
 
+  /* High-End Button Design */
   .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-2xl font-bold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_10px_20px_-5px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(99,102,241,0.5)];
   }
+
+  .btn-secondary {
+    @apply bg-surface border border-border hover:bg-background text-text-primary px-7 py-3.5 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2;
+  }
+
+  /* Table Custom Stylings */
+  .table-row-hover {
+    @apply hover:bg-primary/[0.02] transition-colors duration-200;
+  }
+
+  /* Custom Glow Effects */
+  .glow-primary {
+    @apply absolute -top-24 -right-24 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full hover:bg-text-secondary/30 transition-colors;
 }

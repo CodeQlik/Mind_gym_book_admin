@@ -59,14 +59,16 @@ const Profile = () => {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("email", formData.email);
-    data.append("phone", formData.phone);
+
+    // Clean phone number: remove non-digits
+    const cleanPhone = formData.phone ? formData.phone.replace(/\D/g, "") : "";
+    data.append("phone", cleanPhone);
+
     if (imageFile) {
       data.append("profile_image", imageFile);
     }
 
-    const result = await dispatch(
-      updateProfile({ id: user?.id || user?._id, formData: data }),
-    );
+    const result = await dispatch(updateProfile({ formData: data }));
     if (updateProfile.fulfilled.match(result)) {
       setIsEditing(false);
       setImageFile(null);
@@ -78,24 +80,32 @@ const Profile = () => {
       label: "Full Name",
       name: "name",
       value: formData.name,
+      displayValue: formData.name || "N/A",
       icon: <User size={18} />,
     },
     {
       label: "Email Address",
       name: "email",
       value: formData.email,
+      displayValue: formData.email || "N/A",
       icon: <Mail size={18} />,
     },
     {
       label: "Contact Number",
       name: "phone",
-      value: formData.phone || "+91 98765 43210",
+      value: formData.phone,
+      displayValue: formData.phone || "Not Provided",
       icon: <Phone size={18} />,
     },
     {
       label: "Joined Date",
-      value: user?.joinedAt
-        ? new Date(user.joinedAt).toLocaleDateString()
+      value: "",
+      displayValue: user?.created_at
+        ? new Date(user.created_at).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })
         : "January 12, 2024",
       icon: <Calendar size={18} />,
       readOnly: true,
@@ -273,9 +283,10 @@ const Profile = () => {
                       <input
                         type="text"
                         name={item.name}
-                        value={item.value}
+                        value={item.value || ""}
                         onChange={handleInputChange}
                         className="w-full bg-background/50 border border-border/50 group-focus-within:border-primary group-focus-within:ring-4 group-focus-within:ring-primary/10 rounded-2xl py-4 pl-14 pr-6 outline-hidden transition-all text-sm font-bold text-text-primary"
+                        placeholder={`Enter your ${item.label.toLowerCase()}`}
                       />
                     </div>
                   ) : (
@@ -285,7 +296,7 @@ const Profile = () => {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-text-primary tracking-tight">
-                          {item.value || "Not Assigned"}
+                          {item.displayValue}
                         </span>
                         {item.readOnly && (
                           <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">

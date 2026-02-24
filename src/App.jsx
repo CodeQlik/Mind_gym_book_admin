@@ -18,6 +18,7 @@ import Users from "./pages/Users/Users";
 import ViewUser from "./pages/Users/ViewUser";
 import EditUser from "./pages/Users/EditUser";
 import Settings from "./pages/Settings/Settings";
+import Payments from "./pages/Payments/Payments";
 import Analytics from "./pages/Analytics/Analytics";
 import Login from "./pages/Login/Login";
 import Profile from "./pages/Profile/Profile";
@@ -29,7 +30,12 @@ import ViewCategory from "./pages/Categories/ViewCategory";
 import Subscribe from "./pages/Subscribe/Subscribe";
 import SubscribeUsers from "./pages/Subscribe/SubscribeUsers";
 import AddPlan from "./pages/Subscribe/AddPlan";
+import EditPlan from "./pages/Subscribe/EditPlan";
+import Notifications from "./pages/Notifications/Notifications";
+import Orders from "./pages/Orders/Orders";
+import Marketplace from "./pages/Marketplace/Marketplace";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const dispatch = useDispatch();
@@ -54,7 +60,8 @@ function App() {
   }, [isDarkMode]);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/login" element={<Login />} />
 
@@ -76,11 +83,16 @@ function App() {
             <Route path="users/view/:id" element={<ViewUser />} />
             <Route path="users/edit/:id" element={<EditUser />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="payments" element={<Payments />} />
             <Route path="subscribe" element={<Subscribe />} />
             <Route path="subscribe/add" element={<AddPlan />} />
+            <Route path="subscribe/edit/:id" element={<EditPlan />} />
             <Route path="subscribe/users" element={<SubscribeUsers />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="marketplace" element={<Marketplace />} />
           </Route>
         </Route>
 

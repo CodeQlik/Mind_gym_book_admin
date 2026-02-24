@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { loginUser, clearError } from "../../store/slices/authSlice";
 import { Mail, Lock, Eye, EyeOff, Loader2, BookMarked } from "lucide-react";
+import Logo from "../../assets/mgblogo.jpeg";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -59,11 +60,11 @@ const Login = () => {
         </div>
 
         <div className="relative z-10 max-w-lg text-center backdrop-blur-sm bg-white/5 p-12 rounded-[3rem] border border-white/10 shadow-2xl">
-          <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-inner ring-1 ring-white/30 group">
-            <BookMarked
-              size={48}
-              className="text-white group-hover:scale-110 transition-transform duration-500"
-              strokeWidth={1.5}
+          <div className="w-28 h-28 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-xl border border-white/20 group overflow-hidden p-3">
+            <img
+              src={Logo}
+              alt="MGB Logo"
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
             />
           </div>
           <h1 className="text-6xl font-black mb-6 tracking-tight drop-shadow-sm">

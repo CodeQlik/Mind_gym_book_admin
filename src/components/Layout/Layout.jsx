@@ -12,6 +12,14 @@ const Layout = () => {
         isOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
+
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1050] lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative">
         <Header
           isOpen={isSidebarOpen}

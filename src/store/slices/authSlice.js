@@ -3,15 +3,17 @@ import { authApi } from "../../api/authApi";
 
 const getSafeToken = () => {
   const token = localStorage.getItem("token");
-  if (!token || token === "undefined") return null;
+  if (!token || token === "undefined" || token === "null") {
+    return null;
+  }
   return token;
 };
 
 const getSafeUser = () => {
   try {
-    const user = localStorage.getItem("user");
-    if (!user || user === "undefined") return null;
-    return JSON.parse(user);
+    const userStr = localStorage.getItem("user");
+    if (!userStr || userStr === "undefined" || userStr === "null") return null;
+    return JSON.parse(userStr);
   } catch (e) {
     return null;
   }
@@ -32,36 +34,54 @@ export const loginUser = createAsyncThunk(
     try {
       const data = await authApi.login(credentials);
       if (data.success) {
-        // Handle new response structure: data.data.accessToken
-        const token = data.data?.accessToken || data.token || data.data?.token;
-        const refreshToken = data.data?.refreshToken;
+        console.log("[AUTH] Login Response received:", data);
 
-        // Extract user: check data.data.user first
-        let user = data.data?.user || data.user;
+        // Extraction from backend 'data' wrapper
+        const result = data.data || data;
+        const accessToken = result.accessToken || result.token;
+        const refreshToken = result.refreshToken || result.refresh_token;
+        const user = result.user || (result.user_type ? result : null);
 
-        if (!user) {
-          if (data.data?.user_type || data.data?.role) {
-            user = data.data;
-          }
+        if (!accessToken) {
+          console.error("[AUTH] Access Token missing from response");
+          return rejectWithValue("Access Token not found");
         }
 
-        if (!token) return rejectWithValue("Token not found in response");
+        // STRICT ROLE CHECK: Only 'admin' or 'System Admin' etc.
+        const userRole = (user?.user_type || user?.role || "").toLowerCase();
+        const isAdmin = ["admin", "system admin", "master admin"].includes(
+          userRole,
+        );
 
-        // CHECK ROLE: Ensure only admins can access this panel
-        const userRole = user?.role || user?.user_type;
-        if (userRole !== "Admin" && userRole !== "admin") {
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          return rejectWithValue("Access Denied: Only Admins can log in here.");
+        if (!isAdmin) {
+          console.warn(
+            "[AUTH] Access Denied: User is not an admin. Role:",
+            userRole,
+          );
+          return rejectWithValue(
+            "Access Denied: You do not have admin privileges.",
+          );
         }
 
-        localStorage.setItem("token", token);
+        // Standardized Persistence
+        localStorage.setItem("token", String(accessToken));
         if (refreshToken) {
-          localStorage.setItem("refreshToken", refreshToken);
+          localStorage.setItem("refreshToken", String(refreshToken));
+          console.log("[AUTH] Refresh Token persisted successfully.");
         }
-        localStorage.setItem("user", JSON.stringify(user || null));
-        return { token, refreshToken, user };
+
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+          console.log("[AUTH] User profile persisted successfully.");
+        }
+
+        console.log("[AUTH] Session standardized in storage.");
+
+        return {
+          token: String(accessToken),
+          refreshToken: refreshToken ? String(refreshToken) : null,
+          user,
+        };
       } else {
         return rejectWithValue(data.message || "Login failed");
       }
@@ -82,7 +102,9 @@ export const fetchProfile = createAsyncThunk(
       const data = await authApi.fetchProfile();
       if (data.success) {
         const user = data.user || data.data;
-        localStorage.setItem("user", JSON.stringify(user || null));
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+        }
         return user;
       } else {
         return rejectWithValue(data.message || "Failed to fetch profile");
@@ -96,9 +118,9 @@ export const fetchProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   "auth/updateProfile",
-  async ({ id, formData }, { rejectWithValue }) => {
+  async ({ formData }, { rejectWithValue }) => {
     try {
-      const data = await authApi.updateProfile(id, formData);
+      const data = await authApi.updateProfile(formData);
       if (data.success) {
         const user = data.user || data.data;
         localStorage.setItem("user", JSON.stringify(user || null));
@@ -122,9 +144,11 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.user = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
+
+      // Wipe all related keys
+      ["token", "accessToken", "refreshToken", "refresh_token", "user"].forEach(
+        (key) => localStorage.removeItem(key),
+      );
     },
     clearError: (state) => {
       state.error = null;
@@ -147,28 +171,55 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
         state.user = action.payload;
+        state.isAuthenticated = true;
       })
       .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
-        // Handle auth failures by logging out
+
+        // Handle auth failures by logging out EVERYTHING
         const authErrors = [
           "Invalid token",
           "Please log in",
           "jwt malformed",
           "jwt expired",
           "No token found",
+          "Unauthorized request",
+          "Invalid access token",
+          "Token not found",
         ];
 
-        if (authErrors.includes(action.payload)) {
+        if (
+          authErrors.some((err) =>
+            String(action.payload || "")
+              .toLowerCase()
+              .includes(err.toLowerCase()),
+          )
+        ) {
+          console.warn(
+            "[AUTH] Profile fetch rejected with auth error. Not clearing state yet.",
+          );
+          /*
           state.token = null;
           state.refreshToken = null;
           state.user = null;
           state.isAuthenticated = false;
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
+
+          [
+            "token",
+            "accessToken",
+            "refreshToken",
+            "refresh_token",
+            "user",
+          ].forEach((key) => localStorage.removeItem(key));
+          */
         }
       })
       .addCase(updateProfile.pending, (state) => {

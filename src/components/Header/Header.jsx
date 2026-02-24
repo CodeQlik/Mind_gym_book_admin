@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { logout } from "../../store/slices/authSlice";
+import { fetchNotifications } from "../../store/slices/notificationSlice";
 import {
   Bell,
   Moon,
@@ -20,10 +21,12 @@ const Header = ({ toggleSidebar, isOpen }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const { unreadCount } = useSelector((state) => state.notifications);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
+    dispatch(fetchNotifications());
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
@@ -53,9 +56,16 @@ const Header = ({ toggleSidebar, isOpen }) => {
           <ThemeToggle />
 
           <div className="relative group">
-            <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-background text-text-secondary hover:text-primary transition-all border border-border relative overflow-hidden">
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-background text-text-secondary hover:text-primary transition-all border border-border relative"
+              onClick={() => navigate("/notifications")}
+            >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-background"></span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-surface px-1 shadow-sm">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
