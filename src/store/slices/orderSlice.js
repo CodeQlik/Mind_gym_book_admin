@@ -39,7 +39,8 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
+        // The API returns { success: true, ..., data: [...] }
+        state.orders = action.payload.data || action.payload;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;

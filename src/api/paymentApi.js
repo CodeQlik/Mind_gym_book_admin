@@ -2,8 +2,10 @@ import API from "./axiosInstance";
 
 export const paymentApi = {
   // Admin Routes
-  getAllPayments: async () => {
-    const response = await API.get("/payment/admin/all");
+  getAllPayments: async ({ page = 1, limit = 10 } = {}) => {
+    const response = await API.get("/payment/admin/all", {
+      params: { page, limit },
+    });
     return response.data;
   },
 

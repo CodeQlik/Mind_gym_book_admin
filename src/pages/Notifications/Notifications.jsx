@@ -11,6 +11,7 @@ import {
 import CreateNotificationModal, {
   TARGETING_OPTIONS,
 } from "../../components/Modal/CreateNotificationModal";
+import Pagination from "../../components/Pagination/Pagination";
 import {
   Bell,
   BellOff,
@@ -353,9 +354,18 @@ const Notifications = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [toast, setToast] = useState(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   useEffect(() => {
     dispatch(fetchNotifications());
   }, [dispatch]);
+
+  // Reset page when tab or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, filterStatus]);
 
   // Sync Redux items into local logs when API responds
   useEffect(() => {
@@ -441,6 +451,12 @@ const Notifications = () => {
     const matchStatus = filterStatus === "All" || l.status === filterStatus;
     return matchTab && matchStatus;
   });
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const paginatedLogs = filteredLogs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
   const statsSent = logs.filter((l) => l.status === "Sent").length;
   const statsPending = logs.filter((l) => l.status === "Pending").length;
@@ -588,7 +604,7 @@ const Notifications = () => {
           <Table
             loading={false}
             emptyMessage="No notifications found — try a different filter or create one."
-            data={filteredLogs}
+            data={paginatedLogs}
             columns={[
               {
                 header: "Event Type",
@@ -651,6 +667,15 @@ const Notifications = () => {
                 ),
               },
             ]}
+          />
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredLogs.length}
+            itemsPerPage={itemsPerPage}
           />
         </div>
       )}

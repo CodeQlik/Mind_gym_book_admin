@@ -176,18 +176,6 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
 
         {/* Viewer Area */}
         <div className="flex-1 relative bg-background w-full overflow-hidden">
-          {/* Status Message Overlay */}
-          {metadata.message && !isChecking && !loadError && (
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 animate-in slide-in-from-top-4 duration-500">
-              <div className="bg-primary/95 backdrop-blur-md text-white px-8 py-3.5 rounded-full flex items-center gap-3 shadow-2xl border border-white/20">
-                <Info size={18} className="animate-pulse" />
-                <span className="text-sm font-black tracking-tight italic uppercase">
-                  {metadata.message}
-                </span>
-              </div>
-            </div>
-          )}
-
           {isChecking ? (
             <div className="h-full flex flex-col items-center justify-center gap-5">
               <div className="relative">
@@ -267,14 +255,6 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Infrastructure Watermark */}
-          {!loadError && !isChecking && (
-            <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-slate-900/90 text-[0.65rem] text-white/50 px-5 py-2 rounded-full font-black backdrop-blur-md flex items-center gap-3 pointer-events-none z-10 uppercase tracking-[0.2em] border border-white/5 shadow-2xl">
-              <ShieldCheck size={14} className="text-emerald-500" /> SECURED BY
-              MIND GYM VAULT SYSTEM
             </div>
           )}
         </div>

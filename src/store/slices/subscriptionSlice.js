@@ -51,14 +51,20 @@ const subscriptionSlice = createSlice({
       })
       .addCase(fetchSubscriptions.fulfilled, (state, action) => {
         state.loading = false;
-        // The screenshot shows data: { ... } which might be a single object or an array
-        // We'll ensure it's handled as an array for the table
+        // The API returns { success: true, data: { subscriptions: [], totalItems: ... } }
         const payload = action.payload;
-        state.subscriptions = Array.isArray(payload)
-          ? payload
-          : payload
-            ? [payload]
-            : [];
+        if (payload?.data && Array.isArray(payload.data.subscriptions)) {
+          state.subscriptions = payload.data.subscriptions;
+        } else if (Array.isArray(payload)) {
+          state.subscriptions = payload;
+        } else if (
+          payload?.subscriptions &&
+          Array.isArray(payload.subscriptions)
+        ) {
+          state.subscriptions = payload.subscriptions;
+        } else {
+          state.subscriptions = [];
+        }
       })
       .addCase(fetchSubscriptions.rejected, (state, action) => {
         state.loading = false;

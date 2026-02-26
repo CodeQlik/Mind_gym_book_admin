@@ -11,6 +11,7 @@ import subscriptionReducer from "./slices/subscriptionSlice";
 import paymentReducer from "./slices/paymentSlice";
 import orderReducer from "./slices/orderSlice";
 import marketReducer from "./slices/marketSlice";
+import analyticsReducer from "./slices/analyticsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +26,7 @@ export const store = configureStore({
     payments: paymentReducer,
     orders: orderReducer,
     marketplace: marketReducer,
+    analytics: analyticsReducer,
   },
 });
 

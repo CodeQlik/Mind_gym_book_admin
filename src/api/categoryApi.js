@@ -11,6 +11,11 @@ export const categoryApi = {
     return response.data;
   },
 
+  getAdminCategories: async () => {
+    const response = await API.get("/category/admin/all");
+    return response.data;
+  },
+
   getCategoryBySlug: async (slug) => {
     const response = await API.get(`/category/${slug}`);
     return response.data;

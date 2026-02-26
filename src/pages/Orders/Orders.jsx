@@ -39,7 +39,7 @@ const Orders = () => {
         (o) =>
           o.order_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          o.status?.toLowerCase().includes(searchQuery.toLowerCase()),
+          o.delivery_status?.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : [];
 
@@ -123,9 +123,9 @@ const Orders = () => {
       header: "Status",
       render: (row) => (
         <select
-          value={row.status}
+          value={row.delivery_status}
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border outline-none cursor-pointer transition-all ${getStatusStyle(row.status)}`}
+          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border outline-none cursor-pointer transition-all ${getStatusStyle(row.delivery_status)}`}
         >
           <option value="processing">Processing</option>
           <option value="shipped">Shipped</option>
@@ -160,19 +160,21 @@ const Orders = () => {
         {[
           {
             label: "Pending",
-            value: orders.filter((o) => o.status === "processing").length,
+            value: orders.filter((o) => o.delivery_status === "processing")
+              .length,
             color: "text-amber-500",
             icon: Clock,
           },
           {
             label: "Shipped",
-            value: orders.filter((o) => o.status === "shipped").length,
+            value: orders.filter((o) => o.delivery_status === "shipped").length,
             color: "text-blue-500",
             icon: Truck,
           },
           {
             label: "Delivered",
-            value: orders.filter((o) => o.status === "delivered").length,
+            value: orders.filter((o) => o.delivery_status === "delivered")
+              .length,
             color: "text-emerald-500",
             icon: CheckCircle2,
           },

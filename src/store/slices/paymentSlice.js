@@ -3,9 +3,9 @@ import { paymentApi } from "../../api/paymentApi";
 
 export const fetchAllPayments = createAsyncThunk(
   "payments/fetchAll",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const response = await paymentApi.getAllPayments();
+      const response = await paymentApi.getAllPayments(params);
       return response.data || response;
     } catch (error) {
       return rejectWithValue(
@@ -17,6 +17,9 @@ export const fetchAllPayments = createAsyncThunk(
 
 const initialState = {
   payments: [],
+  totalItems: 0,
+  totalPages: 0,
+  currentPage: 1,
   loading: false,
   error: null,
 };
@@ -37,7 +40,11 @@ const paymentSlice = createSlice({
       })
       .addCase(fetchAllPayments.fulfilled, (state, action) => {
         state.loading = false;
-        state.payments = Array.isArray(action.payload) ? action.payload : [];
+        const data = action.payload.data || action.payload;
+        state.payments = data.payments || [];
+        state.totalItems = data.totalItems || 0;
+        state.totalPages = data.totalPages || 0;
+        state.currentPage = data.currentPage || 1;
       })
       .addCase(fetchAllPayments.rejected, (state, action) => {
         state.loading = false;

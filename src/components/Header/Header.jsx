@@ -61,11 +61,6 @@ const Header = ({ toggleSidebar, isOpen }) => {
               onClick={() => navigate("/notifications")}
             >
               <Bell size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-surface px-1 shadow-sm">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
             </button>
           </div>
         </div>

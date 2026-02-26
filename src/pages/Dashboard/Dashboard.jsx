@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Users,
   BookOpen,
@@ -7,6 +7,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   MoreVertical,
+  Layers,
+  ShoppingBag,
+  Clock,
 } from "lucide-react";
 import {
   BarChart,
@@ -21,26 +24,12 @@ import {
   Cell,
 } from "recharts";
 import Table from "../../components/Table/Table";
-
-const data = [
-  { name: "Jan", value: 400 },
-  { name: "Feb", value: 300 },
-  { name: "Mar", value: 600 },
-  { name: "Apr", value: 800 },
-  { name: "May", value: 500 },
-  { name: "Jun", value: 700 },
-  { name: "Jul", value: 900 },
-];
-
-const bookSales = [
-  { name: "Mon", sales: 40 },
-  { name: "Tue", sales: 60 },
-  { name: "Wed", sales: 45 },
-  { name: "Thu", sales: 90 },
-  { name: "Fri", sales: 75 },
-  { name: "Sat", sales: 120 },
-  { name: "Sun", sales: 85 },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDashboardStats } from "../../store/slices/analyticsSlice";
+import { fetchAllUsers } from "../../store/slices/userSlice";
+import { fetchSubscriptions } from "../../store/slices/subscriptionSlice";
+import { fetchOrders } from "../../store/slices/orderSlice";
+import { fetchBooks } from "../../store/slices/bookSlice";
 
 const StatCard = ({ title, value, icon, trend, percentage, colorType }) => {
   const colorClasses = {
@@ -93,8 +82,6 @@ const StatCard = ({ title, value, icon, trend, percentage, colorType }) => {
           {title}
         </p>
       </div>
-
-      {/* Subtle Bottom Glow */}
       <div
         className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${colorType === "primary" ? "bg-primary" : colorType === "amber" ? "bg-amber-500" : colorType === "emerald" ? "bg-emerald-500" : "bg-pink-500"}`}
       />
@@ -103,82 +90,125 @@ const StatCard = ({ title, value, icon, trend, percentage, colorType }) => {
 };
 
 const Dashboard = () => {
+  const dispatch = useDispatch();
+  const {
+    revenue,
+    engagement,
+    loading: analyticsLoading,
+  } = useSelector((state) => state.analytics);
+  const { totalItems: totalUsers, users } = useSelector((state) => state.users);
+  const { subscriptions } = useSelector((state) => state.subscriptions);
+  const { totalItems: totalBooks } = useSelector((state) => state.books);
+  const { orders } = useSelector((state) => state.orders);
+
+  useEffect(() => {
+    dispatch(fetchDashboardStats());
+    dispatch(fetchAllUsers({ limit: 5 }));
+    dispatch(fetchSubscriptions());
+    dispatch(fetchOrders());
+    dispatch(fetchBooks({ limit: 1 }));
+  }, [dispatch]);
+
+  const activeSubscriptions =
+    subscriptions?.filter((s) => s.status === "active")?.length || 0;
+  const premiumUsers =
+    users?.filter((u) => u.subscription_status === "active")?.length || 0;
+  const freeUsers = totalUsers - premiumUsers;
+
+  const totalRevenue =
+    (revenue?.subscriptionIncome || 0) + (revenue?.ecommerceIncome || 0);
+
+  // Mock revenue data for charts based on real totals
+  const revenueData = [
+    { name: "Mon", value: (revenue?.subscriptionIncome || 0) * 0.1 },
+    { name: "Tue", value: (revenue?.ecommerceIncome || 0) * 0.15 },
+    { name: "Wed", value: (totalRevenue || 0) * 0.12 },
+    { name: "Thu", value: (revenue?.subscriptionIncome || 0) * 0.2 },
+    { name: "Fri", value: (totalRevenue || 0) * 0.18 },
+    { name: "Sat", value: (totalRevenue || 0) * 0.25 },
+    { name: "Sun", value: totalRevenue },
+  ];
+
+  const recentActivity = [
+    ...(users
+      ?.slice(0, 3)
+      .map((u) => ({ type: "user", name: u.name, time: "Recently joined" })) ||
+      []),
+    ...(orders?.slice(0, 3).map((o) => ({
+      type: "order",
+      name: `Order #${o.id}`,
+      time: "New order",
+    })) || []),
+  ]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 5);
+
   return (
     <div className="flex flex-col gap-12 animate-fade-in p-2">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div>
           <h1 className="text-3xl lg:text-4xl font-black text-text-primary tracking-tight font-['Outfit'] leading-[1.1]">
-            Welcome Back, <span className="text-primary italic">Admin</span>
+            Management <span className="text-primary italic">Dashboard</span>
           </h1>
           <p className="text-text-secondary mt-2 text-base font-bold opacity-60 max-w-2xl leading-relaxed tracking-tight">
-            Your command center is ready. Here's a quick overview of Mind Gym's
-            performance metrics for today.
+            Comprehensive overview of Mind Gym's performance, user database, and
+            revenue streams.
           </p>
         </div>
-        <button className="bg-[#6366f1] hover:bg-indigo-600 text-white px-6 py-3.5 rounded-xl font-black shadow-xl shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 w-fit text-xs uppercase tracking-[0.12em] whitespace-nowrap">
-          <TrendingUp size={18} strokeWidth={3} /> Download Report
-        </button>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
         <StatCard
-          title="Total Readers"
-          value="12,482"
+          title="Active Readers"
+          value={engagement?.activeUsers || 0}
           icon={<Users />}
           trend="up"
-          percentage="12.5"
+          percentage="10"
           colorType="primary"
         />
         <StatCard
-          title="Books Published"
-          value="148"
-          icon={<BookOpen />}
+          title="Active Subscriptions"
+          value={activeSubscriptions}
+          icon={<Layers />}
           trend="up"
-          percentage="4.2"
+          percentage="5"
           colorType="amber"
         />
         <StatCard
-          title="Avg. Daily Visits"
-          value="2,840"
-          icon={<Eye />}
+          title="Total Books"
+          value={totalBooks}
+          icon={<BookOpen />}
           trend="up"
-          percentage="8.1"
+          percentage="8"
           colorType="emerald"
         />
         <StatCard
-          title="Monthly Revenue"
-          value="$14,230"
+          title="Total Revenue"
+          value={`₹${totalRevenue.toLocaleString()}`}
           icon={<TrendingUp />}
-          trend="down"
-          percentage="3.4"
+          trend="up"
+          percentage="15"
           colorType="pink"
         />
       </div>
 
-      {/* Statistics Grid */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-up"
-        style={{ animationDelay: "0.2s" }}
-      >
-        <div className="card-premium">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 card-premium">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-xl font-black text-text-primary tracking-tight">
-                Reader Engagement
+                Revenue Overview
               </h3>
               <p className="text-xs text-text-secondary font-bold uppercase tracking-widest mt-1">
-                Monthly progression
+                Daily progression (Mocked distribution)
               </p>
             </div>
-            <button className="action-btn bg-background/50 text-text-secondary hover:text-primary">
-              <MoreVertical size={20} />
-            </button>
           </div>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={revenueData}>
                 <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
@@ -213,12 +243,8 @@ const Dashboard = () => {
                   contentStyle={{
                     backgroundColor: "var(--surface)",
                     borderColor: "var(--border)",
-                    color: "var(--text-primary)",
                     borderRadius: "16px",
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-                    border: "1px solid var(--border)",
                     padding: "12px",
-                    fontWeight: 800,
                   }}
                 />
                 <Area
@@ -227,7 +253,7 @@ const Dashboard = () => {
                   stroke="#6366f1"
                   strokeWidth={4}
                   fillOpacity={1}
-                  fill="url(#colorValue)"
+                  fill="url(#colorRev)"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -235,176 +261,107 @@ const Dashboard = () => {
         </div>
 
         <div className="card-premium">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-xl font-black text-text-primary tracking-tight">
-                Weekly Sales
-              </h3>
-              <p className="text-xs text-text-secondary font-bold uppercase tracking-widest mt-1">
-                Daily throughput
-              </p>
-            </div>
-            <button className="action-btn bg-background/50 text-text-secondary hover:text-primary">
-              <MoreVertical size={20} />
-            </button>
+          <div className="flex items-center gap-2 mb-8">
+            <Clock size={20} className="text-primary" />
+            <h3 className="text-xl font-black text-text-primary tracking-tight">
+              Recent Activity
+            </h3>
           </div>
-          <div className="h-[320px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bookSales}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="var(--border)"
-                  opacity={0.3}
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fill: "var(--text-secondary)",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fill: "var(--text-secondary)",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                />
-                <Tooltip
-                  cursor={{ fill: "var(--primary)", opacity: 0.05 }}
-                  contentStyle={{
-                    backgroundColor: "var(--surface)",
-                    borderColor: "var(--border)",
-                    borderRadius: "16px",
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-                    border: "1px solid var(--border)",
-                    padding: "12px",
-                    fontWeight: 800,
-                  }}
-                />
-                <Bar dataKey="sales" radius={[8, 8, 8, 8]} barSize={40}>
-                  {bookSales.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        [
-                          "#6366f1", // Indigo
-                          "#8b5cf6", // Violet
-                          "#ec4899", // Pink
-                          "#f43f5e", // Rose
-                          "#f59e0b", // Amber
-                          "#10b981", // Emerald
-                          "#06b6d4", // Cyan
-                        ][index % 7]
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex flex-col gap-6">
+            {recentActivity.length > 0 ? (
+              recentActivity.map((act, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-primary/20 transition-all group"
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${act.type === "user" ? "bg-indigo-50 text-indigo-500" : "bg-emerald-50 text-emerald-500"}`}
+                  >
+                    {act.type === "user" ? (
+                      <Users size={18} />
+                    ) : (
+                      <ShoppingBag size={18} />
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-text-primary text-sm group-hover:text-primary transition-colors">
+                      {act.name}
+                    </span>
+                    <span className="text-[11px] text-text-secondary font-bold opacity-60">
+                      {act.time}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-text-secondary py-10 font-bold opacity-50">
+                No recent activity
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Top Performing Books Section */}
-      <div
-        className="card-premium animate-fade-in p-8"
-        style={{ animationDelay: "0.4s" }}
-      >
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h3 className="text-2xl font-black text-text-primary tracking-tight font-['Outfit']">
-              Top Performing Books
-            </h3>
-            <p className="text-xs text-text-secondary font-black uppercase tracking-widest mt-1">
-              Real-time performance metrics
-            </p>
-          </div>
-          <button className="px-6 py-2.5 rounded-xl bg-primary/10 text-primary font-black text-sm hover:bg-primary hover:text-white transition-all">
-            View All Library
-          </button>
+      <div className="card-premium animate-fade-in p-8">
+        <div className="mb-8">
+          <h3 className="text-2xl font-black text-text-primary tracking-tight font-['Outfit']">
+            Top Selling Books
+          </h3>
+          <p className="text-xs text-text-secondary font-black uppercase tracking-widest mt-1">
+            Based on purchase volume
+          </p>
         </div>
 
         <Table
           columns={[
             {
               header: "Book Title",
-              width: "30%",
+              width: "40%",
               render: (row) => (
-                <span className="font-bold text-text-primary group-hover:text-primary transition-colors text-[15px]">
-                  {row.title}
-                </span>
-              ),
-            },
-            {
-              header: "Category",
-              render: (row) => (
-                <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold uppercase tracking-wide border border-indigo-100 dark:border-indigo-500/20 shadow-sm">
-                  {row.cat}
-                </span>
-              ),
-            },
-            {
-              header: "Sales",
-              render: (row) => (
-                <span className="text-text-primary font-black text-sm">
-                  {row.sales}
-                </span>
-              ),
-            },
-            {
-              header: "Status",
-              render: (row) => (
-                <div
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] w-fit text-center transition-all duration-300 shadow-sm border ${
-                    row.status === "Active"
-                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/5"
-                      : "bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-500/5"
-                  }`}
-                >
-                  {row.status}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-16 rounded-lg bg-indigo-50 overflow-hidden flex-shrink-0 border border-border">
+                    {row.book?.thumbnail ? (
+                      <img
+                        src={
+                          typeof row.book.thumbnail === "string"
+                            ? row.book.thumbnail
+                            : row.book.thumbnail?.url || ""
+                        }
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <BookOpen className="text-primary/20" />
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-bold text-text-primary group-hover:text-primary transition-colors text-[15px]">
+                    {row.book?.title || "Unknown Book"}
+                  </span>
                 </div>
               ),
             },
             {
               header: "Author",
               render: (row) => (
-                <span className="text-text-secondary font-bold text-[13px] italic">
-                  {row.author}
+                <span className="text-text-secondary font-bold text-[13px]">
+                  {row.book?.author || "N/A"}
+                </span>
+              ),
+            },
+            {
+              header: "Total Sales",
+              align: "center",
+              render: (row) => (
+                <span className="text-text-primary font-black text-sm">
+                  {row.sales_count}
                 </span>
               ),
             },
           ]}
-          data={[
-            {
-              title: "Mind over Matter",
-              cat: "Psychology",
-              sales: "1,240",
-              status: "Active",
-              author: "Dr. John Doe",
-            },
-            {
-              title: "Inner Peace",
-              cat: "Self-Help",
-              sales: "980",
-              status: "Active",
-              author: "Sarah Wilson",
-            },
-            {
-              title: "The Focus Era",
-              cat: "Productivity",
-              sales: "850",
-              status: "Draft",
-              author: "Mike Ross",
-            },
-          ]}
+          data={engagement?.popularBooks || []}
+          emptyMessage="No sales data recorded yet."
         />
       </div>
     </div>

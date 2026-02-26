@@ -87,6 +87,8 @@ const notificationSlice = createSlice({
     items: [],
     unreadCount: 0,
     total: 0,
+    totalPages: 0,
+    currentPage: 1,
     loading: false,
     error: null,
     sending: false,
@@ -115,7 +117,14 @@ const notificationSlice = createSlice({
           payload?.data ||
           [];
         state.total =
-          payload?.data?.total || payload?.total || state.items.length;
+          payload?.data?.total_items ||
+          payload?.total_items ||
+          payload?.total ||
+          state.items.length;
+        state.totalPages =
+          payload?.data?.total_pages || payload?.total_pages || 1;
+        state.currentPage =
+          payload?.data?.current_page || payload?.current_page || 1;
         state.unreadCount = state.items.filter((n) => !n.is_read).length;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {

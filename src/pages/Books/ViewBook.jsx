@@ -127,30 +127,9 @@ const ViewBook = () => {
         </Button>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black text-text-primary italic tracking-tight">
-                Book Archive
-              </h1>
-              <div
-                className={`px-4 py-1.5 rounded-full text-[0.6rem] font-black tracking-widest uppercase border ${
-                  book.is_active
-                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                    : "bg-rose-500/10 text-rose-500 border-rose-500/20"
-                }`}
-              >
-                {book.is_active ? "● ACTIVE" : "● INACTIVE"}
-              </div>
-              {book.is_bestselling && (
-                <div className="px-3 py-1.5 rounded-full text-[0.6rem] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center gap-1.5">
-                  <Award size={12} /> BESTSELLER
-                </div>
-              )}
-              {book.is_trending && (
-                <div className="px-3 py-1.5 rounded-full text-[0.6rem] font-black bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 flex items-center gap-1.5">
-                  <TrendingUp size={12} /> TRENDING
-                </div>
-              )}
-            </div>
+            <h1 className="text-3xl font-black text-text-primary italic tracking-tight">
+              Book Archive
+            </h1>
           </div>
           <Button
             icon={Pencil}

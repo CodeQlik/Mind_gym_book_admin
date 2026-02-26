@@ -191,16 +191,6 @@ const Users = () => {
 
         return (
           <div className="flex items-center gap-4">
-            <div
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] min-w-[100px] text-center transition-all duration-300 shadow-sm border ${
-                isActive
-                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/5"
-                  : "bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-rose-500/5"
-              }`}
-            >
-              {isActive ? "Active" : "Inactive"}
-            </div>
-
             <button
               onClick={() => handleToggleStatus(currentId)}
               disabled={isProcessing}

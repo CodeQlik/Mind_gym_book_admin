@@ -10,25 +10,38 @@ import {
 } from "lucide-react";
 import Table from "../../components/Table/Table";
 import SearchInput from "../../components/Search/SearchInput";
+import Pagination from "../../components/Pagination/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllPayments } from "../../store/slices/paymentSlice";
+import { fetchDashboardStats } from "../../store/slices/analyticsSlice";
 
 const Payments = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   const dispatch = useDispatch();
-  const { payments, loading } = useSelector((state) => state.payments);
+  const { payments, totalItems, totalPages, loading } = useSelector(
+    (state) => state.payments,
+  );
+  const { revenue } = useSelector((state) => state.analytics);
 
   useEffect(() => {
-    dispatch(fetchAllPayments());
-  }, [dispatch]);
+    dispatch(fetchAllPayments({ page: currentPage, limit: itemsPerPage }));
+    dispatch(fetchDashboardStats());
+  }, [dispatch, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalRevenue =
+    (revenue?.subscriptionIncome || 0) + (revenue?.ecommerceIncome || 0);
 
   const filteredPayments = Array.isArray(payments)
     ? payments.filter(
         (p) =>
           p.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.razorpay_payment_id
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
+          p.payment_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.status?.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : [];
@@ -49,10 +62,10 @@ const Payments = () => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-text-primary text-sm tracking-tight">
-              {row.razorpay_payment_id || "N/A"}
+              {row.payment_id || "N/A"}
             </span>
             <span className="text-[10px] text-text-secondary opacity-60 font-medium">
-              Order ID: {row.razorpay_order_id}
+              Order ID: {row.order_id}
             </span>
           </div>
         </div>
@@ -85,10 +98,31 @@ const Payments = () => {
       ),
     },
     {
+      header: "Type",
+      render: (row) => (
+        <div className="flex flex-col">
+          <span
+            className={`text-[10px] font-black uppercase tracking-wider ${row.payment_type === "subscription" ? "text-violet-500" : "text-blue-500"}`}
+          >
+            {row.payment_type?.replace("_", " ") || "Payment"}
+          </span>
+          {row.plan_name && (
+            <span className="text-[11px] font-bold text-text-primary italic">
+              {row.plan_name}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
       header: "Amount",
       render: (row) => (
         <span className="font-black text-text-primary text-[15px]">
-          ₹{(row.amount / 100).toFixed(2)}
+          ₹
+          {parseFloat(row.amount || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       ),
     },
@@ -135,14 +169,7 @@ const Payments = () => {
               Total Revenue
             </p>
             <h3 className="text-2xl font-black text-text-primary">
-              ₹
-              {(
-                payments.reduce(
-                  (acc, curr) =>
-                    acc + (curr.status === "captured" ? curr.amount : 0),
-                  0,
-                ) / 100
-              ).toLocaleString()}
+              ₹{totalRevenue.toLocaleString()}
             </h3>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -197,6 +224,14 @@ const Payments = () => {
           data={filteredPayments}
           loading={loading}
           emptyMessage="No payment transactions found."
+        />
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
         />
       </div>
     </div>

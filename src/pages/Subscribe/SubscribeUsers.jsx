@@ -21,11 +21,15 @@ const SubscribeUsers = () => {
     dispatch(fetchSubscriptions());
   }, [dispatch]);
 
-  const filteredUsers = subscriptions.filter(
+  const filteredUsers = (subscriptions || []).filter(
     (sub) =>
-      sub.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.plan_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.status?.toLowerCase().includes(searchQuery.toLowerCase()),
+      (sub?.user?.name || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (sub?.plan_type || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (sub?.status || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const columns = [
@@ -64,12 +68,15 @@ const SubscribeUsers = () => {
       header: "Payment Date",
       render: (row) => (
         <span className="text-[13px] text-text-secondary font-bold">
-          {row.createdAt
-            ? new Date(row.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
+          {row.createdAt || row.created_at
+            ? new Date(row.createdAt || row.created_at).toLocaleDateString(
+                "en-US",
+                {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                },
+              )
             : "N/A"}
         </span>
       ),
@@ -85,15 +92,11 @@ const SubscribeUsers = () => {
     {
       header: "Status",
       render: (row) => (
-        <div
-          className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] min-w-[100px] text-center transition-all duration-300 shadow-sm border ${
-            row.status === "active"
-              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/5"
-              : "bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-rose-500/5"
-          }`}
+        <span
+          className={`text-[11px] font-black uppercase tracking-widest ${row.status === "active" ? "text-emerald-500" : "text-rose-500"}`}
         >
           {row.status}
-        </div>
+        </span>
       ),
     },
     {
