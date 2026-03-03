@@ -2,8 +2,8 @@ import React from "react";
 import { Loader2, Database } from "lucide-react";
 
 /**
- * Premium High-End Data Table
- * Features glassmorphism, smooth hover states, and refined typography.
+ * Standard Data Table
+ * Simple, clean, and professional design.
  */
 const Table = ({
   columns,
@@ -12,15 +12,15 @@ const Table = ({
   emptyMessage = "No data available",
 }) => {
   return (
-    <div className="w-full relative animate-fade-in font-['Outfit']">
-      <div className="w-full overflow-x-auto rounded-[2rem] border border-border bg-surface shadow-sm overflow-hidden">
-        <table className="w-full border-collapse text-left min-w-[900px]">
+    <div className="w-full relative animate-fade-in">
+      <div className="w-full overflow-x-auto rounded-lg border border-border bg-surface overflow-hidden">
+        <table className="w-full border-collapse text-left min-w-[800px]">
           <thead>
-            <tr className="bg-background/80 border-b border-border">
+            <tr className="bg-background border-b border-border">
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`py-5 px-6 font-black text-text-secondary text-[11px] uppercase tracking-[0.15em] first:pl-10 last:pr-10 ${
+                  className={`py-3 px-4 font-bold text-text-secondary text-[15px] uppercase tracking-wider first:pl-6 last:pr-6 ${
                     column.align === "center"
                       ? "text-center"
                       : column.align === "right"
@@ -39,14 +39,11 @@ const Table = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="text-center py-24 bg-background/30"
+                  className="text-center py-20 bg-background/10"
                 >
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader2
-                      className="w-12 h-12 text-primary/50 animate-spin"
-                      strokeWidth={2}
-                    />
-                    <p className="text-text-secondary text-sm font-bold tracking-wide">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-10 h-10 text-primary/40 animate-spin" />
+                    <p className="text-text-secondary text-[15px] font-semibold">
                       Loading data...
                     </p>
                   </div>
@@ -56,11 +53,11 @@ const Table = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="text-center py-24 text-rose-500"
+                  className="text-center py-20 text-error"
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    <Database className="w-12 h-12 opacity-20" />
-                    <span className="text-sm font-bold tracking-wide">
+                  <div className="flex flex-col items-center gap-2">
+                    <Database className="w-10 h-10 opacity-20" />
+                    <span className="text-[15px] font-semibold">
                       Connection interrupted
                     </span>
                   </div>
@@ -70,13 +67,11 @@ const Table = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="text-center py-24 text-text-secondary"
+                  className="text-center py-20 text-text-secondary"
                 >
-                  <div className="flex flex-col items-center gap-4 opacity-50">
-                    <Database className="w-12 h-12" strokeWidth={1} />
-                    <p className="text-sm font-bold tracking-wide">
-                      {emptyMessage}
-                    </p>
+                  <div className="flex flex-col items-center gap-2 opacity-40">
+                    <Database className="w-10 h-10" />
+                    <p className="text-[15px] font-semibold">{emptyMessage}</p>
                   </div>
                 </td>
               </tr>
@@ -84,12 +79,12 @@ const Table = ({
               data.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className="group hover:bg-background/50 transition-colors duration-300"
+                  className="hover:bg-background/40 transition-colors"
                 >
                   {columns.map((column, colIndex) => (
                     <td
                       key={colIndex}
-                      className={`py-5 px-6 text-sm font-medium text-text-primary first:pl-10 last:pr-10 transition-colors ${
+                      className={`py-3.5 px-4 text-base text-text-primary first:pl-6 last:pr-6 ${
                         column.align === "center"
                           ? "text-center"
                           : column.align === "right"

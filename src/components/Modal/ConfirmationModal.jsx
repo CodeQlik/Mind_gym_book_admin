@@ -30,23 +30,23 @@ const ConfirmationModal = ({
       />
 
       {/* Modal Card */}
-      <div className="relative w-[90%] max-w-[22rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col gap-5 text-center z-10">
+      <div className="relative w-[90%] max-w-[22rem] bg-surface  border border-border  p-6 rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col gap-5 text-center z-10">
         {/* Close Button */}
         <button
           onClick={onClose}
           disabled={isProcessing}
-          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300"
+          className="absolute top-4 right-4 p-2 rounded-full text-text-secondary opacity-60 hover:text-text-secondary dark:hover:text-slate-200 hover:bg-background/50 dark:hover:bg-slate-800 transition-all duration-300"
         >
           <X size={18} strokeWidth={2.5} />
         </button>
 
         {/* Icon */}
         <div className="mx-auto relative group mt-2">
-          <div className="w-20 h-20 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-500 ease-out">
+          <div className="w-20 h-20 rounded-full bg-error-surface dark:bg-error-surface flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-500 ease-out">
             <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center animate-pulse-slow">
               <AlertTriangle
                 size={28}
-                className="text-rose-500 fill-rose-500/20"
+                className="text-error fill-rose-500/20"
                 strokeWidth={2.5}
               />
             </div>
@@ -58,10 +58,10 @@ const ConfirmationModal = ({
 
         {/* Content */}
         <div className="space-y-2 px-2">
-          <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+          <h3 className="text-xl font-black text-text-primary  tracking-tight">
             {title || "Confirm Deletion"}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+          <p className="text-sm text-text-secondary dark:text-text-secondary opacity-60 font-medium leading-relaxed">
             {message ||
               "Are you sure you want to proceed? This action cannot be undone."}
           </p>
@@ -74,7 +74,7 @@ const ConfirmationModal = ({
             onClick={onClose}
             disabled={isProcessing}
             size="md"
-            className="flex-1 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+            className="flex-1 rounded-xl border-2 border-border  hover:border-border dark:hover:border-slate-700 hover:bg-background dark:hover:bg-slate-800/50"
           >
             {cancelText}
           </Button>

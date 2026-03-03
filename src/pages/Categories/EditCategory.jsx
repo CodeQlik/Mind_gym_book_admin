@@ -3,15 +3,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { ArrowLeft, Upload, Save, Loader2, Tags } from "lucide-react";
+import { ArrowLeft, Upload, Save, Loader2 } from "lucide-react";
 import {
   updateCategory,
   clearCategoryError,
 } from "../../store/slices/categorySlice";
 import { categoryApi } from "../../api/categoryApi";
 import FormInput from "../../components/Form/FormInput";
-import TextArea from "../../components/Form/TextArea";
 import Button from "../../components/UI/Button";
+import { toast } from "react-hot-toast";
 
 const EditCategory = () => {
   const { slug } = useParams();
@@ -19,49 +19,27 @@ const EditCategory = () => {
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.categories);
 
-  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [categoryId, setCategoryId] = useState(null);
 
-  const validationSchema = Yup.object().shape({
-    name: Yup.string()
-      .min(2, "Name is too short")
-      .required("Category name is required"),
-    description: Yup.string()
-      .min(10, "Description should be at least 10 characters")
-      .required("Description is required"),
-    image: Yup.mixed().optional(),
-  });
-
   const formik = useFormik({
-    initialValues: {
-      name: "",
-      description: "",
-      image: null,
-    },
-    validationSchema,
+    initialValues: { name: "", description: "", image: null },
+    validationSchema: Yup.object({
+      name: Yup.string().min(2).required("Required"),
+      description: Yup.string().min(10).required("Required"),
+    }),
     enableReinitialize: true,
     onSubmit: async (values) => {
       const data = new FormData();
-
-      // Explicitly append only the fields that the API expects
-      const allowedFields = ["name", "description", "image"];
-
-      allowedFields.forEach((key) => {
-        if (
-          values[key] !== null &&
-          values[key] !== undefined &&
-          values[key] !== ""
-        ) {
-          data.append(key, values[key]);
-        }
+      Object.entries(values).forEach(([key, val]) => {
+        if (val) data.append(key, val);
       });
-
       const result = await dispatch(
         updateCategory({ id: categoryId, formData: data }),
       );
       if (updateCategory.fulfilled.match(result)) {
+        toast.success("Category updated");
         navigate("/categories");
       }
     },
@@ -78,180 +56,131 @@ const EditCategory = () => {
             name: category.name || "",
             description: category.description || "",
           });
-
           if (category.image) {
-            let url = null;
-            if (
+            const url =
               typeof category.image === "string" &&
               category.image.startsWith("{")
-            ) {
-              url = JSON.parse(category.image).url;
-            } else {
-              url = category.image.url || category.image;
-            }
+                ? JSON.parse(category.image).url
+                : category.image.url || category.image;
             setImagePreview(url);
           }
         }
       } catch (err) {
-        console.error("Failed to fetch category", err);
+        toast.error("Failed to load category");
       } finally {
         setInitialLoading(false);
       }
     };
     fetchCategory();
-
-    return () => {
-      dispatch(clearCategoryError());
-    };
-  }, [slug, dispatch]);
+    return () => dispatch(clearCategoryError());
+  }, [slug]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
       formik.setFieldValue("image", file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  if (initialLoading) {
+  if (initialLoading)
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 size={48} className="animate-spin text-primary" />
-        <p className="mt-5 text-text-secondary font-medium font-['Outfit']">
-          Loading category data...
-        </p>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-primary" size={40} />
       </div>
     );
-  }
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in font-['Outfit']">
-      <div className="flex flex-col gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={ArrowLeft}
-          className="w-fit"
-          onClick={() => navigate("/categories")}
-        >
-          Back to Categories
-        </Button>
+    <div className="max-w-[1000px] mx-auto flex flex-col gap-6 animate-fade-in pb-10 text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary italic">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={ArrowLeft}
+            onClick={() => navigate("/categories")}
+            className="mb-2"
+          >
+            Back to Categories
+          </Button>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
             Edit Category
           </h1>
-          <p className="text-text-secondary mt-1 tracking-tight">
-            Update the information for the{" "}
-            <span className="text-text-primary font-bold">
-              "{formik.values.name}"
-            </span>{" "}
-            category.
+          <p className="text-text-secondary text-sm font-medium">
+            Update "{formik.values.name}" collection details.
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate("/categories")}>
+            Cancel
+          </Button>
+          <Button onClick={formik.handleSubmit} loading={loading} icon={Save}>
+            Update Category
+          </Button>
         </div>
       </div>
 
-      <div className="bg-surface/70 backdrop-blur-lg border border-white/10 p-8 sm:p-10 rounded-[2.5rem] shadow-xl max-w-[800px]">
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-8">
+      <div className="w-full bg-surface border border-border/50 rounded-[2rem] p-8 sm:p-10 shadow-2xl">
+        <form onSubmit={formik.handleSubmit} className="space-y-6">
           <FormInput
             label="Category Name"
-            name="name"
-            value={formik.values.name}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
+            {...formik.getFieldProps("name")}
             error={formik.touched.name && formik.errors.name}
             required
-            placeholder="e.g. Science Fiction"
           />
-
-          <TextArea
+          <FormInput
             label="Description"
-            name="description"
-            value={formik.values.description}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
+            type="textarea"
+            {...formik.getFieldProps("description")}
             error={formik.touched.description && formik.errors.description}
-            placeholder="Enter category description..."
+            required
             rows={4}
           />
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-text-primary ml-1 block">
+            <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
               Category Image
             </label>
-            <div
-              className={`border-2 border-dashed ${
-                formik.touched.image && formik.errors.image
-                  ? "border-rose-500"
-                  : "border-border"
-              } rounded-3xl p-10 text-center bg-primary/[0.02] hover:bg-primary/[0.04] transition-all relative group overflow-hidden`}
+            <label
+              className={`block border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${imagePreview ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
             >
               {imagePreview ? (
-                <div className="relative w-48 h-48 mx-auto group/preview">
+                <div className="relative w-32 h-32 mx-auto">
                   <img
                     src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-full object-cover rounded-2xl shadow-xl shadow-primary/10"
+                    className="w-full h-full object-cover rounded shadow-md"
                   />
-                  <label className="absolute -top-3 -right-3 w-10 h-10 bg-primary text-white rounded-xl shadow-lg flex items-center justify-center hover:bg-primary-hover transition-all border-none cursor-pointer transform scale-90 group-hover/preview:scale-100">
-                    <Upload size={18} />
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
+                  <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                    <Upload size={20} className="text-white" />
+                  </div>
                 </div>
               ) : (
-                <label className="cursor-pointer flex flex-col items-center group/upload">
-                  <div className="text-primary mb-4 p-4 bg-primary/10 rounded-2xl group-hover/upload:scale-110 transition-transform">
-                    <Upload size={32} />
-                  </div>
-                  <p className="font-bold text-text-primary uppercase tracking-tight">
-                    Click to upload image
-                  </p>
-                  <p className="text-[0.7rem] font-bold text-text-secondary mt-1">
-                    PNG, JPG or JPEG (Max 2MB)
-                  </p>
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageChange}
+                <div className="flex flex-col items-center gap-2">
+                  <Upload
+                    size={24}
+                    className="text-text-secondary opacity-40"
                   />
-                </label>
+                  <span className="text-xs font-bold text-text-primary uppercase tracking-tight">
+                    Click to replace banner
+                  </span>
+                </div>
               )}
-            </div>
-            {formik.touched.image && formik.errors.image && (
-              <p className="text-rose-500 text-xs font-bold ml-1 mt-1 italic animate-in fade-in slide-in-from-top-1">
-                {formik.errors.image}
-              </p>
-            )}
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </label>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-sm font-bold flex items-center gap-3 italic">
+            <div className="p-3 bg-error-surface text-error border border-error/20 rounded-md text-xs font-bold uppercase">
               {error}
             </div>
           )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-            <Button type="submit" icon={Save} loading={loading} size="lg">
-              {loading ? "Saving..." : "Update Category"}
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => navigate("/categories")}
-            >
-              Cancel
-            </Button>
-          </div>
         </form>
       </div>
     </div>

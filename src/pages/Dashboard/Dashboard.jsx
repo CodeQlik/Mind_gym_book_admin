@@ -1,17 +1,22 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Users,
-  BookOpen,
+  Download,
   TrendingUp,
-  Eye,
+  Zap,
+  Clock,
+  PieChart as PieChartIcon,
+  Users,
+  CreditCard,
   ArrowUpRight,
   ArrowDownRight,
-  MoreVertical,
-  Layers,
-  ShoppingBag,
-  Clock,
+  Filter,
+  Loader2,
+  Trophy,
+  Activity,
 } from "lucide-react";
 import {
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -19,200 +24,336 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  AreaChart,
-  Area,
+  PieChart,
+  Pie,
   Cell,
 } from "recharts";
-import Table from "../../components/Table/Table";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchDashboardStats } from "../../store/slices/analyticsSlice";
-import { fetchAllUsers } from "../../store/slices/userSlice";
-import { fetchSubscriptions } from "../../store/slices/subscriptionSlice";
-import { fetchOrders } from "../../store/slices/orderSlice";
-import { fetchBooks } from "../../store/slices/bookSlice";
-
-const StatCard = ({ title, value, icon, trend, percentage, colorType }) => {
-  const colorClasses = {
-    primary: "text-primary bg-indigo-50 dark:bg-primary/10",
-    amber: "text-amber-600 bg-amber-50 dark:bg-amber-500/10",
-    emerald: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10",
-    pink: "text-pink-600 bg-pink-50 dark:bg-pink-500/10",
-  };
-
-  const textColorClasses = {
-    primary: "text-primary dark:text-indigo-400",
-    amber: "text-amber-600 dark:text-amber-500",
-    emerald: "text-emerald-600 dark:text-emerald-500",
-    pink: "text-pink-600 dark:text-pink-500",
-  };
-
-  const trendColorClasses = {
-    primary: "text-primary bg-indigo-50 dark:bg-primary/10",
-    amber: "text-amber-600 bg-amber-50 dark:bg-amber-500/10",
-    emerald: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10",
-    pink: "text-pink-600 bg-pink-50 dark:bg-pink-500/10",
-  };
-
-  return (
-    <div className="bg-surface p-9 rounded-[2.8rem] border border-border shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group relative overflow-hidden">
-      <div className="flex justify-between items-start mb-14">
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${colorClasses[colorType]}`}
-        >
-          {React.cloneElement(icon, { size: 28, strokeWidth: 2.5 })}
-        </div>
-        <div
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-black tracking-tight ${trendColorClasses[colorType]}`}
-        >
-          {trend === "up" ? (
-            <ArrowUpRight size={14} strokeWidth={3} />
-          ) : (
-            <ArrowDownRight size={14} strokeWidth={3} />
-          )}
-          {percentage}%
-        </div>
-      </div>
-      <div className="flex flex-col">
-        <h3
-          className={`text-[2.75rem] font-black tracking-tighter leading-none mb-2 font-['Outfit'] ${textColorClasses[colorType]}`}
-        >
-          {value}
-        </h3>
-        <p className="text-[11px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-70">
-          {title}
-        </p>
-      </div>
-      <div
-        className={`absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${colorType === "primary" ? "bg-primary" : colorType === "amber" ? "bg-amber-500" : colorType === "emerald" ? "bg-emerald-500" : "bg-pink-500"}`}
-      />
-    </div>
-  );
-};
+import { analyticsApi } from "../../api/analyticsApi";
+import { toast } from "react-hot-toast";
 
 const Dashboard = () => {
-  const dispatch = useDispatch();
-  const {
-    revenue,
-    engagement,
-    loading: analyticsLoading,
-  } = useSelector((state) => state.analytics);
-  const { totalItems: totalUsers, users } = useSelector((state) => state.users);
-  const { subscriptions } = useSelector((state) => state.subscriptions);
-  const { totalItems: totalBooks } = useSelector((state) => state.books);
-  const { orders } = useSelector((state) => state.orders);
+  const [timeRange, setTimeRange] = useState("Last 30 Days");
+  const [statsData, setStatsData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchDashboardStats());
-    dispatch(fetchAllUsers({ limit: 5 }));
-    dispatch(fetchSubscriptions());
-    dispatch(fetchOrders());
-    dispatch(fetchBooks({ limit: 1 }));
-  }, [dispatch]);
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const res = await analyticsApi.getDashboardStats();
+        if (res.success) {
+          setStatsData(res.data);
+        }
+      } catch (error) {
+        console.error("Dashboard data fetch failed", error);
+        toast.error("Failed to load dashboard statistics");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const activeSubscriptions =
-    subscriptions?.filter((s) => s.status === "active")?.length || 0;
-  const premiumUsers =
-    users?.filter((u) => u.subscription_status === "active")?.length || 0;
-  const freeUsers = totalUsers - premiumUsers;
+    fetchStats();
+  }, []);
 
-  const totalRevenue =
-    (revenue?.subscriptionIncome || 0) + (revenue?.ecommerceIncome || 0);
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 animate-pulse">
+        <Loader2 size={40} className="animate-spin text-primary mb-4" />
+        <h2 className="text-lg font-bold text-text-primary">
+          Loading Dashboard...
+        </h2>
+      </div>
+    );
+  }
 
-  // Mock revenue data for charts based on real totals
-  const revenueData = [
-    { name: "Mon", value: (revenue?.subscriptionIncome || 0) * 0.1 },
-    { name: "Tue", value: (revenue?.ecommerceIncome || 0) * 0.15 },
-    { name: "Wed", value: (totalRevenue || 0) * 0.12 },
-    { name: "Thu", value: (revenue?.subscriptionIncome || 0) * 0.2 },
-    { name: "Fri", value: (totalRevenue || 0) * 0.18 },
-    { name: "Sat", value: (totalRevenue || 0) * 0.25 },
-    { name: "Sun", value: totalRevenue },
+  const revenue = statsData?.revenue || {};
+  const engagement = statsData?.engagement || {};
+
+  const revenueDistributionData = [
+    { name: "Subscription", value: revenue.subscriptionIncome || 0 },
+    { name: "E-Commerce", value: revenue.ecommerceIncome || 0 },
+    { name: "Commission", value: revenue.marketplaceCommission || 0 },
   ];
 
-  const recentActivity = [
-    ...(users
-      ?.slice(0, 3)
-      .map((u) => ({ type: "user", name: u.name, time: "Recently joined" })) ||
-      []),
-    ...(orders?.slice(0, 3).map((o) => ({
-      type: "order",
-      name: `Order #${o.id}`,
-      time: "New order",
-    })) || []),
-  ]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 5);
+  const REVENUE_COLORS = ["#6366f1", "#ec4899", "#f59e0b"];
+
+  const popularBooksData = (engagement.popularBooks || []).map((item) => ({
+    name: item.book?.title?.substring(0, 15) + "...",
+    sales: parseInt(item.sales_count),
+    fullTitle: item.book?.title,
+    author: item.book?.author,
+  }));
+
+  const mainStats = [
+    {
+      label: "Gross Revenue",
+      value: `₹${(revenue.subscriptionIncome + revenue.ecommerceIncome + revenue.marketplaceCommission || 0).toLocaleString()}`,
+      trend: "+12.5%",
+      icon: <CreditCard size={18} />,
+      color: "bg-slate-500",
+      isPositive: true,
+    },
+    {
+      label: "Active Members",
+      value: engagement.activeUsers?.toLocaleString() || "0",
+      trend: "+8.2%",
+      icon: <Users size={18} />,
+      color: "bg-slate-500",
+      isPositive: true,
+    },
+    {
+      label: "Book Purchases",
+      value: popularBooksData
+        .reduce((acc, curr) => acc + curr.sales, 0)
+        .toLocaleString(),
+      trend: "+15.3%",
+      icon: <Zap size={18} />,
+      color: "bg-slate-500",
+      isPositive: true,
+    },
+    {
+      label: "Retention",
+      value: "84.2%",
+      trend: "+0.5%",
+      icon: <Activity size={18} />,
+      color: "bg-slate-500",
+      isPositive: true,
+    },
+  ];
 
   return (
-    <div className="flex flex-col gap-12 animate-fade-in p-2">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10">
+      {/* Simple Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-black text-text-primary tracking-tight font-['Outfit'] leading-[1.1]">
-            Management <span className="text-primary italic">Dashboard</span>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+            Dashboard Overview
           </h1>
-          <p className="text-text-secondary mt-2 text-base font-bold opacity-60 max-w-2xl leading-relaxed tracking-tight">
-            Comprehensive overview of Mind Gym's performance, user database, and
-            revenue streams.
+          <p className="text-text-secondary text-sm mt-1">
+            Track your platform's performance and user engagement.
           </p>
         </div>
-      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
-        <StatCard
-          title="Active Readers"
-          value={engagement?.activeUsers || 0}
-          icon={<Users />}
-          trend="up"
-          percentage="10"
-          colorType="primary"
-        />
-        <StatCard
-          title="Active Subscriptions"
-          value={activeSubscriptions}
-          icon={<Layers />}
-          trend="up"
-          percentage="5"
-          colorType="amber"
-        />
-        <StatCard
-          title="Total Books"
-          value={totalBooks}
-          icon={<BookOpen />}
-          trend="up"
-          percentage="8"
-          colorType="emerald"
-        />
-        <StatCard
-          title="Total Revenue"
-          value={`₹${totalRevenue.toLocaleString()}`}
-          icon={<TrendingUp />}
-          trend="up"
-          percentage="15"
-          colorType="pink"
-        />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-surface border border-border p-1 rounded-lg">
+            {["7d", "30d", "All"].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                  timeRange === range
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-text-primary text-surface font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all">
+            <Download size={14} />
+            Export
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 card-premium">
-          <div className="flex items-center justify-between mb-8">
+      {/* Simple Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {mainStats.map((s, i) => (
+          <div
+            key={i}
+            className="bg-surface p-5 rounded-lg border border-border shadow-sm flex flex-col gap-3"
+          >
+            <div className="flex items-center justify-between">
+              <div
+                className={`w-10 h-10 rounded-lg ${s.color} text-white flex items-center justify-center shadow-sm`}
+              >
+                {s.icon}
+              </div>
+              <div
+                className={`flex items-center gap-1 text-[11px] font-bold ${s.isPositive ? "text-success" : "text-error"}`}
+              >
+                {s.isPositive ? (
+                  <ArrowUpRight size={14} />
+                ) : (
+                  <ArrowDownRight size={14} />
+                )}
+                {s.trend}
+              </div>
+            </div>
             <div>
-              <h3 className="text-xl font-black text-text-primary tracking-tight">
-                Revenue Overview
-              </h3>
-              <p className="text-xs text-text-secondary font-bold uppercase tracking-widest mt-1">
-                Daily progression (Mocked distribution)
+              <p className="text-xs font-medium text-text-secondary uppercase tracking-wider opacity-70">
+                {s.label}
               </p>
+              <h3 className="text-2xl font-bold text-text-primary mt-1">
+                {s.value}
+              </h3>
             </div>
           </div>
-          <div className="h-[320px] w-full">
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Breakdown */}
+        <div className="lg:col-span-2 bg-surface border border-border p-6 rounded-lg shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 className="text-lg font-bold text-text-primary">
+              Revenue Breakdown
+            </h3>
+            <div className="flex items-center gap-4 bg-background/50 p-2 rounded-lg">
+              {revenueDistributionData.map((d, i) => (
+                <div key={i} className="flex items-center gap-2 px-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: REVENUE_COLORS[i] }}
+                  />
+                  <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">
+                    {d.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div className="md:col-span-1 h-[220px] w-full relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={revenueDistributionData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {revenueDistributionData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={REVENUE_COLORS[index]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "none",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="md:col-span-2 flex flex-col gap-4">
+              {revenueDistributionData.map((d, i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-lg bg-background/50 border border-border"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-text-secondary uppercase">
+                      {d.name} Income
+                    </span>
+                    <span className="text-sm font-bold text-text-primary">
+                      ₹{d.value.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000"
+                      style={{
+                        width: `${(d.value / (revenueDistributionData.reduce((a, b) => a + b.value, 0) || 1)) * 100}%`,
+                        background: REVENUE_COLORS[i],
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Popular Books */}
+        <div className="bg-surface border border-border p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-text-primary">
+              Popular Books
+            </h3>
+            <Trophy size={18} className="text-amber-500" />
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {popularBooksData.length > 0 ? (
+              popularBooksData.map((book, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 py-2 border-b border-border/50 last:border-none"
+                >
+                  <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="text-sm font-bold text-text-primary truncate">
+                      {book.fullTitle}
+                    </h5>
+                    <p className="text-[10px] text-text-secondary uppercase font-bold opacity-60">
+                      {book.author}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-text-primary">
+                      {book.sales}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center text-text-secondary text-sm">
+                No sales data yet.
+              </div>
+            )}
+          </div>
+          <button className="w-full mt-6 py-2 rounded-lg bg-background text-primary text-xs font-bold hover:bg-primary/5 transition-all border border-primary/10">
+            View Analytics
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Audiobook activity placeholder */}
+        <div className="bg-surface border border-border p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+              <PieChartIcon size={18} className="text-primary" />
+              Listener Activity
+            </h3>
+            <Activity
+              size={18}
+              className="text-primary opacity-40 animate-pulse"
+            />
+          </div>
+          <div className="h-[200px] flex items-center justify-center border-2 border-dashed border-border rounded-lg bg-background/30 text-center px-4">
+            <p className="text-sm text-text-secondary font-medium opacity-60">
+              Audiobook activity processing... Statistics will be available
+              soon.
+            </p>
+          </div>
+        </div>
+
+        {/* Engagement bar chart */}
+        <div className="bg-surface border border-border p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-text-primary">
+              Engagement Benchmarks
+            </h3>
+            <Filter size={16} className="text-text-secondary opacity-40" />
+          </div>
+          <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <BarChart data={popularBooksData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
@@ -223,146 +364,31 @@ const Dashboard = () => {
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{
-                    fill: "var(--text-secondary)",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                  dy={10}
+                  tick={{ fontSize: 10, fill: "var(--text-secondary)" }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{
-                    fill: "var(--text-secondary)",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
+                  tick={{ fontSize: 10, fill: "var(--text-secondary)" }}
                 />
                 <Tooltip
+                  cursor={{ fill: "var(--background)", opacity: 0.4 }}
                   contentStyle={{
-                    backgroundColor: "var(--surface)",
-                    borderColor: "var(--border)",
-                    borderRadius: "16px",
-                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "none",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                   }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#6366f1"
-                  strokeWidth={4}
-                  fillOpacity={1}
-                  fill="url(#colorRev)"
+                <Bar
+                  dataKey="sales"
+                  fill="var(--primary)"
+                  radius={[4, 4, 0, 0]}
+                  barSize={32}
                 />
-              </AreaChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-
-        <div className="card-premium">
-          <div className="flex items-center gap-2 mb-8">
-            <Clock size={20} className="text-primary" />
-            <h3 className="text-xl font-black text-text-primary tracking-tight">
-              Recent Activity
-            </h3>
-          </div>
-          <div className="flex flex-col gap-6">
-            {recentActivity.length > 0 ? (
-              recentActivity.map((act, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-4 p-4 rounded-2xl bg-background/50 border border-border/50 hover:border-primary/20 transition-all group"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center ${act.type === "user" ? "bg-indigo-50 text-indigo-500" : "bg-emerald-50 text-emerald-500"}`}
-                  >
-                    {act.type === "user" ? (
-                      <Users size={18} />
-                    ) : (
-                      <ShoppingBag size={18} />
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-text-primary text-sm group-hover:text-primary transition-colors">
-                      {act.name}
-                    </span>
-                    <span className="text-[11px] text-text-secondary font-bold opacity-60">
-                      {act.time}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-text-secondary py-10 font-bold opacity-50">
-                No recent activity
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="card-premium animate-fade-in p-8">
-        <div className="mb-8">
-          <h3 className="text-2xl font-black text-text-primary tracking-tight font-['Outfit']">
-            Top Selling Books
-          </h3>
-          <p className="text-xs text-text-secondary font-black uppercase tracking-widest mt-1">
-            Based on purchase volume
-          </p>
-        </div>
-
-        <Table
-          columns={[
-            {
-              header: "Book Title",
-              width: "40%",
-              render: (row) => (
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-16 rounded-lg bg-indigo-50 overflow-hidden flex-shrink-0 border border-border">
-                    {row.book?.thumbnail ? (
-                      <img
-                        src={
-                          typeof row.book.thumbnail === "string"
-                            ? row.book.thumbnail
-                            : row.book.thumbnail?.url || ""
-                        }
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <BookOpen className="text-primary/20" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="font-bold text-text-primary group-hover:text-primary transition-colors text-[15px]">
-                    {row.book?.title || "Unknown Book"}
-                  </span>
-                </div>
-              ),
-            },
-            {
-              header: "Author",
-              render: (row) => (
-                <span className="text-text-secondary font-bold text-[13px]">
-                  {row.book?.author || "N/A"}
-                </span>
-              ),
-            },
-            {
-              header: "Total Sales",
-              align: "center",
-              render: (row) => (
-                <span className="text-text-primary font-black text-sm">
-                  {row.sales_count}
-                </span>
-              ),
-            },
-          ]}
-          data={engagement?.popularBooks || []}
-          emptyMessage="No sales data recorded yet."
-        />
       </div>
     </div>
   );

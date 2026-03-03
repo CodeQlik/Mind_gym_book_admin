@@ -3,7 +3,7 @@ import API from "./axiosInstance";
 export const orderApi = {
   getAllOrders: async () => {
     try {
-      const response = await API.get("/order/admin/all");
+      const response = await API.get("/orders/admin/all");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch orders", error);
@@ -12,7 +12,7 @@ export const orderApi = {
   },
   updateOrderStatus: async (id, status) => {
     try {
-      const response = await API.patch(`/order/admin/status/${id}`, {
+      const response = await API.patch(`/orders/admin/status/${id}`, {
         delivery_status: status,
       });
       return response.data;

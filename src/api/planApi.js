@@ -2,27 +2,27 @@ import API from "./axiosInstance";
 
 export const planApi = {
   createPlan: async (planData) => {
-    const response = await API.post("/plan", planData);
+    const response = await API.post("/plans", planData);
     return response.data;
   },
 
   getAllPlans: async () => {
-    const response = await API.get("/plan");
+    const response = await API.get("/plans");
     return response.data;
   },
 
   getPlanById: async (id) => {
-    const response = await API.get(`/plan/${id}`);
+    const response = await API.get(`/plans/${id}`);
     return response.data;
   },
 
   updatePlan: async (id, planData) => {
-    const response = await API.put(`/plan/${id}`, planData);
+    const response = await API.put(`/plans/${id}`, planData);
     return response.data;
   },
 
   deletePlan: async (id) => {
-    const response = await API.delete(`/plan/${id}`);
+    const response = await API.delete(`/plans/${id}`);
     return response.data;
   },
 

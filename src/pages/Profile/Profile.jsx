@@ -4,16 +4,19 @@ import {
   User,
   Mail,
   Shield,
-  Settings,
+  Settings as SettingsIcon,
   Camera,
   Phone,
-  MapPin,
   Calendar,
   Save,
   X,
   Loader2,
 } from "lucide-react";
 import { updateProfile, clearError } from "../../store/slices/authSlice";
+import FormInput from "../../components/Form/FormInput";
+import Button from "../../components/UI/Button";
+import { toast } from "react-hot-toast";
+
 const Profile = () => {
   const { user, loading, error } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -47,9 +50,7 @@ const Profile = () => {
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -59,66 +60,26 @@ const Profile = () => {
     const data = new FormData();
     data.append("name", formData.name);
     data.append("email", formData.email);
+    data.append(
+      "phone",
+      formData.phone ? formData.phone.replace(/\D/g, "") : "",
+    );
 
-    // Clean phone number: remove non-digits
-    const cleanPhone = formData.phone ? formData.phone.replace(/\D/g, "") : "";
-    data.append("phone", cleanPhone);
-
-    if (imageFile) {
-      data.append("profile_image", imageFile);
-    }
+    if (imageFile) data.append("profile_image", imageFile);
 
     const result = await dispatch(updateProfile({ formData: data }));
     if (updateProfile.fulfilled.match(result)) {
       setIsEditing(false);
       setImageFile(null);
+      toast.success("Profile updated successfully");
     }
   };
-
-  const profileData = [
-    {
-      label: "Full Name",
-      name: "name",
-      value: formData.name,
-      displayValue: formData.name || "N/A",
-      icon: <User size={18} />,
-    },
-    {
-      label: "Email Address",
-      name: "email",
-      value: formData.email,
-      displayValue: formData.email || "N/A",
-      icon: <Mail size={18} />,
-    },
-    {
-      label: "Contact Number",
-      name: "phone",
-      value: formData.phone,
-      displayValue: formData.phone || "Not Provided",
-      icon: <Phone size={18} />,
-    },
-    {
-      label: "Joined Date",
-      value: "",
-      displayValue: user?.created_at
-        ? new Date(user.created_at).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })
-        : "January 12, 2024",
-      icon: <Calendar size={18} />,
-      readOnly: true,
-    },
-  ];
 
   const getProfileUrl = (profile) => {
     if (!profile) return null;
     if (typeof profile === "string") {
       try {
-        if (profile.startsWith("{")) {
-          return JSON.parse(profile).url;
-        }
+        if (profile.startsWith("{")) return JSON.parse(profile).url;
         return profile;
       } catch (e) {
         return profile;
@@ -128,41 +89,53 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex flex-col gap-10 animate-fade-in">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10 text-left">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-text-primary font-['Outfit'] tracking-tight">
-            User <span className="text-gradient">Profile</span>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Account Profile
           </h1>
-          <p className="text-text-secondary mt-2 text-lg font-medium opacity-80 italic font-['Outfit']">
-            Manage your digital identity and administrative credentials.
+          <p className="text-text-secondary text-sm">
+            Manage your administrative details and credentials.
           </p>
         </div>
+        {!isEditing ? (
+          <Button
+            onClick={() => setIsEditing(true)}
+            icon={SettingsIcon}
+            variant="secondary"
+          >
+            Edit Profile
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button onClick={() => setIsEditing(false)} variant="ghost">
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} loading={loading} icon={Save}>
+              Save Update
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left Sidebar - Profile Card */}
-        <div
-          className="lg:col-span-1 animate-slide-up"
-          style={{ animationDelay: "0.1s" }}
-        >
-          <div className="card-premium flex flex-col items-center p-10">
-            <div className="relative w-40 h-40 mb-8 group">
-              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-75 group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Card */}
+        <div className="lg:col-span-1">
+          <div className="bg-surface border border-border rounded-lg p-8 flex flex-col items-center shadow-sm">
+            <div className="relative w-32 h-32 mb-6 group">
               <img
                 src={
                   imagePreview ||
                   getProfileUrl(user?.profile) ||
-                  user?.avatar ||
-                  user?.image ||
-                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || "Felix"}`
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || "Admin"}`
                 }
                 alt="Profile"
-                className="w-full h-full rounded-[2.5rem] object-cover border-4 border-white/50 dark:border-white/5 shadow-2xl relative z-10 transition-all duration-500 group-hover:rotate-2 group-hover:scale-105"
+                className="w-full h-full rounded-2xl object-cover border border-border/50 shadow-md"
               />
               {isEditing && (
-                <label className="absolute bottom-[-10px] right-[-10px] w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center cursor-pointer shadow-2xl hover:bg-primary-hover hover:scale-110 active:scale-95 transition-all z-20 border-none">
-                  <Camera size={22} strokeWidth={2.5} />
+                <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary-hover transition-all">
+                  <Camera size={18} />
                   <input
                     type="file"
                     hidden
@@ -172,142 +145,132 @@ const Profile = () => {
                 </label>
               )}
             </div>
-            <h2 className="text-3xl font-black text-text-primary font-['Outfit'] tracking-tight mb-2">
+
+            <h2 className="text-lg font-bold text-text-primary mb-1">
               {user?.name || "System Admin"}
             </h2>
-            <div className="flex gap-2 mb-10">
-              <span className="px-4 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[10px] font-black uppercase tracking-[0.15em]">
-                {user?.role || user?.user_type || "Admin"}
-              </span>
-              <span className="px-4 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.15em]">
-                VERIFIED
+            <div className="flex gap-2 mb-6">
+              <span className="px-3 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                {user?.role || "Administrator"}
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 w-full pt-10 border-t border-border/30">
-              <div className="flex flex-col items-center group/stat cursor-default">
-                <h4 className="text-xl font-black text-text-primary group-hover:text-primary transition-colors">
-                  148
-                </h4>
-                <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mt-1">
+            <div className="w-full grid grid-cols-3 gap-2 pt-6 border-t border-border">
+              <div className="text-center">
+                <p className="text-sm font-bold text-text-primary">148</p>
+                <p className="text-[10px] font-bold text-text-secondary uppercase opacity-60">
                   Books
                 </p>
               </div>
-              <div className="flex flex-col items-center border-x border-border/30 group/stat cursor-default px-4">
-                <h4 className="text-xl font-black text-text-primary group-hover:text-primary transition-colors">
-                  12.4k
-                </h4>
-                <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mt-1">
-                  Readers
+              <div className="text-center border-x border-border">
+                <p className="text-sm font-bold text-text-primary">12.4k</p>
+                <p className="text-[10px] font-bold text-text-secondary uppercase opacity-60">
+                  Users
                 </p>
               </div>
-              <div className="flex flex-col items-center group/stat cursor-default">
-                <h4 className="text-xl font-black text-text-primary group-hover:text-primary transition-colors">
-                  4.8
-                </h4>
-                <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mt-1">
-                  Rating
+              <div className="text-center">
+                <p className="text-sm font-bold text-text-primary">4.8</p>
+                <p className="text-[10px] font-bold text-text-secondary uppercase opacity-60">
+                  Score
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Content Area - Forms */}
-        <div
-          className="lg:col-span-2 animate-slide-up"
-          style={{ animationDelay: "0.2s" }}
-        >
-          <div className="card-premium h-full p-10">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-12">
-              <h3 className="text-2xl font-black text-text-primary font-['Outfit'] tracking-tight flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                  <Shield size={24} strokeWidth={2.5} />
-                </div>
-                Credential Archive
-              </h3>
-              {isEditing ? (
-                <div className="flex gap-4">
-                  <button
-                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-rose-500/10 text-rose-500 font-black text-xs uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all border-none cursor-pointer"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setImagePreview(null);
-                      setImageFile(null);
-                      dispatch(clearError());
-                    }}
-                  >
-                    <X size={18} /> Cancel
-                  </button>
-                  <button
-                    className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/40 hover:-translate-y-1 active:scale-95 disabled:opacity-50 transition-all border-none cursor-pointer"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <>
-                        <Save size={18} /> Save Update
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-background border border-border/50 text-text-primary font-black text-xs uppercase tracking-widest hover:border-primary hover:text-primary active:scale-95 transition-all shadow-xl shadow-black/5 border-none cursor-pointer"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Settings size={18} /> Settings Override
-                </button>
-              )}
-            </div>
+        {/* Details Form */}
+        <div className="lg:col-span-2">
+          <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
+            <h3 className="text-sm font-bold text-text-primary mb-6 flex items-center gap-2 uppercase tracking-wider">
+              <Shield size={16} className="text-primary" />
+              Credential Archive
+            </h3>
 
             {error && (
-              <div className="p-6 bg-rose-500/10 text-rose-500 rounded-3xl border border-rose-500/20 font-black text-xs tracking-widest uppercase animate-pulse mb-10">
-                SYSTEM BREACH: {error}
+              <div className="mb-6 p-4 bg-error-surface text-error border border-error/20 rounded-md text-xs font-bold uppercase tracking-wider">
+                System Error: {error}
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {profileData.map((item, index) => (
-                <div className="flex flex-col gap-4" key={index}>
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] ml-2">
-                    {item.label}
-                  </label>
-                  {isEditing && !item.readOnly ? (
-                    <div className="relative group">
-                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-primary transition-colors">
-                        {item.icon}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {isEditing ? (
+                <>
+                  <FormInput
+                    label="Full Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    icon={User}
+                  />
+                  <FormInput
+                    label="Email Address"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    icon={Mail}
+                  />
+                  <FormInput
+                    label="Contact Number"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    icon={Phone}
+                  />
+                  <FormInput
+                    label="Account ID"
+                    value={user?.id || "N/A"}
+                    disabled
+                    icon={Shield}
+                  />
+                </>
+              ) : (
+                <>
+                  {[
+                    { label: "Full Name", value: user?.name, icon: User },
+                    { label: "Email Address", value: user?.email, icon: Mail },
+                    {
+                      label: "Contact Number",
+                      value: user?.phone || "Not Provided",
+                      icon: Phone,
+                    },
+                    {
+                      label: "Role Status",
+                      value: user?.role || "Admin",
+                      icon: Shield,
+                    },
+                  ].map((field, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 bg-background/50 p-4 rounded-lg border border-border"
+                    >
+                      <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <field.icon size={18} />
                       </div>
-                      <input
-                        type="text"
-                        name={item.name}
-                        value={item.value || ""}
-                        onChange={handleInputChange}
-                        className="w-full bg-background/50 border border-border/50 group-focus-within:border-primary group-focus-within:ring-4 group-focus-within:ring-primary/10 rounded-2xl py-4 pl-14 pr-6 outline-hidden transition-all text-sm font-bold text-text-primary"
-                        placeholder={`Enter your ${item.label.toLowerCase()}`}
-                      />
+                      <div>
+                        <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60 leading-none mb-1">
+                          {field.label}
+                        </p>
+                        <p className="text-sm font-bold text-text-primary truncate">
+                          {field.value}
+                        </p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="group flex items-center gap-5 bg-background/30 p-5 rounded-3xl border border-border/20 hover:border-primary/30 transition-all hover:bg-white/50 dark:hover:bg-slate-800/50">
-                      <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                        {item.icon}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black text-text-primary tracking-tight">
-                          {item.displayValue}
-                        </span>
-                        {item.readOnly && (
-                          <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">
-                            Immutable Field
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  ))}
+                </>
+              )}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-border flex items-center gap-2 text-text-secondary font-medium text-xs">
+              <Calendar size={14} className="opacity-40" />
+              <span>
+                Joined on{" "}
+                {user?.created_at
+                  ? new Date(user.created_at).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "Jan 2024"}
+              </span>
             </div>
           </div>
         </div>

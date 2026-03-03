@@ -48,16 +48,16 @@ const UserAvatar = ({ user }) => {
   };
 
   return (
-    <div className="w-11 h-11 rounded-2xl overflow-hidden border border-border/50 bg-background flex items-center justify-center flex-shrink-0 shadow-sm shadow-black/5">
+    <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-background flex items-center justify-center flex-shrink-0 shadow-sm">
       {imageUrl && !imageError ? (
         <img
           src={imageUrl}
-          alt={user.name}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          alt=""
+          className="w-full h-full object-cover"
           onError={() => setImageError(true)}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary text-[0.8rem] font-black uppercase tracking-widest">
+        <div className="w-full h-full flex items-center justify-center bg-primary/5 text-primary text-[11px] font-bold uppercase">
           {getInitials(user.name)}
         </div>
       )}
@@ -73,9 +73,10 @@ const Users = () => {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -85,7 +86,7 @@ const Users = () => {
     return () => {
       dispatch(clearUserError());
     };
-  }, [dispatch, currentPage, searchQuery]);
+  }, [dispatch, currentPage, searchQuery, itemsPerPage]);
 
   // Handle Search logic
   useEffect(() => {
@@ -93,13 +94,13 @@ const Users = () => {
       if (searchQuery.trim()) {
         dispatch(searchUsersThunk(searchQuery));
       } else {
-        dispatch(fetchAllUsers());
+        dispatch(fetchAllUsers({ page: 1, limit: itemsPerPage }));
       }
       setCurrentPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, dispatch]);
+  }, [searchQuery, dispatch, itemsPerPage]);
 
   const handleDeleteClick = (user) => {
     setUserToDelete(user);
@@ -108,10 +109,17 @@ const Users = () => {
 
   const handleConfirmDelete = async () => {
     if (userToDelete) {
-      const id = userToDelete.id || userToDelete._id;
-      await dispatch(deleteUserThunk(id));
-      setIsDeleteModalOpen(false);
-      setUserToDelete(null);
+      setIsDeleting(true);
+      try {
+        const id = userToDelete.id || userToDelete._id;
+        await dispatch(deleteUserThunk(id));
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
+      } catch (err) {
+        console.error("Delete failed:", err);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -131,45 +139,35 @@ const Users = () => {
   const columns = [
     {
       header: "User Details",
-      width: "300px",
       render: (row) => (
         <div className="flex items-center gap-3">
           <UserAvatar user={row} />
           <div className="flex flex-col">
-            <span className="font-medium text-text-primary">{row.name}</span>
-            <span className="text-xs text-text-secondary">{row.email}</span>
+            <span className="font-bold text-text-primary text-[17px] line-clamp-1">
+              {row.name}
+            </span>
+            <span className="text-[13px] text-text-secondary font-bold uppercase tracking-wider opacity-60">
+              {row.email}
+            </span>
           </div>
         </div>
       ),
     },
     {
-      header: "Role",
-      render: (row) => {
-        const role = row.role || row.user_type;
-        const isAdmin =
-          role === "Admin" || role === "admin" || role === "System Admin";
-        return (
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit ${
-              isAdmin
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
-                : "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"
-            }`}
-          >
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${isAdmin ? "bg-emerald-500" : "bg-indigo-500"}`}
-            />
-            <span className="text-xs font-semibold">{role}</span>
-          </div>
-        );
-      },
+      header: "Mobile",
+      render: (row) => (
+        <span className="text-base text-text-secondary font-medium">
+          {row.phone || row.mobile || "N/A"}
+        </span>
+      ),
     },
     {
       header: "Joined Date",
       render: (row) => {
-        const dateValue = row.joined || row.createdAt || row.updatedAt;
+        const dateValue =
+          row.joined || row.createdAt || row.created_at || row.joined_at;
         return (
-          <span className="text-sm text-text-secondary">
+          <span className="text-base text-text-secondary font-medium">
             {dateValue
               ? new Date(dateValue).toLocaleDateString("en-US", {
                   month: "short",
@@ -183,24 +181,33 @@ const Users = () => {
     },
     {
       header: "Status",
-      width: "180px",
+      width: "150px",
       render: (row) => {
-        const isActive = row.is_active !== false;
+        const isActive = !!row.is_active;
         const currentId = row.id || row._id;
         const isProcessing = togglingId === currentId;
 
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <span
+              className={`w-[90px] text-center px-2 py-0.5 rounded-md text-[13px] font-bold uppercase tracking-wider border ${
+                isActive
+                  ? "bg-success-surface text-success border-success/20"
+                  : "bg-error-surface text-error border-error/20"
+              }`}
+            >
+              {isActive ? "Active" : "Inactive"}
+            </span>
             <button
               onClick={() => handleToggleStatus(currentId)}
               disabled={isProcessing}
-              className={`w-11 h-6 rounded-full relative transition-all duration-500 border-none cursor-pointer p-0 shadow-inner overflow-hidden ${
-                isActive ? "bg-[#6366f1]" : "bg-slate-200 dark:bg-slate-800"
-              } ${isProcessing ? "opacity-50 cursor-not-allowed" : "hover:scale-105"}`}
+              className={`w-9 h-5 rounded-full relative transition-all cursor-pointer p-0 ${
+                isActive ? "bg-primary" : "bg-border"
+              } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <div
-                className={`w-4.5 h-4.5 rounded-full bg-white absolute top-0.75 transition-all duration-500 shadow-md ${
-                  isActive ? "left-[22px]" : "left-[3px]"
+                className={`w-3 h-3 rounded-full bg-surface absolute top-1 transition-all ${
+                  isActive ? "left-[20px]" : "left-[4px]"
                 }`}
               />
             </button>
@@ -210,29 +217,30 @@ const Users = () => {
     },
     {
       header: "Actions",
-      width: "160px",
+      width: "140px",
+      align: "right",
       render: (row) => (
         <div className="flex items-center gap-2">
           <button
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 transition-all transform hover:-translate-y-1 shadow-sm border border-indigo-100 dark:border-indigo-500/20 cursor-pointer"
-            title="View Details"
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-primary/10 text-text-secondary hover:text-primary transition-all border border-border"
+            title="View"
             onClick={() => navigate(`/users/view/${row.id || row._id}`)}
           >
-            <Eye size={16} strokeWidth={2.5} />
+            <Eye size={14} />
           </button>
           <button
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-all transform hover:-translate-y-1 shadow-sm border border-emerald-100 dark:border-emerald-500/20 cursor-pointer"
-            title="Edit User"
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
+            title="Edit"
             onClick={() => navigate(`/users/edit/${row.id || row._id}`)}
           >
-            <Pencil size={16} strokeWidth={2.5} />
+            <Pencil size={14} />
           </button>
           <button
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 transition-all transform hover:-translate-y-1 shadow-sm border border-rose-100 dark:border-rose-500/20 cursor-pointer"
-            title="Delete User"
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
+            title="Delete"
             onClick={() => handleDeleteClick(row)}
           >
-            <Trash2 size={16} strokeWidth={2.5} />
+            <Trash2 size={14} />
           </button>
         </div>
       ),
@@ -240,34 +248,31 @@ const Users = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in font-['Outfit']">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-black text-text-primary tracking-tight leading-tight">
-            User <span className="text-primary italic">Management</span>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            User Accounts
           </h1>
-          <p className="text-text-secondary mt-1 text-sm font-bold opacity-60 tracking-tight">
-            Control access and manage user roles within your digital ecosystem.
+          <p className="text-text-secondary text-sm">
+            Monitor and manage your platform users.
           </p>
         </div>
       </div>
 
-      <div className="text-left">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search by name, email, or role..."
-          onReset={() => {
-            setSearchQuery("");
-            setCurrentPage(1);
-          }}
-        />
-      </div>
+      <SearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder="Search by name or email..."
+        onReset={() => {
+          setSearchQuery("");
+          setCurrentPage(1);
+        }}
+      />
 
       {error && (
-        <div className="p-5 bg-rose-500/10 text-rose-500 rounded-2xl border border-rose-500/20 font-bold text-sm tracking-tight flex items-center gap-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-          SYSTEM ALERT: {error}
+        <div className="p-4 bg-error-surface text-error rounded-lg border border-error/20 text-sm font-semibold">
+          {error}
         </div>
       )}
 
@@ -280,22 +285,21 @@ const Users = () => {
         />
       </div>
 
-      <div className="mt-2 text-left">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-        />
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+      />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete User"
-        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${userToDelete?.name}?`}
+        isProcessing={isDeleting}
       />
     </div>
   );

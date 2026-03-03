@@ -5,15 +5,12 @@ import { logout } from "../../store/slices/authSlice";
 import { fetchNotifications } from "../../store/slices/notificationSlice";
 import {
   Bell,
-  Moon,
-  Sun,
   Menu,
   User,
   Settings,
   LogOut,
   ChevronRight,
-  ShieldCheck,
-  TrendingUp,
+  ChevronDown,
 } from "lucide-react";
 import ThemeToggle from "../Theme/ThemeToggle";
 
@@ -21,7 +18,6 @@ const Header = ({ toggleSidebar, isOpen }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const { unreadCount } = useSelector((state) => state.notifications);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -34,117 +30,105 @@ const Header = ({ toggleSidebar, isOpen }) => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [dispatch]);
 
   return (
-    <header className="h-[var(--header-height)] px-8 flex items-center justify-between sticky top-0 bg-surface/60 backdrop-blur-xl border-b border-white/20 dark:border-white/5 z-[1001] animate-fade-in shadow-sm">
-      <div className="flex items-center gap-6">
+    <header className="h-[var(--header-height)] px-6 flex items-center justify-between sticky top-0 bg-surface border-b border-border z-[1001]">
+      <div className="flex items-center gap-4">
         <button
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-background text-text-secondary hover:text-primary transition-all border border-border"
+          className="w-9 h-9 flex items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border"
           onClick={toggleSidebar}
         >
-          <Menu size={20} className="lg:hidden" />
+          <Menu size={18} className="lg:hidden" />
           <ChevronRight
-            size={20}
-            className={`hidden lg:block transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+            size={18}
+            className={`hidden lg:block transition-transform ${isOpen ? "rotate-180" : ""}`}
           />
         </button>
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3 pr-6 border-r border-border">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 pr-4 border-r border-border">
           <ThemeToggle />
-
-          <div className="relative group">
-            <button
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-background text-text-secondary hover:text-primary transition-all border border-border relative"
-              onClick={() => navigate("/notifications")}
-            >
-              <Bell size={20} />
-            </button>
-          </div>
+          <button
+            className="w-9 h-9 flex items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border relative"
+            onClick={() => navigate("/notifications")}
+          >
+            <Bell size={18} />
+          </button>
         </div>
 
         <div className="relative" ref={dropdownRef}>
           <div
-            className="flex items-center gap-3.5 py-1.5 px-2 rounded-2xl cursor-pointer hover:bg-background transition-all group"
+            className="flex items-center gap-3 p-1 rounded-lg cursor-pointer hover:bg-background transition-all group"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
           >
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-border shadow-sm group-hover:border-primary transition-colors shrink-0">
+            <div className="w-9 h-9 rounded bg-primary overflow-hidden border border-border shrink-0">
               <img
                 src={
                   user?.profile?.url ||
                   user?.avatar ||
                   `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || "Felix"}`
                 }
-                alt="User"
+                alt=""
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex flex-col hidden sm:flex">
-              <span className="text-[14px] font-bold text-text-primary leading-none mb-1">
+              <span className="text-sm font-bold text-text-primary leading-none">
                 {user?.name || "System Admin"}
               </span>
-              <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60 leading-none">
-                {user?.role || "SYSTEM ADMIN"}
+              <span className="text-[10px] font-bold text-text-secondary uppercase mt-1 opacity-60">
+                {user?.role || "Admin"}
               </span>
             </div>
-            <ChevronRight
+            <ChevronDown
               size={14}
-              className={`text-text-secondary transition-transform duration-500 ${isProfileOpen ? "rotate-90" : "rotate-0 sm:rotate-90"}`}
+              className={`text-text-secondary transition-transform ${isProfileOpen ? "rotate-180" : ""}`}
             />
           </div>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-4 w-80 bg-surface border border-border rounded-3xl shadow-2xl overflow-hidden z-[1100] animate-slide-up">
-              <div className="p-6 border-b border-border bg-linear-to-br from-primary/5 to-transparent">
-                <div className="flex items-center gap-4 mb-3 text-text-secondary/60">
-                  <span className="text-[10px] font-black uppercase tracking-widest leading-none">
-                    Security ID
-                  </span>
-                  <div className="h-[1px] flex-1 bg-border/50"></div>
-                </div>
-                <p className="text-sm font-black text-text-primary truncate font-['Outfit']">
+            <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-lg shadow-lg overflow-hidden z-[1100]">
+              <div className="p-4 border-b border-border bg-background/50">
+                <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">
+                  Signed in as
+                </p>
+                <p className="text-sm font-bold text-text-primary truncate">
                   {user?.email || "admin@mindgym.com"}
                 </p>
               </div>
 
-              <div className="p-3">
+              <div className="p-1">
                 <Link
                   to="/profile"
-                  className="flex items-center gap-4 p-3.5 rounded-2xl hover:bg-background transition-all group/item"
+                  className="flex items-center gap-3 p-2.5 rounded-md hover:bg-background transition-all"
                   onClick={() => setIsProfileOpen(false)}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-text-secondary group-hover/item:bg-primary group-hover/item:text-white group-hover/item:border-primary transition-all shadow-sm">
-                    <User size={18} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[0.9rem] font-black text-text-primary group-hover/item:text-primary transition-colors">
-                    Account Profile
+                  <User size={16} className="text-text-secondary" />
+                  <span className="text-sm font-semibold text-text-primary">
+                    Profile
                   </span>
                 </Link>
                 <Link
                   to="/settings"
-                  className="flex items-center gap-4 p-3.5 rounded-2xl hover:bg-background transition-all group/item"
+                  className="flex items-center gap-3 p-2.5 rounded-md hover:bg-background transition-all"
                   onClick={() => setIsProfileOpen(false)}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-surface border border-border flex items-center justify-center text-text-secondary group-hover/item:bg-primary group-hover/item:text-white group-hover/item:border-primary transition-all shadow-sm">
-                    <Settings size={18} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[0.9rem] font-black text-text-primary group-hover/item:text-primary transition-colors">
-                    Global Settings
+                  <Settings size={16} className="text-text-secondary" />
+                  <span className="text-sm font-semibold text-text-primary">
+                    Settings
                   </span>
                 </Link>
               </div>
 
-              <div className="p-3 bg-background">
+              <div className="p-1 mt-1 border-t border-border">
                 <button
-                  className="w-full flex items-center gap-4 p-3.5 rounded-2xl bg-rose-500/5 hover:bg-rose-500 text-rose-500 hover:text-white text-[0.9rem] font-black transition-all group/btn shadow-xs hover:shadow-lg hover:shadow-rose-500/30"
+                  className="w-full flex items-center gap-3 p-2.5 rounded-md text-error hover:bg-error-surface transition-all"
                   onClick={() => dispatch(logout())}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-rose-500/10 group-hover:btn:bg-white/20 flex items-center justify-center transition-all">
-                    <LogOut size={18} strokeWidth={2.5} />
-                  </div>
-                  System Logout
+                  <LogOut size={16} />
+                  <span className="text-sm font-semibold">Logout</span>
                 </button>
               </div>
             </div>

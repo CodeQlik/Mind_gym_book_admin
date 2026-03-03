@@ -1,6 +1,10 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 
+/**
+ * Standard Accessible Button
+ * Simple, clean, and professional.
+ */
 const Button = ({
   children,
   variant = "primary",
@@ -15,27 +19,24 @@ const Button = ({
   ...props
 }) => {
   const baseStyles =
-    "inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95";
+    "inline-flex items-center justify-center font-bold tracking-tight transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border";
 
   const variants = {
-    primary:
-      "bg-[#6366f1] hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5",
+    primary: "bg-primary border-primary text-white hover:opacity-90 shadow-sm",
     secondary:
-      "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:-translate-y-0.5",
-    danger:
-      "bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20 hover:-translate-y-0.5",
-    success:
-      "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5",
+      "bg-surface border-border text-text-primary hover:bg-background shadow-sm",
+    danger: "bg-error border-error text-white hover:opacity-90 shadow-sm",
+    success: "bg-success border-success text-white hover:opacity-90 shadow-sm",
     outline:
-      "bg-transparent border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary",
+      "bg-transparent border-border text-text-secondary hover:border-primary hover:text-primary",
     ghost:
-      "bg-transparent text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:-translate-x-1",
+      "bg-transparent border-transparent text-text-secondary hover:bg-background hover:text-primary",
   };
 
   const sizes = {
-    sm: "px-4 py-2 text-xs rounded-lg gap-1.5",
-    md: "px-6 py-3 text-sm rounded-xl gap-2",
-    lg: "px-8 py-4 text-base rounded-2xl gap-2.5",
+    sm: "px-3 py-1.5 text-xs rounded-md gap-1.5",
+    md: "px-4 py-2 text-sm rounded-md gap-2",
+    lg: "px-6 py-3 text-base rounded-lg gap-2.5",
   };
 
   const currentVariant = variants[variant] || variants.primary;
@@ -56,10 +57,7 @@ const Button = ({
           size={size === "sm" ? 14 : size === "lg" ? 20 : 18}
         />
       ) : Icon ? (
-        <Icon
-          size={size === "sm" ? 14 : size === "lg" ? 20 : 18}
-          strokeWidth={size === "sm" ? 3 : 2.5}
-        />
+        <Icon size={size === "sm" ? 14 : size === "lg" ? 20 : 18} />
       ) : null}
       {children}
     </button>

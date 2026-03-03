@@ -7,7 +7,7 @@ const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="flex min-h-screen w-full bg-background selection:bg-primary/20 selection:text-primary">
+    <div className="flex min-h-screen w-full bg-background">
       <Sidebar
         isOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -16,28 +16,24 @@ const Layout = () => {
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1050] lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/30 z-[1050] lg:hidden animate-in fade-in"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-      <div className="flex-1 flex flex-col min-w-0 transition-all duration-500 relative">
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 relative">
         <Header
           isOpen={isSidebarOpen}
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
-        <main className="flex-1 p-6 sm:p-8 lg:p-10 pt-4 sm:pt-5 lg:pt-6 max-w-[1920px] mx-auto w-full relative z-10 transition-all duration-500">
-          {/* Decorative Top Gradient for Main Content */}
-          <div className="absolute top-0 left-0 w-full h-[300px] bg-linear-to-b from-primary/5 to-transparent pointer-events-none -z-10" />
-
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto relative z-10">
           <div className="animate-fade-in h-full">
             <Outlet />
           </div>
         </main>
 
-        <footer className="px-12 py-8 text-center text-[0.7rem] font-black text-text-secondary opacity-30 uppercase tracking-[0.2em]">
-          Mind Gym Administrative Interface &copy; {new Date().getFullYear()}{" "}
-          &bull; Built with Tailwind CSS
+        <footer className="px-8 py-6 text-center text-xs font-bold text-text-secondary opacity-40 uppercase tracking-widest border-t border-border/50">
+          Mind Gym Admin Interface &copy; {new Date().getFullYear()}
         </footer>
       </div>
     </div>

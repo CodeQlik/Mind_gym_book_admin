@@ -1,10 +1,6 @@
 import React from "react";
 import { ChevronDown } from "lucide-react";
 
-/**
- * A reusable, premium Form Input component.
- * Supports: text, number, date, select, textarea, email, password.
- */
 const FormInput = ({
   label,
   name,
@@ -14,24 +10,14 @@ const FormInput = ({
   placeholder = "",
   required = false,
   error = "",
-  options = [], // For select type: [{ value, label }]
+  options = [],
   className = "",
-  rows = 4, // For textarea
-  icon: Icon, // Optional icon on the left
+  rows = 4,
+  icon: Icon,
   disabled = false,
   ...props
 }) => {
-  const baseInputStyles = `
-    w-full bg-background 
-    border ${error ? "border-rose-500" : "border-border"}
-    rounded-xl py-3 px-5 
-    outline-hidden 
-    focus:border-primary/30 focus:ring-4 focus:ring-primary/5 
-    transition-all text-sm font-medium 
-    text-text-primary 
-    placeholder:text-text-secondary/50 
-    shadow-sm disabled:opacity-50 disabled:cursor-not-allowed
-  `;
+  const baseInputStyles = `input-field ${error ? "border-error focus:border-error" : ""} ${className}`;
 
   const renderInput = () => {
     if (type === "textarea") {
@@ -44,7 +30,7 @@ const FormInput = ({
           placeholder={placeholder}
           rows={rows}
           disabled={disabled}
-          className={`${baseInputStyles} resize-none min-h-[100px] leading-relaxed ${className}`}
+          className={`${baseInputStyles} resize-none min-h-[100px] leading-relaxed`}
           {...props}
         />
       );
@@ -52,39 +38,34 @@ const FormInput = ({
 
     if (type === "select") {
       return (
-        <div className="relative group/select">
-          <select
-            name={name}
-            id={name}
-            value={value}
-            onChange={onChange}
-            disabled={disabled}
-            className={`${baseInputStyles} appearance-none cursor-pointer pr-10 ${className}`}
-            {...props}
-          >
-            {placeholder && (
-              <option value="" disabled={required}>
-                {placeholder}
-              </option>
-            )}
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary group-hover/select:text-primary transition-colors">
-            <ChevronDown size={18} strokeWidth={2.5} />
-          </div>
-        </div>
+        <select
+          name={name}
+          id={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`select-field ${error ? "border-error focus:border-error" : ""} ${className}`}
+          {...props}
+        >
+          {placeholder && (
+            <option value="" disabled={required}>
+              {placeholder}
+            </option>
+          )}
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       );
     }
 
     return (
-      <div className="relative flex items-center">
+      <div className="relative flex items-center w-full">
         {Icon && (
-          <div className="absolute left-4 text-text-secondary group-focus-within:text-primary transition-colors">
-            <Icon size={18} />
+          <div className="absolute left-3.5 text-text-secondary">
+            <Icon size={16} />
           </div>
         )}
         <input
@@ -95,7 +76,7 @@ const FormInput = ({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
-          className={`${baseInputStyles} ${Icon ? "pl-11" : ""} ${className}`}
+          className={`${baseInputStyles} ${Icon ? "pl-10" : ""}`}
           {...props}
         />
       </div>
@@ -103,21 +84,23 @@ const FormInput = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full animate-fade-in">
+    <div className="flex flex-col gap-1.5 w-full">
       {label && (
         <label
           htmlFor={name}
-          className="text-[0.85rem] font-bold text-text-primary ml-1 flex items-center gap-1.5 uppercase tracking-wider"
+          className="text-sm font-bold text-text-primary ml-0.5 uppercase tracking-wider opacity-70"
         >
           {label}
-          {required && <span className="text-rose-500 font-black">*</span>}
+          {required && (
+            <span className="text-primary/70 ml-1 font-bold text-xs">*</span>
+          )}
         </label>
       )}
 
       {renderInput()}
 
       {error && (
-        <span className="text-xs font-bold text-rose-500 ml-1 italic animate-in fade-in slide-in-from-top-1">
+        <span className="text-[12px] font-bold text-error ml-0.5 uppercase tracking-tight">
           {error}
         </span>
       )}

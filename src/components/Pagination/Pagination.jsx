@@ -1,7 +1,9 @@
 import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
- * Custom Styled Pagination Matching User Design
+ * Standard Pagination
+ * Clean, simple, and functional.
  */
 const Pagination = ({
   currentPage,
@@ -44,89 +46,56 @@ const Pagination = ({
 
   if (totalPages <= 1) return null;
 
-  const buttonBaseStyles =
-    "px-5 py-2.5 flex items-center justify-center transition-all duration-200 font-bold text-[0.75rem] uppercase tracking-wide cursor-pointer border-none bg-transparent h-full min-w-[45px]";
-  const activeStyles = "bg-primary/10 text-primary";
-  const inactiveStyles =
-    "text-text-secondary hover:text-primary hover:bg-background";
-  const dividerStyles = "w-[1px] h-full bg-border";
-
   return (
-    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-6 py-4 animate-fade-in font-['Outfit']">
-      <div className="flex items-center gap-3">
-        <div
-          className={`w-2 h-2 rounded-full animate-pulse ${totalPages > 1 ? "bg-primary" : "bg-emerald-500"}`}
-        />
-        <div className="text-[10px] font-black text-text-secondary/50 uppercase tracking-[0.2em]">
-          Showing{" "}
-          <span className="text-text-primary">
-            {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
-          </span>{" "}
-          to{" "}
-          <span className="text-text-primary">
-            {Math.min(currentPage * itemsPerPage, totalItems)}
-          </span>{" "}
-          of <span className="text-primary">{totalItems}</span> Records
-        </div>
+    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-4 animate-fade-in">
+      <div className="text-sm font-bold text-text-secondary">
+        Showing{" "}
+        <span className="text-text-primary">
+          {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
+        </span>{" "}
+        to{" "}
+        <span className="text-text-primary">
+          {Math.min(currentPage * itemsPerPage, totalItems)}
+        </span>{" "}
+        of <span className="text-text-primary">{totalItems}</span> Records
       </div>
 
-      <div className="flex items-center bg-surface border border-border rounded-xl overflow-hidden shadow-sm h-11">
-        {/* Previous Button */}
+      <div className="flex items-center gap-1">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`${buttonBaseStyles} ${inactiveStyles} ${
-            currentPage === 1 ? "opacity-30 cursor-not-allowed" : ""
-          } px-7`}
+          className="p-2 rounded-md border border-border bg-surface text-text-secondary hover:text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          Previous
+          <ChevronLeft size={16} />
         </button>
 
-        <div className={dividerStyles} />
-
-        {/* Page Numbers */}
-        {getPageNumbers().map((page, index) => (
-          <React.Fragment key={index}>
-            {page === "..." ? (
-              <div className="h-full flex items-center">
-                <span
-                  className={`${buttonBaseStyles} text-text-secondary cursor-default px-3`}
-                >
-                  ...
-                </span>
-                {index < getPageNumbers().length - 1 && (
-                  <div className={dividerStyles} />
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center h-full">
+        <div className="flex items-center gap-1 mx-2">
+          {getPageNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === "..." ? (
+                <span className="px-3 py-1 text-text-secondary">...</span>
+              ) : (
                 <button
                   onClick={() => onPageChange(page)}
-                  className={`${buttonBaseStyles} ${
-                    currentPage === page ? activeStyles : inactiveStyles
+                  className={`min-w-[32px] h-8 rounded-md text-[15px] font-bold transition-all ${
+                    currentPage === page
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-text-secondary hover:bg-background"
                   }`}
                 >
                   {page}
                 </button>
-                {index < getPageNumbers().length - 1 && (
-                  <div className={dividerStyles} />
-                )}
-              </div>
-            )}
-          </React.Fragment>
-        ))}
+              )}
+            </React.Fragment>
+          ))}
+        </div>
 
-        <div className={dividerStyles} />
-
-        {/* Next Button */}
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`${buttonBaseStyles} ${inactiveStyles} ${
-            currentPage === totalPages ? "opacity-30 cursor-not-allowed" : ""
-          } px-7`}
+          className="p-2 rounded-md border border-border bg-surface text-text-secondary hover:text-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          Next
+          <ChevronRight size={16} />
         </button>
       </div>
     </div>

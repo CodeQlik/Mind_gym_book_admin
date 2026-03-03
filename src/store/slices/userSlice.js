@@ -163,11 +163,10 @@ const userSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(toggleUserStatusThunk.fulfilled, (state, action) => {
-        const index = state.users.findIndex(
-          (u) => u.id === action.payload.id || u._id === action.payload.id,
-        );
+        const { id, data } = action.payload;
+        const index = state.users.findIndex((u) => u.id === id || u._id === id);
         if (index !== -1) {
-          state.users[index] = action.payload.data;
+          state.users[index] = { ...state.users[index], ...data };
         }
       });
   },

@@ -128,11 +128,12 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
       .addCase(toggleCategoryStatus.fulfilled, (state, action) => {
+        const { id, data } = action.payload;
         const index = state.categories.findIndex(
-          (c) => c.id === action.payload.id,
+          (c) => c.id === id || c._id === id,
         );
         if (index !== -1) {
-          state.categories[index] = action.payload.data;
+          state.categories[index] = data;
         }
       })
       // Update Category

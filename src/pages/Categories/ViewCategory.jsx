@@ -67,9 +67,9 @@ const ViewCategory = () => {
   if (error || !category) {
     return (
       <div className="flex flex-col items-center justify-center p-10 animate-fade-in font-['Outfit']">
-        <div className="bg-surface border border-red-500/20 p-8 rounded-[2rem] shadow-xl text-center flex flex-col items-center gap-6 max-w-md">
-          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center shadow-inner">
-            <Info size={40} />
+        <div className="bg-surface border border-red-500/20 p-8 rounded-2xl shadow-xl text-center flex flex-col items-center gap-6 max-w-md">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center shadow-inner">
+            <Info size={32} />
           </div>
           <p className="text-xl font-bold text-red-500">
             {error || "Category not found"}
@@ -90,8 +90,8 @@ const ViewCategory = () => {
   const imageUrl = getProfileUrl(category.image);
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in font-['Outfit'] pb-12">
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 animate-fade-in font-['Outfit'] pb-12">
+      <div className="flex flex-col gap-4">
         <Button
           variant="ghost"
           size="sm"
@@ -101,13 +101,13 @@ const ViewCategory = () => {
         >
           Back to Categories
         </Button>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-text-primary italic tracking-tight">
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">
               Category Details
             </h1>
-            <p className="text-text-secondary mt-1 font-medium tracking-tight">
-              Detailed information about the{" "}
+            <p className="text-text-secondary text-sm font-medium">
+              Management and information for the{" "}
               <span className="text-primary font-bold">"{category.name}"</span>{" "}
               genre.
             </p>
@@ -122,13 +122,13 @@ const ViewCategory = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-10">
-        {/* Premium Hero Section */}
-        <div className="bg-surface border border-border p-10 sm:p-12 rounded-[3rem] shadow-sm relative overflow-hidden group">
-          <div className="flex flex-col lg:flex-row gap-12 items-center lg:items-start relative z-10">
+      <div className="flex flex-col gap-6">
+        {/* Simplified Hero Section */}
+        <div className="bg-surface border border-border p-6 sm:p-8 rounded-2xl shadow-sm">
+          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
             {/* Left: Image */}
-            <div className="relative shrink-0">
-              <div className="w-64 h-64 rounded-[2.5rem] overflow-hidden border-8 border-background shadow-2xl transition-transform duration-700 group-hover:scale-105">
+            <div className="shrink-0">
+              <div className="w-48 h-48 rounded-xl overflow-hidden border border-border shadow-md">
                 {imageUrl ? (
                   <img
                     src={imageUrl}
@@ -137,36 +137,34 @@ const ViewCategory = () => {
                   />
                 ) : (
                   <div className="w-full h-full bg-background text-text-secondary/50 flex items-center justify-center">
-                    <Tags size={80} strokeWidth={1.5} />
+                    <Tags size={60} strokeWidth={1.5} />
                   </div>
                 )}
               </div>
-              <div className="absolute -inset-4 bg-primary/5 rounded-full -z-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
             </div>
 
             {/* Middle: Key Info */}
-            <div className="flex-1 flex flex-col gap-8 text-center lg:text-left py-2">
+            <div className="flex-1 flex flex-col gap-6 text-center md:text-left">
               <div className="space-y-4">
-                <h2 className="text-4xl lg:text-6xl font-black text-text-primary italic tracking-tight leading-none">
-                  {category.name}
-                </h2>
-
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                  <h2 className="text-3xl font-bold text-text-primary tracking-tight">
+                    {category.name}
+                  </h2>
                   <span
-                    className={`px-5 py-2 rounded-full text-[0.7rem] font-black uppercase tracking-[0.2em] border shadow-sm ${
+                    className={`px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider border ${
                       category.is_active !== false
-                        ? "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-                        : "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+                        ? "bg-success-surface text-success border-success/20"
+                        : "bg-error-surface text-error border-error/20"
                     }`}
                   >
-                    {category.is_active !== false
-                      ? "● Active Status"
-                      : "● Inactive Status"}
+                    {category.is_active !== false ? "Active" : "Inactive"}
                   </span>
+                </div>
 
-                  <div className="bg-background px-5 py-2 rounded-full border border-border flex items-center gap-2">
-                    <Hash size={14} className="text-primary" />
-                    <span className="text-[0.8rem] font-bold text-text-secondary font-mono">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                  <div className="bg-background px-4 py-1.5 rounded-full border border-border flex items-center gap-2">
+                    <Hash size={12} className="text-primary" />
+                    <span className="text-xs font-bold text-text-secondary font-mono">
                       {category.slug}
                     </span>
                   </div>
@@ -174,85 +172,65 @@ const ViewCategory = () => {
               </div>
 
               {/* Stats Row */}
-              <div className="flex items-center justify-center lg:justify-start gap-12 pt-6 border-t border-border">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-border w-full max-w-2xl">
                 <div>
-                  <p className="text-[0.65rem] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">
+                  <p className="text-[0.65rem] font-bold text-text-secondary uppercase tracking-widest mb-1">
                     Resource Count
                   </p>
-                  <p className="text-4xl font-black text-primary">
+                  <p className="text-2xl font-bold text-primary">
                     {(category.count || 0).toLocaleString()}
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Right: Management Logs */}
-            <div className="flex gap-6 lg:border-l lg:border-border lg:pl-12 lg:py-2">
-              <div className="flex flex-col gap-8 justify-center">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
-                    <Calendar size={18} />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest mb-0.5">
-                      Entry Created
-                    </p>
-                    <p className="text-sm font-bold text-text-primary">
-                      {category.createdAt
-                        ? new Date(category.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )
-                        : "N/A"}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-[0.65rem] font-bold text-text-secondary uppercase tracking-widest mb-1">
+                    Entry Created
+                  </p>
+                  <p className="text-sm font-bold text-text-primary">
+                    {category.createdAt
+                      ? new Date(category.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )
+                      : "N/A"}
+                  </p>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
-                    <Database size={18} />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest mb-0.5">
-                      Last Updated
-                    </p>
-                    <p className="text-sm font-bold text-text-primary">
-                      {category.updatedAt
-                        ? new Date(category.updatedAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )
-                        : "N/A"}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-[0.65rem] font-bold text-text-secondary uppercase tracking-widest mb-1">
+                    Last Updated
+                  </p>
+                  <p className="text-sm font-bold text-text-primary">
+                    {category.updatedAt
+                      ? new Date(category.updatedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )
+                      : "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Secondary Info Grid - Description Full Width */}
-        <div className="w-full h-full">
-          {/* Description Card */}
-          <div className="bg-surface border border-border p-10 rounded-[2.5rem] shadow-sm flex flex-col h-full">
-            <h3 className="text-[0.75rem] font-black text-primary mb-8 flex items-center gap-3 uppercase tracking-[0.25em]">
-              <span className="w-1.5 h-5 bg-primary rounded-full"></span>
-              Detailed Description
-            </h3>
-            <div className="bg-background p-8 rounded-3xl border border-dashed border-border flex-1">
-              <p className="text-text-primary font-medium leading-relaxed italic text-lg">
-                {category.description ||
-                  "No classification details provided for this genre."}
-              </p>
-            </div>
+        {/* Description Section */}
+        <div className="bg-surface border border-border p-6 sm:p-8 rounded-2xl shadow-sm">
+          <h3 className="text-xs font-bold text-primary mb-4 flex items-center gap-2 uppercase tracking-widest">
+            <span className="w-1 h-4 bg-primary rounded-full"></span>
+            Detailed Description
+          </h3>
+          <div className="bg-background p-6 rounded-xl border border-border">
+            <p className="text-text-primary text-sm leading-relaxed">
+              {category.description ||
+                "No classification details provided for this genre."}
+            </p>
           </div>
         </div>
       </div>

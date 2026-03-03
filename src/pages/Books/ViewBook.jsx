@@ -6,12 +6,8 @@ import {
   Book as BookIcon,
   User,
   Tag,
-  Calendar,
-  DollarSign,
-  Package,
   FileText,
   ShieldCheck,
-  Clock,
   ExternalLink,
   Loader2,
   XCircle,
@@ -19,8 +15,6 @@ import {
   Globe,
   Quote,
   Info,
-  TrendingUp,
-  Award,
   ListChecks,
   Image as ImageIcon,
 } from "lucide-react";
@@ -42,9 +36,7 @@ const ViewBook = () => {
         const response = await bookApi.getBookBySlug(slug);
         const data =
           response.data || (response.success !== false ? response : null);
-        if (data) {
-          setBook(data);
-        }
+        if (data) setBook(data);
       } catch (err) {
         console.error("Failed to fetch book details", err);
       } finally {
@@ -54,27 +46,23 @@ const ViewBook = () => {
     fetchDetails();
   }, [slug]);
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-fade-in font-['Outfit']">
-        <Loader2 size={48} className="animate-spin text-primary" />
-        <p className="mt-5 text-text-secondary font-medium tracking-tight">
-          Loading book details...
-        </p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 size={40} className="animate-spin text-primary" />
       </div>
     );
-  }
 
   if (!book) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in font-['Outfit']">
-        <div className="w-24 h-24 bg-rose-100 dark:bg-rose-900/20 text-rose-500 rounded-full flex items-center justify-center mb-8 shadow-inner">
-          <XCircle size={48} />
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-16 h-16 bg-error-surface text-error rounded-full flex items-center justify-center mb-6">
+          <XCircle size={32} />
         </div>
-        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-3">
+        <h2 className="text-xl font-bold text-text-primary mb-2">
           Book Not Found
         </h2>
-        <Button onClick={() => navigate("/books")} icon={ArrowLeft} size="lg">
+        <Button onClick={() => navigate("/books")} variant="secondary">
           Return to Library
         </Button>
       </div>
@@ -82,305 +70,234 @@ const ViewBook = () => {
   }
 
   const baseUrl = API.defaults.baseURL.split("/api/v1")[0];
-
   const formatUrl = (url) => {
-    if (!url) return null;
-    if (typeof url !== "string") return null;
+    if (!url || typeof url !== "string") return null;
     if (url.startsWith("http")) return url;
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };
 
-  const parseField = (field) => {
-    if (!field) return null;
-    const data =
-      typeof field === "string" && field.startsWith("{")
-        ? JSON.parse(field)
-        : field;
-    return data?.url || (typeof field === "string" ? field : null);
+  const parseField = (f) => {
+    if (!f) return null;
+    const data = typeof f === "string" && f.startsWith("{") ? JSON.parse(f) : f;
+    return data?.url || (typeof f === "string" ? f : null);
   };
 
   const imageUrl = formatUrl(parseField(book.thumbnail));
-  const coverUrl = formatUrl(parseField(book.cover_image));
-  const pdfData = parseField(book.pdf_file);
-  let pdfUrl = formatUrl(pdfData);
-
-  if (pdfData && (book.id || book._id)) {
-    // Pass relative URL so that the API instance in PdfViewerModal
-    // can handle the baseURL and auth tokens correctly.
-    pdfUrl = bookApi.getReadBookUrl(book.id || book._id);
-  }
-
+  const pdfUrl = bookApi.getReadBookUrl(book.id || book._id);
   const gallery = Array.isArray(book.images) ? book.images : [];
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fade-in font-['Outfit']">
-      {/* Header Section */}
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-12 animate-fade-in text-left font-['Outfit']">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={ArrowLeft}
+            onClick={() => navigate("/books")}
+            className="mb-1"
+          >
+            Back to Library
+          </Button>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Book Details
+          </h1>
+        </div>
         <Button
-          variant="ghost"
+          icon={Pencil}
           size="sm"
-          icon={ArrowLeft}
-          className="w-fit"
-          onClick={() => navigate("/books")}
+          onClick={() =>
+            navigate(`/books/edit/${book.slug || book.id || book._id}`)
+          }
         >
-          Back to Library
+          Edit Edition
         </Button>
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-black text-text-primary italic tracking-tight">
-              Book Archive
-            </h1>
+      </div>
+
+      <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          <div className="relative shrink-0 mx-auto md:mx-0">
+            <div className="w-[180px] aspect-[3/4] rounded-lg overflow-hidden bg-background border border-border shadow-sm transition-transform hover:scale-[1.02]">
+              {imageUrl ? (
+                <img src={imageUrl} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-text-secondary/20">
+                  <BookIcon size={64} />
+                </div>
+              )}
+            </div>
+            {book.is_premium && (
+              <div className="absolute top-2 right-2 bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 shadow-md uppercase tracking-wider">
+                <ShieldCheck size={10} /> Premium
+              </div>
+            )}
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              {book.is_bestselling && (
+                <div className="bg-emerald-500 text-white px-2 py-0.5 rounded text-[9px] font-bold shadow-md uppercase tracking-wider">
+                  Bestseller
+                </div>
+              )}
+              {book.is_trending && (
+                <div className="bg-blue-500 text-white px-2 py-0.5 rounded text-[9px] font-bold shadow-md uppercase tracking-wider">
+                  Trending
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-6 w-full">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-widest px-2 py-0.5 bg-primary/5 rounded border border-primary/10">
+                  Bibliographic Record
+                </span>
+              </div>
+              <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-2">
+                {book.title}
+              </h2>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary">
+                <p className="font-medium flex items-center gap-1.5">
+                  <User size={14} className="opacity-60" /> {book.author}
+                </p>
+                <p className="font-medium flex items-center gap-1.5">
+                  <Tag size={14} className="opacity-60" />{" "}
+                  {book.category?.name || "General"}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-y border-border">
+              {[
+                { label: "ISBN", val: book.isbn || "N/A" },
+                { label: "Language", val: book.language || "English" },
+                { label: "Price", val: `₹${book.price}` },
+                {
+                  label: "MRP",
+                  val: book.original_price ? `₹${book.original_price}` : "N/A",
+                },
+                { label: "Weight", val: book.weight || "N/A" },
+                { label: "Dimensions", val: book.dimensions || "N/A" },
+                { label: "Condition", val: book.condition || "N/A" },
+                { label: "Stock", val: book.stock || "0" },
+                { label: "Release", val: book.published_date || "N/A" },
+              ].map((stat, i) => (
+                <div key={i}>
+                  <p className="text-[9px] font-bold text-text-secondary uppercase tracking-wider mb-0.5 opacity-60">
+                    {stat.label}
+                  </p>
+                  <p className="text-sm font-bold text-text-primary">
+                    {stat.val}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                  <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <FileText size={12} className="text-primary" /> Summary
+                  </h4>
+                  <p className="text-sm text-text-primary leading-relaxed bg-background/50 p-4 rounded-lg border border-border">
+                    {book.description || "No description provided."}
+                  </p>
+                </div>
+                {book.otherdescription && (
+                  <div className="flex-1">
+                    <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <ShieldCheck size={12} /> Internal Description
+                    </h4>
+                    <p className="text-sm text-text-primary leading-relaxed bg-amber-500/5 p-4 rounded-lg border border-amber-500/10 italic">
+                      {book.otherdescription}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {book.highlights && (
+          <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-5 shadow-sm">
+            <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+              <ListChecks size={14} /> Key Highlights
+            </h4>
+            <div className="text-sm text-text-primary whitespace-pre-line leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1">
+              {book.highlights}
+            </div>
+          </div>
+        )}
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-primary/10">
+              <FileText size={20} className="text-primary" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-text-primary">
+                PDF Artifact
+              </h4>
+              <p className="text-[9px] font-bold text-text-secondary uppercase opacity-60">
+                Secure Manuscript
+              </p>
+            </div>
           </div>
           <Button
-            icon={Pencil}
-            size="md"
-            onClick={() =>
-              navigate(`/books/edit/${book.slug || book.id || book._id}`)
-            }
+            icon={ExternalLink}
+            size="sm"
+            fullWidth
+            onClick={() => setShowPdf(true)}
           >
-            Edit Edition
+            Read Manuscript
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-10">
-        {/* Main Hero Card */}
-        <div className="bg-surface border border-border p-8 sm:p-12 rounded-[2.5rem] shadow-sm overflow-hidden relative">
-          {coverUrl && (
-            <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.03] pointer-events-none translate-x-1/4">
-              <img
-                src={coverUrl}
-                className="w-full h-full object-cover grayscale"
-                alt="decoration"
-              />
-            </div>
-          )}
-
-          <div className="flex flex-col lg:flex-row gap-12 items-start relative z-10">
-            <div className="relative group shrink-0">
-              <div className="relative w-[280px] aspect-[3/4] rounded-[2rem] overflow-hidden bg-slate-50 border border-border shadow-2xl">
-                {imageUrl ? (
+      {(book.cover_image || (gallery && gallery.length > 0)) && (
+        <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+          <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-6 flex items-center gap-2">
+            <ImageIcon size={14} className="text-primary" /> Visual Assets &
+            Gallery
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {book.cover_image && (
+              <div className="space-y-2">
+                <p className="text-[8px] font-black text-primary uppercase tracking-tighter ml-1">
+                  Primary Cover
+                </p>
+                <div className="aspect-[3/4] rounded-lg overflow-hidden border border-primary/20 bg-background group cursor-pointer relative">
                   <img
-                    src={imageUrl}
-                    alt={book.title}
-                    className="w-full h-full object-cover"
+                    src={formatUrl(parseField(book.cover_image))}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt="Cover"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-200">
-                    <BookIcon size={120} strokeWidth={1} />
+                  <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ExternalLink size={16} className="text-white" />
                   </div>
-                )}
-                {book.is_premium && (
-                  <div className="absolute top-5 right-5 bg-amber-500 text-white px-3.5 py-2 rounded-xl font-black text-[0.65rem] shadow-xl flex items-center gap-2 tracking-widest uppercase border border-white/20">
-                    <ShieldCheck size={14} /> PREMIUM
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-10 py-4 w-full">
-              <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-[0.7rem] font-black text-primary flex items-center gap-3 uppercase tracking-[0.2em]">
-                    <BookIcon size={16} /> Bibliographic Record
-                  </h3>
-                  <div className="space-y-2">
-                    <h2 className="text-4xl md:text-5xl font-black text-text-primary italic leading-[1.1] tracking-tight">
-                      {book.title}
-                    </h2>
-                    <p className="text-xl font-bold text-text-secondary flex items-center gap-3">
-                      <User size={22} className="text-primary/30" />{" "}
-                      {book.author}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 bg-primary/5 px-6 py-4 rounded-3xl border border-primary/10">
-                  <label className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest">
-                    Record ID
-                  </label>
-                  <div className="font-mono text-lg font-bold text-primary">
-                    #{book.id || book._id}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-8 border-t border-border">
-                <div className="space-y-1">
-                  <label className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest">
-                    ISBN
-                  </label>
-                  <p className="text-base font-bold text-text-primary">
-                    {book.isbn || "N/A"}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest">
-                    Language
-                  </label>
-                  <p className="text-base font-bold text-text-primary">
-                    {book.language || "English"}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[0.6rem] font-black text-text-secondary uppercase tracking-widest">
-                    Cataloged
-                  </label>
-                  <p className="text-base font-bold text-text-primary">
-                    {new Date(book.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-6 pt-4">
-                <label className="text-[0.7rem] font-black text-text-secondary uppercase tracking-[0.25em] flex items-center gap-3">
-                  <Quote size={18} className="text-primary" /> Narrative /
-                  Summary
-                </label>
-                <div className="bg-background/50 p-8 rounded-[2.5rem] border border-dashed border-border">
-                  <p className="text-text-primary font-medium leading-[1.8] italic text-lg">
-                    {book.description || "No description provided."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Highlights & Additional Info Case */}
-        {(book.highlights || book.otherdescription) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {book.highlights && (
-              <div className="bg-surface border border-border p-10 rounded-[3rem] shadow-sm">
-                <h4 className="text-[0.75rem] font-black text-primary mb-8 flex items-center gap-3 uppercase tracking-[0.2em]">
-                  <ListChecks size={20} /> Key Highlights
-                </h4>
-                <div className="prose prose-slate dark:prose-invert max-w-none">
-                  <p className="text-text-primary font-medium leading-relaxed whitespace-pre-line">
-                    {book.highlights}
-                  </p>
                 </div>
               </div>
             )}
-            {book.otherdescription && (
-              <div className="bg-surface border border-border p-10 rounded-[3rem] shadow-sm">
-                <h4 className="text-[0.75rem] font-black text-primary mb-8 flex items-center gap-3 uppercase tracking-[0.2em]">
-                  <Info size={20} /> Additional Notes
-                </h4>
-                <div className="prose prose-slate dark:prose-invert max-w-none">
-                  <p className="text-text-primary font-medium leading-relaxed whitespace-pre-line">
-                    {book.otherdescription}
-                  </p>
+            {gallery.map((img, idx) => (
+              <div key={idx} className="space-y-2">
+                <p className="text-[8px] font-bold text-text-secondary uppercase tracking-tighter ml-1">
+                  Preview {idx + 1}
+                </p>
+                <div className="aspect-square rounded-lg overflow-hidden border border-border bg-background group cursor-pointer relative">
+                  <img
+                    src={formatUrl(parseField(img))}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt={`Gallery ${idx}`}
+                  />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ExternalLink size={16} className="text-white" />
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Commercial & Classification Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-surface border border-border p-10 rounded-[3rem] shadow-sm">
-            <h3 className="text-[0.75rem] font-black text-primary mb-8 uppercase tracking-[0.2em] flex items-center gap-3">
-              <DollarSign size={20} /> Commercial Specs
-            </h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10">
-                <label className="text-[0.6rem] font-black text-emerald-600 uppercase tracking-widest block mb-1">
-                  Price
-                </label>
-                <span className="text-2xl font-black text-emerald-600 italic">
-                  ₹{book.price}
-                </span>
-              </div>
-              <div className="p-6 bg-indigo-500/5 rounded-3xl border border-indigo-500/10">
-                <label className="text-[0.6rem] font-black text-indigo-600 uppercase tracking-widest block mb-1">
-                  Stock
-                </label>
-                <span className="text-2xl font-black text-indigo-600">
-                  {book.stock} Units
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-surface border border-border p-10 rounded-[3rem] shadow-sm">
-            <h3 className="text-[0.75rem] font-black text-primary mb-8 uppercase tracking-[0.2em] flex items-center gap-3">
-              <Tag size={20} /> Classification
-            </h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10">
-                <label className="text-[0.6rem] font-black text-primary uppercase tracking-widest block mb-1">
-                  Genre
-                </label>
-                <span className="text-sm font-black text-text-primary">
-                  {book.category?.name || "Unclassified"}
-                </span>
-              </div>
-              <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10">
-                <label className="text-[0.6rem] font-black text-primary uppercase tracking-widest block mb-1">
-                  Release
-                </label>
-                <span className="text-sm font-black text-text-primary">
-                  {book.published_date
-                    ? new Date(book.published_date).getFullYear()
-                    : "N/A"}
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-
-        {/* Digital Manuscript Asset */}
-        <div className="bg-primary/5 border border-primary/20 p-10 rounded-[3rem] flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-background rounded-2xl flex items-center justify-center shadow-xl">
-              <FileText size={32} className="text-primary" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-xl font-black text-text-primary italic">
-                Digital Manuscript
-              </h4>
-              <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">
-                {pdfUrl ? "SECURE ARTIFACT READY" : "NO DIGITAL COPY CATALOGED"}
-              </p>
-            </div>
-          </div>
-          {pdfUrl && (
-            <Button
-              size="lg"
-              icon={ExternalLink}
-              onClick={() => setShowPdf(true)}
-            >
-              Read Now
-            </Button>
-          )}
-        </div>
-
-        {/* Image Gallery */}
-        {gallery.length > 0 && (
-          <div className="space-y-8">
-            <h3 className="text-[0.75rem] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-3 ml-4">
-              <ImageIcon size={20} /> Media Gallery
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {gallery.map((img, idx) => {
-                const url = formatUrl(parseField(img));
-                return (
-                  <div
-                    key={idx}
-                    className="aspect-square rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl transition-all hover:-translate-y-1"
-                  >
-                    <img
-                      src={url}
-                      alt={`Gallery ${idx}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       <PdfViewerModal
         isOpen={showPdf}

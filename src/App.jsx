@@ -19,7 +19,7 @@ import ViewUser from "./pages/Users/ViewUser";
 import EditUser from "./pages/Users/EditUser";
 import Settings from "./pages/Settings/Settings";
 import Payments from "./pages/Payments/Payments";
-import Analytics from "./pages/Analytics/Analytics";
+
 import Login from "./pages/Login/Login";
 import Profile from "./pages/Profile/Profile";
 import Categories from "./pages/Categories/Categories";
@@ -82,7 +82,7 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="users/view/:id" element={<ViewUser />} />
             <Route path="users/edit/:id" element={<EditUser />} />
-            <Route path="analytics" element={<Analytics />} />
+
             <Route path="payments" element={<Payments />} />
             <Route path="subscribe" element={<Subscribe />} />
             <Route path="subscribe/add" element={<AddPlan />} />

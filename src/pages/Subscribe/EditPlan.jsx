@@ -15,6 +15,19 @@ const EditPlan = () => {
   const dispatch = useDispatch();
   const { plans, loading } = useSelector((state) => state.plans);
 
+  const safeParseFeatures = (features) => {
+    if (Array.isArray(features)) return features;
+    if (typeof features === "string" && features.trim().startsWith("[")) {
+      try {
+        const parsed = JSON.parse(features);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        /* proceed to fallback */
+      }
+    }
+    return features ? [features] : [""];
+  };
+
   const planToEdit = plans.find((p) => String(p.id) === String(id));
 
   useEffect(() => {
@@ -52,7 +65,7 @@ const EditPlan = () => {
       price: planToEdit?.price || "",
       duration_months: planToEdit?.duration_months || 1,
       description: planToEdit?.description || "",
-      features: planToEdit?.features || [""],
+      features: safeParseFeatures(planToEdit?.features),
     },
     enableReinitialize: true,
     validationSchema,
@@ -64,6 +77,7 @@ const EditPlan = () => {
           price: Number(values.price),
           duration_months: Number(values.duration_months),
           description: values.description,
+          features: values.features.filter((f) => f.trim() !== ""),
         };
 
         const resultAction = await dispatch(
@@ -91,8 +105,8 @@ const EditPlan = () => {
   }
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in font-['Outfit']">
-      <div className="flex items-center gap-4">
+    <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-fade-in font-['Outfit'] pb-10">
+      <div className="flex flex-col gap-4">
         <Button
           variant="ghost"
           size="sm"
@@ -103,19 +117,19 @@ const EditPlan = () => {
           Back to Options
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
             Edit Subscription Plan
           </h1>
-          <p className="text-text-secondary mt-1">
-            Modify the details of your subscription tier.
+          <p className="text-text-secondary text-sm font-medium">
+            Update the existing subscription tier details.
           </p>
         </div>
       </div>
 
       <FormikProvider value={formik}>
-        <form onSubmit={formik.handleSubmit} className="max-w-[800px]">
-          <div className="bg-surface/70 backdrop-blur-lg border border-white/10 p-8 sm:p-10 rounded-[2.5rem] shadow-xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <form onSubmit={formik.handleSubmit} className="w-full">
+          <div className="bg-surface border border-border p-8 rounded-2xl shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <FormInput
                 label="Plan Name"
                 name="name"
@@ -139,7 +153,7 @@ const EditPlan = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <FormInput
                 label="Price (₹)"
                 name="price"
@@ -148,7 +162,7 @@ const EditPlan = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 error={formik.touched.price && formik.errors.price}
-                placeholder="e.g. 199"
+                placeholder="0"
                 required
               />
               <FormInput
@@ -162,7 +176,7 @@ const EditPlan = () => {
                   formik.touched.duration_months &&
                   formik.errors.duration_months
                 }
-                placeholder="e.g. 1"
+                placeholder="1"
                 required
               />
             </div>
@@ -175,25 +189,25 @@ const EditPlan = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.description && formik.errors.description}
-              placeholder="Brief summary of the plan benefits..."
+              placeholder="What does this plan offer?"
               required
-              className="mb-8"
+              className="mb-6"
             />
 
-            <div className="space-y-4 mb-10">
-              <label className="text-sm font-semibold text-text-primary ml-1">
+            <div className="space-y-4 mb-8">
+              <label className="text-sm font-bold text-text-primary ml-1 block">
                 Plan Features
               </label>
 
               <FieldArray name="features">
                 {({ push, remove }) => (
-                  <div className="flex flex-col gap-4">
-                    {formik.values.features.map((_, index) => (
-                      <div key={index}>
-                        <div className="flex gap-3">
-                          <div className="flex items-center justify-center text-primary mt-3.5">
-                            <CheckCircle2 size={20} />
-                          </div>
+                  <div className="space-y-3">
+                    {(Array.isArray(formik.values.features)
+                      ? formik.values.features
+                      : []
+                    ).map((_, index) => (
+                      <div key={index} className="flex gap-3 items-start">
+                        <div className="flex-1">
                           <input
                             type="text"
                             name={`features.${index}`}
@@ -201,57 +215,57 @@ const EditPlan = () => {
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             placeholder="e.g. Unlimited Book Access"
-                            className={`flex-1 bg-white dark:bg-slate-900 border ${
+                            className={`w-full bg-background border ${
                               formik.touched.features?.[index] &&
                               formik.errors.features?.[index]
                                 ? "border-rose-500"
-                                : "border-slate-200 dark:border-slate-800"
-                            } rounded-xl py-3 px-5 outline-hidden focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium text-slate-700 dark:text-white placeholder:text-slate-400 shadow-sm`}
+                                : "border-border"
+                            } rounded-xl py-2.5 px-4 outline-hidden focus:border-primary transition-all text-sm font-medium text-text-primary`}
                           />
-                          {formik.values.features.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => remove(index)}
-                              className="w-12 h-12 flex items-center justify-center rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border-none cursor-pointer"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          )}
+                          {formik.touched.features?.[index] &&
+                            formik.errors.features?.[index] && (
+                              <p className="text-red-500 text-[10px] mt-1 ml-1">
+                                {formik.errors.features[index]}
+                              </p>
+                            )}
                         </div>
-                        {formik.touched.features?.[index] &&
-                          formik.errors.features?.[index] && (
-                            <p className="text-red-500 text-xs mt-1 ml-8">
-                              {formik.errors.features[index]}
-                            </p>
-                          )}
+                        {formik.values.features.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="p-2.5 rounded-lg bg-error-surface text-error hover:bg-error hover:text-white transition-colors border-none cursor-pointer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     ))}
-                    <div className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        type="button"
-                        icon={Plus}
-                        onClick={() => push("")}
-                        size="md"
-                        className="!border-dashed !px-8 hover:!border-primary transition-all"
-                      >
-                        Add Another Feature
-                      </Button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => push("")}
+                      className="text-xs font-bold text-primary flex items-center gap-1.5 hover:underline ml-1"
+                    >
+                      <Plus size={14} /> Add Another Feature
+                    </button>
                   </div>
                 )}
               </FieldArray>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-              <Button type="submit" icon={Save} size="lg" loading={loading}>
-                Update Subscription Plan
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border">
+              <Button
+                type="submit"
+                icon={Save}
+                loading={loading}
+                className="flex-1"
+              >
+                Update Plan
               </Button>
               <Button
                 variant="secondary"
-                size="lg"
                 type="button"
                 onClick={() => navigate("/subscribe")}
+                className="flex-1"
               >
                 Cancel
               </Button>

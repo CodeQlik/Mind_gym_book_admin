@@ -4,11 +4,8 @@ import {
   UserCheck,
   Package,
   ShieldCheck,
-  Search,
   CheckCircle2,
   XCircle,
-  Clock,
-  ExternalLink,
 } from "lucide-react";
 import Table from "../../components/Table/Table";
 import SearchInput from "../../components/Search/SearchInput";
@@ -43,14 +40,14 @@ const Marketplace = () => {
       header: "Seller Profile",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-            <UserCheck size={20} />
+          <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
+            <UserCheck size={16} />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-text-primary text-sm tracking-tight">
+            <span className="font-bold text-text-primary text-sm">
               {row.user?.name || "Pending User"}
             </span>
-            <span className="text-[10px] text-text-secondary opacity-60 font-black uppercase tracking-widest">
+            <span className="text-[10px] text-text-secondary opacity-60 font-medium">
               {row.user?.email}
             </span>
           </div>
@@ -60,7 +57,7 @@ const Marketplace = () => {
     {
       header: "Store Name",
       render: (row) => (
-        <span className="text-sm font-bold text-text-primary italic">
+        <span className="text-sm font-bold text-text-primary">
           {row.store_name || "N/A"}
         </span>
       ),
@@ -68,25 +65,26 @@ const Marketplace = () => {
     {
       header: "Applied On",
       render: (row) => (
-        <span className="text-sm font-bold text-text-secondary">
+        <span className="text-xs text-text-secondary font-medium">
           {new Date(row.createdAt).toLocaleDateString()}
         </span>
       ),
     },
     {
       header: "Action",
+      width: "200px",
       align: "right",
       render: (row) => (
         <div className="flex items-center gap-2 justify-end">
           <button
             onClick={() => handleApproveSeller(row.id)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-success border border-success text-white text-[10px] font-bold uppercase tracking-wider hover:opacity-90"
           >
-            <CheckCircle2 size={14} />
+            <CheckCircle2 size={12} />
             Approve
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all">
-            <XCircle size={14} />
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-transparent border border-error text-error text-[10px] font-bold uppercase tracking-wider hover:bg-error hover:text-white">
+            <XCircle size={12} />
             Reject
           </button>
         </div>
@@ -99,14 +97,14 @@ const Marketplace = () => {
       header: "Book Listing",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-            <Package size={20} />
+          <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <Package size={16} />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-text-primary text-sm tracking-tight">
+            <span className="font-bold text-text-primary text-sm">
               Used Psychology Book
             </span>
-            <span className="text-[10px] text-text-secondary opacity-60 font-black uppercase tracking-widest">
+            <span className="text-[10px] text-text-secondary opacity-60 font-medium uppercase tracking-wider">
               Seller: John Doe
             </span>
           </div>
@@ -116,7 +114,7 @@ const Marketplace = () => {
     {
       header: "Condition",
       render: (row) => (
-        <div className="px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-500 text-[10px] font-black uppercase tracking-widest w-fit">
+        <div className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase">
           Like New
         </div>
       ),
@@ -124,19 +122,20 @@ const Marketplace = () => {
     {
       header: "Price",
       render: (row) => (
-        <span className="font-black text-text-primary">₹499</span>
+        <span className="font-bold text-text-primary text-sm">₹499</span>
       ),
     },
     {
       header: "Action",
+      width: "140px",
       align: "right",
       render: (row) => (
         <div className="flex items-center gap-2 justify-end">
-          <button className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-sm">
-            <CheckCircle2 size={16} />
+          <button className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success border border-border">
+            <CheckCircle2 size={14} />
           </button>
-          <button className="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm">
-            <XCircle size={16} />
+          <button className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error border border-border">
+            <XCircle size={14} />
           </button>
         </div>
       ),
@@ -144,85 +143,80 @@ const Marketplace = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in font-['Outfit'] text-left">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-text-primary tracking-tight leading-tight">
-            Marketplace <span className="text-primary italic">Moderation</span>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Marketplace Moderation
           </h1>
-          <p className="text-text-secondary mt-1 text-sm font-bold opacity-60 tracking-tight">
-            Review seller applications and used book listings before they go
-            live.
+          <p className="text-text-secondary text-sm">
+            Review seller applications and used book listings.
           </p>
         </div>
 
-        <div className="flex items-center bg-surface border border-border p-1.5 rounded-2xl shadow-sm h-fit">
+        <div className="flex items-center bg-surface border border-border p-1 rounded-lg h-fit">
           <button
             onClick={() => setActiveTab("sellers")}
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
               activeTab === "sellers"
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                ? "bg-primary text-white shadow-sm"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            Seller Requests
+            Sellers
           </button>
           <button
             onClick={() => setActiveTab("listings")}
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
               activeTab === "listings"
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                ? "bg-primary text-white shadow-sm"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
-            Active Listings
+            Listings
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-surface p-8 rounded-[2.5rem] border border-border flex items-center justify-between group hover:border-primary/20 transition-all duration-300">
-          <div>
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1 opacity-60">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="bg-surface p-4 rounded-lg border border-border flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
               Pending Sellers
-            </p>
-            <h3 className="text-3xl font-black text-text-primary italic">
+            </span>
+            <h3 className="text-xl font-bold text-text-primary">
               {pendingSellers.length}
             </h3>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Store size={28} />
+          <div className="w-10 h-10 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center">
+            <Store size={20} />
           </div>
         </div>
-        <div className="bg-surface p-8 rounded-[2.5rem] border border-border flex items-center justify-between group hover:border-primary/20 transition-all duration-300">
-          <div>
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1 opacity-60">
+        <div className="bg-surface p-4 rounded-lg border border-border flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
               Active Listings
-            </p>
-            <h3 className="text-3xl font-black text-text-primary italic">
-              124
-            </h3>
+            </span>
+            <h3 className="text-xl font-bold text-text-primary">124</h3>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Package size={28} />
+          <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+            <Package size={20} />
           </div>
         </div>
-        <div className="bg-surface p-8 rounded-[2.5rem] border border-border flex items-center justify-between group hover:border-primary/20 transition-all duration-300">
-          <div>
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1 opacity-60">
+        <div className="bg-surface p-4 rounded-lg border border-border flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
               Escrow Locked
-            </p>
-            <h3 className="text-3xl font-black text-text-primary italic">
-              ₹12,450
-            </h3>
+            </span>
+            <h3 className="text-xl font-bold text-text-primary">₹12,450</h3>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <ShieldCheck size={28} />
+          <div className="w-10 h-10 rounded-lg bg-success-surface text-success flex items-center justify-center">
+            <ShieldCheck size={20} />
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
@@ -232,7 +226,7 @@ const Marketplace = () => {
 
         <Table
           columns={activeTab === "sellers" ? sellerColumns : listingColumns}
-          data={activeTab === "sellers" ? pendingSellers : [{}]} // Mock data for listings
+          data={activeTab === "sellers" ? pendingSellers : [{}]}
           loading={loading}
           emptyMessage={`No ${activeTab} found.`}
         />

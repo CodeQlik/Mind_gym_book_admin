@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   Package,
-  Search,
   Download,
   Calendar,
   Truck,
   CheckCircle2,
   Clock,
   AlertCircle,
-  ChevronRight,
 } from "lucide-react";
 import Table from "../../components/Table/Table";
 import SearchInput from "../../components/Search/SearchInput";
+import Button from "../../components/UI/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, updateStatus } from "../../store/slices/orderSlice";
 import { toast } from "react-hot-toast";
@@ -46,15 +45,15 @@ const Orders = () => {
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "delivered":
-        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+        return "bg-success-surface text-success border-success/20";
       case "shipped":
         return "bg-blue-500/10 text-blue-500 border-blue-500/20";
       case "processing":
         return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       case "cancelled":
-        return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+        return "bg-error-surface text-error border-error/20";
       default:
-        return "bg-slate-500/10 text-slate-500 border-slate-500/20";
+        return "bg-slate-500/10 text-text-secondary border-slate-500/20";
     }
   };
 
@@ -63,15 +62,12 @@ const Orders = () => {
       header: "Order ID",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-            <Package size={20} />
+          <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
+            <Package size={16} />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-text-primary text-sm tracking-tight capitalize">
+            <span className="font-bold text-text-primary text-sm capitalize">
               #{row.order_id?.slice(-8) || row.id}
-            </span>
-            <span className="text-[10px] text-text-secondary opacity-60 font-black uppercase tracking-widest">
-              Digital/Physical
             </span>
           </div>
         </div>
@@ -80,11 +76,11 @@ const Orders = () => {
     {
       header: "Customer",
       render: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-bold text-xs">
+        <div className="flex items-center gap-2 text-[15px]">
+          <div className="w-9 h-9 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-[12px]">
             {(row.user?.name || "C").charAt(0)}
           </div>
-          <span className="text-sm font-bold text-text-primary italic">
+          <span className="font-bold text-text-primary">
             {row.user?.name || "Guest Customer"}
           </span>
         </div>
@@ -92,29 +88,34 @@ const Orders = () => {
     },
     {
       header: "Date",
-      render: (row) => (
-        <div className="flex items-center gap-2 text-text-secondary font-bold text-[13px]">
-          <Calendar size={14} className="opacity-40" />
-          {new Date(row.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </div>
-      ),
+      render: (row) => {
+        const dateValue = row.createdAt || row.created_at;
+        return (
+          <div className="flex items-center gap-2 text-text-secondary text-[14px] font-semibold">
+            <Calendar size={14} className="opacity-40" />
+            {dateValue
+              ? new Date(dateValue).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "N/A"}
+          </div>
+        );
+      },
     },
     {
-      header: "Items",
+      header: "Books",
       render: (row) => (
-        <span className="text-sm font-bold text-text-primary italic">
-          {row.books?.length || 1} Books
+        <span className="text-[15px] font-bold text-text-primary">
+          {row.books?.length || 1} Items
         </span>
       ),
     },
     {
-      header: "Total",
+      header: "Amount",
       render: (row) => (
-        <span className="font-black text-text-primary text-[15px]">
+        <span className="font-bold text-text-primary text-[15px]">
           ₹{parseFloat(row.total_amount || 0).toLocaleString()}
         </span>
       ),
@@ -125,7 +126,7 @@ const Orders = () => {
         <select
           value={row.delivery_status}
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border outline-none cursor-pointer transition-all ${getStatusStyle(row.delivery_status)}`}
+          className={`px-3 py-1.5 rounded-md text-[12px] font-bold uppercase tracking-wider border outline-none cursor-pointer transition-all ${getStatusStyle(row.delivery_status)}`}
         >
           <option value="processing">Processing</option>
           <option value="shipped">Shipped</option>
@@ -137,26 +138,24 @@ const Orders = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-8 animate-fade-in font-['Outfit'] text-left">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-text-primary tracking-tight leading-tight">
-            Order <span className="text-primary italic">Management</span>
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Order Management
           </h1>
-          <p className="text-text-secondary mt-1 text-sm font-bold opacity-60 tracking-tight">
-            Monitor physical shipments and digital purchase fulfillment.
+          <p className="text-text-secondary text-sm">
+            Monitor physical and digital purchase fulfillment.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-text-primary text-white font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-primary/10">
-            <Download size={16} />
-            Export Order Manifest
-          </button>
-        </div>
+        <Button onClick={() => toast.success("Manifest generated")}>
+          <Download size={14} className="mr-2" />
+          Export Manifest
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           {
             label: "Pending",
@@ -175,38 +174,39 @@ const Orders = () => {
             label: "Delivered",
             value: orders.filter((o) => o.delivery_status === "delivered")
               .length,
-            color: "text-emerald-500",
+            color: "text-success",
             icon: CheckCircle2,
           },
           {
-            label: "Refunds",
-            value: 0,
-            color: "text-rose-500",
+            label: "Cancelled",
+            value: orders.filter((o) => o.delivery_status === "cancelled")
+              .length,
+            color: "text-error",
             icon: AlertCircle,
           },
         ].map((stat, i) => (
           <div
             key={i}
-            className="bg-surface p-6 rounded-[2rem] border border-border shadow-sm"
+            className="bg-surface p-4 rounded-lg border border-border shadow-sm flex flex-col gap-2"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-60">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
                 {stat.label}
               </span>
-              <stat.icon size={18} className={stat.color} />
+              <stat.icon size={16} className={stat.color} />
             </div>
-            <h3 className="text-2xl font-black text-text-primary italic">
+            <h3 className="text-xl font-bold text-text-primary">
               {stat.value}
             </h3>
           </div>
         ))}
       </div>
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-4">
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search by Order ID, Customer, or Status..."
+          placeholder="Search by Order ID or Customer..."
           onReset={() => setSearchQuery("")}
         />
 

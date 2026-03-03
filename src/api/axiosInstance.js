@@ -11,11 +11,9 @@ API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token && token !== "undefined" && token !== "null") {
-      // Forcefully set the header if it's missing
       if (!config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token.trim()}`;
       }
-      console.log("[AXIOS] Attaching token to request:", config.url);
     } else {
       console.warn(
         "[AXIOS] No token found in localStorage for request:",
@@ -52,15 +50,29 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.warn(
-        "[AXIOS] 401 Unauthorized detected. Not wiping storage yet to prevent loop.",
-      );
-      /*
-      ["token", "accessToken", "refreshToken", "refresh_token", "user"].forEach(
-        (key) => localStorage.removeItem(key),
-      );
-      */
-      // Optional: window.location.href = "/login";
+      const isLoginRequest = error.config.url.includes("/users/login");
+      const isCurrentlyOnLoginPage = window.location.pathname === "/login";
+
+      if (!isLoginRequest && !isCurrentlyOnLoginPage) {
+        console.warn(
+          "[AXIOS] 401 Unauthorized detected. Clearing storage and redirecting to login...",
+        );
+
+        // Wipe all auth keys
+        [
+          "token",
+          "accessToken",
+          "refreshToken",
+          "refresh_token",
+          "user",
+        ].forEach((key) => localStorage.removeItem(key));
+
+        window.location.href = "/login";
+      } else {
+        console.warn(
+          "[AXIOS] 401 Unauthorized on login page or from login request. Skip redirect.",
+        );
+      }
     }
     return Promise.reject(error);
   },
