@@ -22,9 +22,9 @@ const AddCategory = () => {
   const formik = useFormik({
     initialValues: { name: "", description: "", image: null },
     validationSchema: Yup.object({
-      name: Yup.string().min(2).required("Required"),
-      description: Yup.string().min(10).required("Required"),
-      image: Yup.mixed().required("Required"),
+      name: Yup.string().min(2).required("Name is required"),
+      description: Yup.string().min(10).required("Description is required"),
+      image: Yup.mixed().required("Image is required"),
     }),
     onSubmit: async (values) => {
       const data = new FormData();

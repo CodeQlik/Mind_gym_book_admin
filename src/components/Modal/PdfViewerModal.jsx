@@ -45,23 +45,28 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
       }
 
       try {
-        // Step 1: Fetch PDF as blob from backend
-        const response = await API.get(pdfUrl, {
-          responseType: "blob",
-        });
+        let response;
+        const isDirectUrl = pdfUrl.startsWith("http");
+
+        if (isDirectUrl) {
+          // Direct Cloudinary URL — fetch without auth headers
+          response = await axios.get(pdfUrl, { responseType: "blob" });
+        } else {
+          // Backend API path — use authenticated API instance
+          response = await API.get(pdfUrl, { responseType: "blob" });
+        }
 
         if (!active) return;
 
-        // Step 2: Extract preview info from headers
+        // Extract preview info from headers (only available from backend)
         const isPreviewHeader = response.headers["x-is-preview"];
         const isPreview = isPreviewHeader === "true";
 
-        // Step 3: Create a secure local URL for the PDF blob
+        // Create a secure local URL for the PDF blob
         const blob = new Blob([response.data], { type: "application/pdf" });
         const localUrl = URL.createObjectURL(blob);
         blobRef.current = localUrl;
 
-        // Calculate metadata for UI based on isPreview
         setMetadata({
           isPreview: isPreview,
           showPaywall: isPreview,

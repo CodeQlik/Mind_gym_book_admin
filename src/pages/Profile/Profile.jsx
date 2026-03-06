@@ -11,8 +11,17 @@ import {
   Save,
   X,
   Loader2,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-import { updateProfile, clearError } from "../../store/slices/authSlice";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import {
+  updateProfile,
+  changePassword,
+  clearError,
+} from "../../store/slices/authSlice";
 import FormInput from "../../components/Form/FormInput";
 import Button from "../../components/UI/Button";
 import { toast } from "react-hot-toast";
@@ -22,6 +31,10 @@ const Profile = () => {
   const dispatch = useDispatch();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -39,6 +52,30 @@ const Profile = () => {
       });
     }
   }, [user]);
+
+  const passwordFormik = useFormik({
+    initialValues: {
+      old_password: "",
+      new_password: "",
+      confirm_password: "",
+    },
+    validationSchema: Yup.object({
+      old_password: Yup.string().required("Current password is required"),
+      new_password: Yup.string()
+        .min(6, "Naya password kam se kam 6 characters ka hona chahiye")
+        .required("Naya password zaroori hai"),
+      confirm_password: Yup.string()
+        .oneOf([Yup.ref("new_password"), null], "Passwords match hone chahiye")
+        .required("Password confirm karna zaroori hai"),
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      const result = await dispatch(changePassword(values));
+      if (changePassword.fulfilled.match(result)) {
+        toast.success(result.payload || "Password successfully changed");
+        resetForm();
+      }
+    },
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -121,7 +158,7 @@ const Profile = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-6">
           <div className="bg-surface border border-border rounded-lg p-8 flex flex-col items-center shadow-sm">
             <div className="relative w-32 h-32 mb-6 group">
               <img
@@ -176,21 +213,37 @@ const Profile = () => {
               </div>
             </div>
           </div>
+
+          <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
+            <div className="flex items-center gap-2 text-text-secondary font-medium text-xs">
+              <Calendar size={14} className="opacity-40" />
+              <span>
+                Joined on{" "}
+                {user?.created_at
+                  ? new Date(user.created_at).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "Jan 2024"}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Details Form */}
-        <div className="lg:col-span-2">
+        {/* Details & Security Form */}
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
             <h3 className="text-sm font-bold text-text-primary mb-6 flex items-center gap-2 uppercase tracking-wider">
-              <Shield size={16} className="text-primary" />
-              Credential Archive
+              <User size={16} className="text-primary" />
+              Profile Details
             </h3>
 
-            {error && (
-              <div className="mb-6 p-4 bg-error-surface text-error border border-error/20 rounded-md text-xs font-bold uppercase tracking-wider">
-                System Error: {error}
-              </div>
-            )}
+            {error &&
+              !isEditing && ( // Show general errors only if not editing profile
+                <div className="mb-6 p-4 bg-error-surface text-error border border-error/20 rounded-md text-xs font-bold uppercase tracking-wider">
+                  Error: {error}
+                </div>
+              )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {isEditing ? (
@@ -259,19 +312,147 @@ const Profile = () => {
                 </>
               )}
             </div>
+          </div>
 
-            <div className="mt-8 pt-6 border-t border-border flex items-center gap-2 text-text-secondary font-medium text-xs">
-              <Calendar size={14} className="opacity-40" />
-              <span>
-                Joined on{" "}
-                {user?.created_at
-                  ? new Date(user.created_at).toLocaleDateString("en-US", {
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "Jan 2024"}
-              </span>
-            </div>
+          <div className="bg-surface border border-border rounded-lg p-6 shadow-sm">
+            <h3 className="text-sm font-bold text-text-primary mb-6 flex items-center gap-2 uppercase tracking-wider">
+              <Lock size={16} className="text-primary" />
+              Security Management
+            </h3>
+
+            <form onSubmit={passwordFormik.handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
+                    Current Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showOldPassword ? "text" : "password"}
+                      className={`w-full h-11 bg-background/50 border border-border rounded-xl pl-10 pr-10 text-sm focus:border-primary/50 outline-none transition-all ${
+                        passwordFormik.touched.old_password &&
+                        passwordFormik.errors.old_password
+                          ? "border-error"
+                          : ""
+                      }`}
+                      {...passwordFormik.getFieldProps("old_password")}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                    >
+                      {showOldPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                  {passwordFormik.touched.old_password &&
+                    passwordFormik.errors.old_password && (
+                      <p className="text-error text-[10px] font-bold px-1 tracking-wider uppercase">
+                        {passwordFormik.errors.old_password}
+                      </p>
+                    )}
+                </div>
+
+                <div className="hidden md:block"></div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
+                    New Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      className={`w-full h-11 bg-background/50 border border-border rounded-xl pl-10 pr-10 text-sm focus:border-primary/50 outline-none transition-all ${
+                        passwordFormik.touched.new_password &&
+                        passwordFormik.errors.new_password
+                          ? "border-error"
+                          : ""
+                      }`}
+                      {...passwordFormik.getFieldProps("new_password")}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                  {passwordFormik.touched.new_password &&
+                    passwordFormik.errors.new_password && (
+                      <p className="text-error text-[10px] font-bold px-1 tracking-wider uppercase">
+                        {passwordFormik.errors.new_password}
+                      </p>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
+                    Confirm New Password
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <Lock size={16} />
+                    </div>
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className={`w-full h-11 bg-background/50 border border-border rounded-xl pl-10 pr-10 text-sm focus:border-primary/50 outline-none transition-all ${
+                        passwordFormik.touched.confirm_password &&
+                        passwordFormik.errors.confirm_password
+                          ? "border-error"
+                          : ""
+                      }`}
+                      {...passwordFormik.getFieldProps("confirm_password")}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                  {passwordFormik.touched.confirm_password &&
+                    passwordFormik.errors.confirm_password && (
+                      <p className="text-error text-[10px] font-bold px-1 tracking-wider uppercase">
+                        {passwordFormik.errors.confirm_password}
+                      </p>
+                    )}
+                </div>
+              </div>
+
+              <div className="flex justify-start">
+                <Button
+                  type="submit"
+                  loading={loading}
+                  icon={Shield}
+                  size="sm"
+                  className="rounded-xl px-8"
+                >
+                  Update Admin Credentials
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

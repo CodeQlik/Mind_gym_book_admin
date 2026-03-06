@@ -135,6 +135,107 @@ export const updateProfile = createAsyncThunk(
   },
 );
 
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await authApi.forgotPassword(email);
+      if (data.success) {
+        return data.message;
+      } else {
+        return rejectWithValue(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Something went wrong",
+      );
+    }
+  },
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const data = await authApi.resetPassword(token, {
+        password,
+        confirmPassword,
+      });
+      if (data.success) {
+        return data.message;
+      } else {
+        return rejectWithValue(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Something went wrong",
+      );
+    }
+  },
+);
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const data = await authApi.verifyOtp(email, otp);
+      if (data.success) {
+        // Return resetToken from response data so VerifyOtp page can pass it forward
+        return {
+          message: data.message,
+          resetToken: data.data?.resetToken || null,
+        };
+      } else {
+        return rejectWithValue(data.message || "Invalid OTP");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Invalid or expired OTP",
+      );
+    }
+  },
+);
+
+export const resetPasswordOtp = createAsyncThunk(
+  "auth/resetPasswordOtp",
+  async ({ token, new_password, confirm_password }, { rejectWithValue }) => {
+    try {
+      const data = await authApi.resetPasswordWithToken({
+        token,
+        new_password,
+        confirm_password,
+      });
+      if (data.success) {
+        return data.message;
+      } else {
+        return rejectWithValue(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Something went wrong",
+      );
+    }
+  },
+);
+
+export const changePassword = createAsyncThunk(
+  "auth/changePassword",
+  async (passwords, { rejectWithValue }) => {
+    try {
+      const data = await authApi.changePassword(passwords);
+      if (data.success) {
+        return data.message;
+      } else {
+        return rejectWithValue(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Something went wrong",
+      );
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -231,6 +332,61 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(verifyOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyOtp.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(resetPasswordOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPasswordOtp.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPasswordOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

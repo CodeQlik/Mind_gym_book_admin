@@ -21,6 +21,10 @@ import Settings from "./pages/Settings/Settings";
 import Payments from "./pages/Payments/Payments";
 
 import Login from "./pages/Login/Login";
+import ForgotPassword from "./pages/Login/ForgotPassword";
+import ResetPassword from "./pages/Login/ResetPassword";
+import VerifyOtp from "./pages/Login/VerifyOtp";
+import ResetPasswordOtp from "./pages/Login/ResetPasswordOtp";
 import Profile from "./pages/Profile/Profile";
 import Categories from "./pages/Categories/Categories";
 import AddCategory from "./pages/Categories/AddCategory";
@@ -33,20 +37,42 @@ import AddPlan from "./pages/Subscribe/AddPlan";
 import EditPlan from "./pages/Subscribe/EditPlan";
 import Notifications from "./pages/Notifications/Notifications";
 import Orders from "./pages/Orders/Orders";
+import ViewOrder from "./pages/Orders/ViewOrder";
 import Marketplace from "./pages/Marketplace/Marketplace";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
+import {
+  connectSocket,
+  disconnectSocket,
+  default as socket,
+} from "./utils/socket";
+import { receivedRealTimeNotification } from "./store/slices/notificationSlice";
+
 function App() {
   const dispatch = useDispatch();
   const isDarkMode = useSelector((state) => state.app.isDarkMode);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchProfile());
+      // Connect to real-time notification server
+      connectSocket(user?.id, user?.user_type === "admin");
+
+      // Listen for real-time notifications to update Redux count/list
+      socket.on("notification", (data) => {
+        dispatch(receivedRealTimeNotification(data));
+      });
+    } else {
+      disconnectSocket();
     }
-  }, [isAuthenticated, dispatch]);
+
+    return () => {
+      socket.off("notification");
+      disconnectSocket();
+    };
+  }, [isAuthenticated, dispatch, user?.id]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -64,6 +90,10 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/reset-password-otp" element={<ResetPasswordOtp />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
@@ -92,6 +122,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="orders/view/:id" element={<ViewOrder />} />
             <Route path="marketplace" element={<Marketplace />} />
           </Route>
         </Route>

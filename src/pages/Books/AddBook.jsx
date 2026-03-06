@@ -50,7 +50,7 @@ const AddBook = () => {
       language: "",
       dimensions: "",
       weight: "",
-      pdf_file: null,
+      book_file: null,
       thumbnail: null,
       cover_image: null,
       images: [],
@@ -62,7 +62,7 @@ const AddBook = () => {
       original_price: Yup.number().min(0),
       category_id: Yup.string().required("Category is required"),
       description: Yup.string().required("Description is required"),
-      pdf_file: Yup.mixed().required("PDF required"),
+      book_file: Yup.mixed().required("Manuscript is required"),
       thumbnail: Yup.mixed().required("Thumbnail required"),
       cover_image: Yup.mixed(),
       images: Yup.array(),
@@ -126,9 +126,7 @@ const AddBook = () => {
     const file = files[0];
     formik.setFieldValue(name, file);
 
-    if (name === "pdf_file") {
-      setPdfFile(file);
-    } else if (name === "thumbnail") {
+    if (name === "thumbnail") {
       const reader = new FileReader();
       reader.onloadend = () => setThumbnailPreview(reader.result);
       reader.readAsDataURL(file);
@@ -369,38 +367,69 @@ const AddBook = () => {
             <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
-                  PDF Manuscript <span className="text-primary/70">*</span>
+                  Book Manuscript (PDF or EPUB){" "}
+                  <span className="text-primary/70">*</span>
                 </label>
                 <label
-                  className={`flex items-center justify-between p-3 rounded-md border-2 border-dashed transition-all cursor-pointer ${pdfFile ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}
+                  className={`flex items-center justify-between p-3 rounded-md border-2 border-dashed transition-all cursor-pointer ${formik.values.book_file ? "border-primary bg-primary/5" : formik.submitCount > 0 && formik.errors.book_file ? "border-red-500 bg-red-50" : "border-border hover:border-primary/50"}`}
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
                     <FileText
                       size={18}
                       className={
-                        pdfFile
+                        formik.values.book_file
                           ? "text-primary"
-                          : "text-text-secondary opacity-40"
+                          : formik.submitCount > 0 && formik.errors.book_file
+                            ? "text-red-500"
+                            : "text-text-secondary opacity-40"
                       }
                     />
                     <span
-                      className={`text-[11px] font-bold truncate ${pdfFile ? "text-primary" : "text-text-secondary"}`}
+                      className={`text-[11px] font-bold truncate ${formik.values.book_file ? "text-primary" : formik.submitCount > 0 && formik.errors.book_file ? "text-red-500" : "text-text-secondary"}`}
                     >
-                      {pdfFile ? pdfFile.name : "Click to upload PDF"}
+                      {formik.values.book_file
+                        ? formik.values.book_file.name
+                        : "Click to upload Manuscript"}
                     </span>
                   </div>
                   <Upload
                     size={14}
-                    className="text-text-secondary opacity-40 shrink-0"
+                    className={
+                      formik.submitCount > 0 && formik.errors.book_file
+                        ? "text-red-500"
+                        : "text-text-secondary opacity-40 shrink-0"
+                    }
                   />
                   <input
                     type="file"
-                    name="pdf_file"
-                    accept=".pdf"
+                    name="book_file"
+                    accept=".pdf,.epub"
                     className="hidden"
                     onChange={handleFileChange}
                   />
                 </label>
+
+                {/* Error Message for Manuscript */}
+                {formik.submitCount > 0 && formik.errors.book_file && (
+                  <p className="text-[10px] font-bold text-red-500 uppercase mt-1 ml-1">
+                    {formik.errors.book_file}
+                  </p>
+                )}
+
+                {/* Visual feedback for extension */}
+                {formik.values.book_file && (
+                  <div className="flex gap-2 ml-1">
+                    <span
+                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${formik.values.book_file.name.toLowerCase().endsWith(".pdf") ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"}`}
+                    >
+                      {formik.values.book_file.name
+                        .toLowerCase()
+                        .endsWith(".pdf")
+                        ? "PDF Version"
+                        : "EPUB Version"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -409,7 +438,9 @@ const AddBook = () => {
                     <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
                       Thumbnail <span className="text-primary/70">*</span>
                     </label>
-                    <label className="relative aspect-[3/4] rounded-md border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all overflow-hidden bg-background">
+                    <label
+                      className={`relative aspect-[3/4] rounded-md border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all overflow-hidden bg-background ${formik.touched.thumbnail && formik.errors.thumbnail ? "border-red-500 bg-red-50" : "border-border"}`}
+                    >
                       {thumbnailPreview ? (
                         <img
                           src={thumbnailPreview}
@@ -418,7 +449,11 @@ const AddBook = () => {
                       ) : (
                         <ImageIcon
                           size={20}
-                          className="text-text-secondary opacity-30"
+                          className={
+                            formik.touched.thumbnail && formik.errors.thumbnail
+                              ? "text-red-500"
+                              : "text-text-secondary opacity-30"
+                          }
                         />
                       )}
                       <input
@@ -429,6 +464,11 @@ const AddBook = () => {
                         onChange={handleFileChange}
                       />
                     </label>
+                    {formik.touched.thumbnail && formik.errors.thumbnail && (
+                      <p className="text-[10px] font-bold text-red-500 uppercase mt-1 ml-1">
+                        Thumbnail is required
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

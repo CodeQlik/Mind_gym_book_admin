@@ -32,8 +32,8 @@ const EditBook = () => {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [coverImagePreview, setCoverImagePreview] = useState(null);
   const [imagesPreview, setImagesPreview] = useState([]);
-  const [pdfFile, setPdfFile] = useState(null);
   const [existingPdf, setExistingPdf] = useState(null);
+  const [existingEpub, setExistingEpub] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
 
   const formik = useFormik({
@@ -54,45 +54,52 @@ const EditBook = () => {
       otherdescription: "",
       isbn: "",
       language: "",
-      highlights: "",
-      otherdescription: "",
       dimensions: "",
       weight: "",
-      // File fields — stored as File objects via setFieldValue
+      book_file: null,
       thumbnail: null,
       cover_image: null,
       images: [],
     },
     validationSchema: Yup.object({
-      title: Yup.string().required("Required"),
-      author: Yup.string().required("Required"),
-      price: Yup.number().min(0).required("Required"),
-      category_id: Yup.string().required("Required"),
-      thumbnail: Yup.mixed(),
-      cover_image: Yup.mixed(),
-      images: Yup.array(),
+      title: Yup.string().required("Title is required"),
+      author: Yup.string().required("Author is required"),
+      price: Yup.mixed().required("Price is required"),
+      category_id: Yup.mixed().required("Category is required"),
+      book_file: Yup.mixed().nullable(),
+      thumbnail: Yup.mixed().nullable(),
+      cover_image: Yup.mixed().nullable(),
+      images: Yup.array().nullable(),
     }),
     enableReinitialize: true,
     onSubmit: async (values) => {
+      console.log(
+        "[EditBook] onSubmit called, bookId:",
+        bookId,
+        "values:",
+        values,
+      );
+      if (!bookId) {
+        toast.error("Book ID not found. Please reload the page.");
+        return;
+      }
       const data = new FormData();
 
-      // Append scalar fields — skip empty strings to avoid validation errors
-      const fileKeys = ["pdf_file", "thumbnail", "cover_image", "images"];
+      // Append scalar fields — skip file keys and empty values
+      const fileKeys = ["book_file", "thumbnail", "cover_image", "images"];
       Object.entries(values).forEach(([key, val]) => {
         if (fileKeys.includes(key)) return;
         if (val === null || val === undefined || val === "") return;
         data.append(key, val);
       });
 
-      // Append new file uploads
-      const newPdf = values.pdf_file;
-      if (newPdf instanceof File) data.append("pdf_file", newPdf);
-
-      const newThumb = values.thumbnail;
-      if (newThumb instanceof File) data.append("thumbnail", newThumb);
-
-      const newCover = values.cover_image;
-      if (newCover instanceof File) data.append("cover_image", newCover);
+      // Append new file uploads only if selected
+      if (values.book_file instanceof File)
+        data.append("book_file", values.book_file);
+      if (values.thumbnail instanceof File)
+        data.append("thumbnail", values.thumbnail);
+      if (values.cover_image instanceof File)
+        data.append("cover_image", values.cover_image);
 
       if (Array.isArray(values.images)) {
         values.images.forEach((file) => {
@@ -100,14 +107,18 @@ const EditBook = () => {
         });
       }
 
-      const result = await dispatch(
-        updateBookThunk({ id: bookId, formData: data }),
-      );
-      if (updateBookThunk.fulfilled.match(result)) {
-        toast.success("Book updated successfully");
-        navigate("/books");
-      } else {
-        toast.error(result.payload || "Failed to update book");
+      try {
+        const result = await dispatch(
+          updateBookThunk({ id: bookId, formData: data }),
+        );
+        if (updateBookThunk.fulfilled.match(result)) {
+          toast.success("Book updated successfully");
+          navigate("/books");
+        } else {
+          toast.error(result.payload || "Failed to update book");
+        }
+      } catch (err) {
+        toast.error("An unexpected error occurred");
       }
     },
   });
@@ -117,9 +128,15 @@ const EditBook = () => {
     const fetchBook = async () => {
       try {
         const response = await bookApi.getBookBySlug(slug);
-        const book = response.data || response;
-        if (book) {
-          setBookId(book.id || book._id);
+        // API returns: { success: true, data: { ...book } }
+        const book = response?.data?.data || response?.data || response;
+        console.log("[EditBook] Fetched book:", book);
+
+        if (book && (book.id || book._id)) {
+          const id = book.id || book._id;
+          setBookId(id);
+          console.log("[EditBook] Book ID set to:", id);
+
           formik.setValues({
             title: book.title || "",
             author: book.author || "",
@@ -128,7 +145,7 @@ const EditBook = () => {
             original_price: book.original_price || "",
             condition: book.condition || "good",
             stock: book.stock || "1",
-            category_id: book.category_id || book.category?.id || "",
+            category_id: String(book.category_id || book.category?.id || ""),
             published_date: book.published_date?.split("T")[0] || "",
             is_premium: book.is_premium || false,
             is_bestselling: book.is_bestselling || false,
@@ -137,12 +154,24 @@ const EditBook = () => {
             otherdescription: book.otherdescription || "",
             isbn: book.isbn || "",
             language: book.language || "",
-            highlights: book.highlights || "",
-            otherdescription: book.otherdescription || "",
             dimensions: book.dimensions || "",
             weight: book.weight || "",
+            book_file: null,
+            thumbnail: null,
+            cover_image: null,
+            images: [],
           });
-          setExistingPdf(book.pdf_file?.url || book.pdf_file);
+
+          setExistingPdf(
+            (book.file_data?.type === "pdf" ? book.file_data?.url : null) ||
+              book.pdf_file?.url ||
+              book.pdf_file,
+          );
+          setExistingEpub(
+            (book.file_data?.type === "epub" ? book.file_data?.url : null) ||
+              book.epub_file?.url ||
+              book.epub_file,
+          );
           setThumbnailPreview(book.thumbnail?.url || book.thumbnail);
           setCoverImagePreview(book.cover_image?.url || book.cover_image);
 
@@ -153,8 +182,11 @@ const EditBook = () => {
               ),
             );
           }
+        } else {
+          toast.error("Book not found");
         }
       } catch (err) {
+        console.error("[EditBook] Failed to load book:", err);
         toast.error("Failed to load book");
       } finally {
         setPageLoading(false);
@@ -185,9 +217,7 @@ const EditBook = () => {
     const file = files[0];
     formik.setFieldValue(name, file);
 
-    if (name === "pdf_file") {
-      setPdfFile(file);
-    } else if (name === "thumbnail") {
+    if (name === "thumbnail") {
       const reader = new FileReader();
       reader.onloadend = () => setThumbnailPreview(reader.result);
       reader.readAsDataURL(file);
@@ -239,7 +269,24 @@ const EditBook = () => {
           <Button variant="secondary" onClick={() => navigate("/books")}>
             Cancel
           </Button>
-          <Button onClick={formik.handleSubmit} loading={loading} icon={Save}>
+          <Button
+            onClick={async () => {
+              console.log("=== UPDATE CLICKED ===");
+              console.log("bookId:", bookId);
+              console.log("values:", formik.values);
+              const errors = await formik.validateForm();
+              console.log("validation errors:", errors);
+              if (Object.keys(errors).length === 0) {
+                formik.handleSubmit();
+              } else {
+                console.log("FORM INVALID - errors above");
+                const firstErr = Object.values(errors)[0];
+                toast.error(firstErr);
+              }
+            }}
+            loading={loading}
+            icon={Save}
+          >
             Update Details
           </Button>
         </div>
@@ -395,27 +442,45 @@ const EditBook = () => {
             <div className="space-y-6">
               <div>
                 <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
-                  PDF File
+                  Book Manuscript (PDF or EPUB)
                 </label>
                 <label className="flex items-center justify-between p-3 rounded-md border-2 border-dashed border-border hover:border-primary cursor-pointer transition-all mt-1 bg-background">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <FileText size={16} className="text-primary" />
                     <span className="text-[11px] font-bold truncate">
-                      {pdfFile
-                        ? pdfFile.name
+                      {formik.values.book_file
+                        ? formik.values.book_file.name
                         : existingPdf
-                          ? "Replace PDF"
-                          : "Upload Cloud"}
+                          ? "Current: PDF"
+                          : existingEpub
+                            ? "Current: EPUB"
+                            : "Upload Manuscript"}
                     </span>
                   </div>
                   <Upload size={14} className="opacity-40" />
                   <input
                     type="file"
-                    name="pdf_file"
+                    name="book_file"
                     hidden
                     onChange={handleFileChange}
+                    accept=".pdf,.epub"
                   />
                 </label>
+                {/* Extension Indicator */}
+                {(formik.values.book_file || existingPdf || existingEpub) && (
+                  <div className="flex gap-2 mt-2 ml-1">
+                    <span
+                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${formik.values.book_file?.name.toLowerCase().endsWith(".pdf") || (!formik.values.book_file && existingPdf) ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"}`}
+                    >
+                      {formik.values.book_file?.name
+                        .toLowerCase()
+                        .endsWith(".pdf") ||
+                      (!formik.values.book_file && existingPdf)
+                        ? "PDF Version"
+                        : "EPUB Version"}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">

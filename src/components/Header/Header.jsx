@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { logout } from "../../store/slices/authSlice";
-import { fetchNotifications } from "../../store/slices/notificationSlice";
+import {
+  fetchNotifications,
+  fetchNotificationStats,
+  markAllAdminNotificationsRead,
+} from "../../store/slices/notificationSlice";
 import {
   Bell,
   Menu,
@@ -21,8 +25,16 @@ const Header = ({ toggleSidebar, isOpen }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const { stats } = useSelector((state) => state.notifications);
+  const unreadCount = stats?.unreadCount || 0;
+
   useEffect(() => {
-    dispatch(fetchNotifications());
+    if (user?.user_type === "admin") {
+      dispatch(fetchNotifications());
+      dispatch(fetchNotificationStats());
+    } else {
+      dispatch(fetchNotifications());
+    }
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
@@ -31,6 +43,13 @@ const Header = ({ toggleSidebar, isOpen }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dispatch]);
+
+  const handleNotificationClick = () => {
+    if (user?.user_type === "admin" && unreadCount > 0) {
+      dispatch(markAllAdminNotificationsRead());
+    }
+    navigate("/notifications");
+  };
 
   return (
     <header className="h-[var(--header-height)] px-6 flex items-center justify-between sticky top-0 bg-surface border-b border-border z-[1001]">
@@ -52,9 +71,14 @@ const Header = ({ toggleSidebar, isOpen }) => {
           <ThemeToggle />
           <button
             className="w-9 h-9 flex items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border relative"
-            onClick={() => navigate("/notifications")}
+            onClick={handleNotificationClick}
           >
             <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#2962FF] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-surface animate-pulse">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </button>
         </div>
 

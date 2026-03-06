@@ -79,6 +79,7 @@ const CreateNotificationModal = ({
     sendInstant: true,
   });
   const [step, setStep] = useState(1);
+  const totalSteps = 2;
   const backdropRef = useRef();
 
   const set = (key, val) => setForm((p) => ({ ...p, [key]: val }));
@@ -118,7 +119,7 @@ const CreateNotificationModal = ({
                 Create Notification
               </h2>
               <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">
-                Step {step}/3 — {["", "Targeting", "Content", "Review"][step]}
+                Step {step}/{totalSteps} — {["", "Targeting", "Content"][step]}
               </p>
             </div>
           </div>
@@ -134,7 +135,7 @@ const CreateNotificationModal = ({
         <div className="h-0.5 bg-border">
           <div
             className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / totalSteps) * 100}%` }}
           />
         </div>
 
@@ -270,16 +271,26 @@ const CreateNotificationModal = ({
 
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => set("sendInstant", true)}
-                    className={`flex-1 py-2 rounded-md border text-xs font-bold font-medium transition-all ${form.sendInstant ? "bg-primary text-white border-primary" : "bg-background border-border text-text-secondary"}`}
+                    className={`flex-1 py-3 rounded-lg border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
+                      form.sendInstant
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-surface border-border text-text-secondary hover:border-primary/20"
+                    }`}
                   >
-                    Send Instantly
+                    <Send size={14} /> Send Now
                   </button>
                   <button
+                    type="button"
                     onClick={() => set("sendInstant", false)}
-                    className={`flex-1 py-2 rounded-md border text-xs font-bold transition-all ${!form.sendInstant ? "bg-primary text-white border-primary" : "bg-background border-border text-text-secondary"}`}
+                    className={`flex-1 py-3 rounded-lg border flex items-center justify-center gap-2 text-xs font-bold transition-all ${
+                      !form.sendInstant
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-surface border-border text-text-secondary hover:border-primary/20"
+                    }`}
                   >
-                    Schedule Send
+                    <Clock size={14} /> Schedule
                   </button>
                 </div>
 
@@ -347,16 +358,24 @@ const CreateNotificationModal = ({
             {step === 1 ? "Cancel" : "Back"}
           </Button>
 
-          {step < 3 ? (
+          {step < totalSteps ? (
             <Button
               onClick={() => setStep((s) => s + 1)}
-              disabled={step === 2 && !form.title.trim()}
+              disabled={
+                step === 1 && form.targeting === "category" && !form.category
+              }
             >
               Next Step
             </Button>
           ) : (
-            <Button onClick={() => onSave(form)} loading={isSending}>
-              Confirm & Send
+            <Button
+              onClick={() => onSave(form)}
+              loading={isSending}
+              disabled={
+                !form.title.trim() || (!form.sendInstant && !form.scheduledAt)
+              }
+            >
+              {form.sendInstant ? "Send Notification" : "Schedule Notification"}
             </Button>
           )}
         </div>

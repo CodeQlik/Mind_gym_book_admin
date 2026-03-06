@@ -82,8 +82,26 @@ const ViewBook = () => {
     return data?.url || (typeof f === "string" ? f : null);
   };
 
+  // New flat file_data structure: { url, type: 'pdf'|'epub', public_id, local_path }
+  const fileData = book.file_data || null;
+  const hasPdf =
+    (fileData?.type === "pdf" && fileData?.url) || book.pdf_file?.url;
+  const hasEpub =
+    (fileData?.type === "epub" && fileData?.url) || book.epub_file?.url;
+  const pdfFileUrl = hasPdf
+    ? fileData?.type === "pdf"
+      ? fileData.url
+      : book.pdf_file?.url
+    : null;
+  const epubFileUrl = hasEpub
+    ? fileData?.type === "epub"
+      ? fileData.url
+      : book.epub_file?.url
+    : null;
+
   const imageUrl = formatUrl(parseField(book.thumbnail));
-  const pdfUrl = bookApi.getReadBookUrl(book.id || book._id);
+  // Use actual PDF URL from file_data or backend read endpoint
+  const pdfUrl = pdfFileUrl || bookApi.getReadBookUrl(book.id || book._id);
   const gallery = Array.isArray(book.images) ? book.images : [];
 
   return (
@@ -220,7 +238,7 @@ const ViewBook = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {book.highlights && (
-          <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-5 shadow-sm">
+          <div className="lg:col-span-1 bg-surface border border-border rounded-xl p-5 shadow-sm">
             <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
               <ListChecks size={14} /> Key Highlights
             </h4>
@@ -229,6 +247,8 @@ const ViewBook = () => {
             </div>
           </div>
         )}
+
+        {/* PDF Section */}
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-primary/10">
@@ -239,7 +259,7 @@ const ViewBook = () => {
                 PDF Artifact
               </h4>
               <p className="text-[9px] font-bold text-text-secondary uppercase opacity-60">
-                Secure Manuscript
+                {hasPdf ? "Digital Manuscript" : "No PDF Available"}
               </p>
             </div>
           </div>
@@ -248,9 +268,55 @@ const ViewBook = () => {
             size="sm"
             fullWidth
             onClick={() => setShowPdf(true)}
+            disabled={!hasPdf}
           >
             Read Manuscript
           </Button>
+        </div>
+
+        {/* EPUB Section */}
+        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-5 flex flex-col justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-amber-500/10">
+              <BookIcon size={20} className="text-amber-600" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-text-primary">
+                EPUB Edition
+              </h4>
+              <p className="text-[9px] font-bold text-text-secondary uppercase opacity-60">
+                {hasEpub ? "E-Book Format" : "No EPUB Available"}
+              </p>
+            </div>
+          </div>
+          {hasEpub ? (
+            <a
+              href={epubFileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full"
+            >
+              <Button
+                icon={ExternalLink}
+                size="sm"
+                fullWidth
+                variant="secondary"
+                className="!bg-amber-500 !text-white hover:!bg-amber-600 border-none"
+              >
+                Download EPUB
+              </Button>
+            </a>
+          ) : (
+            <Button
+              icon={ExternalLink}
+              size="sm"
+              fullWidth
+              variant="secondary"
+              disabled
+            >
+              Not Available
+            </Button>
+          )}
         </div>
       </div>
 

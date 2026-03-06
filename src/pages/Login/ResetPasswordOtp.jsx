@@ -1,85 +1,109 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { loginUser, clearError } from "../../store/slices/authSlice";
-import { Mail, Lock, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { resetPasswordOtp, clearError } from "../../store/slices/authSlice";
+import { Lock, Eye, EyeOff, Loader2, Save, ArrowLeft } from "lucide-react";
 import Logo from "../../assets/mgblogo.jpeg";
+import { toast } from "react-hot-toast";
 
-const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
+const ResetPasswordOtp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated } = useSelector(
-    (state) => state.auth,
-  );
+  const location = useLocation();
+  const { loading, error } = useSelector((state) => state.auth);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // resetToken passed via navigation state from VerifyOtp page
+  const email = location.state?.email || "";
+  const resetToken = location.state?.resetToken || "";
+
+  // Redirect if no context
   useEffect(() => {
-    if (isAuthenticated) navigate("/dashboard");
-  }, [isAuthenticated, navigate]);
+    if (!email || !resetToken) navigate("/forgot-password");
+  }, [email, resetToken, navigate]);
 
   useEffect(() => {
     return () => dispatch(clearError());
   }, [dispatch]);
 
   const formik = useFormik({
-    initialValues: { email: "", password: "" },
+    initialValues: { password: "", confirmPassword: "" },
     validationSchema: Yup.object({
-      email: Yup.string().email("Invalid email").required("Required"),
-      password: Yup.string().min(6, "Min 6 chars").required("Required"),
+      password: Yup.string()
+        .min(6, "Password must be at least 6 characters")
+        .required("Required"),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password"), null], "Passwords must match")
+        .required("Required"),
     }),
-    onSubmit: (values) => dispatch(loginUser(values)),
+    onSubmit: async (values) => {
+      const result = await dispatch(
+        resetPasswordOtp({
+          token: resetToken,
+          new_password: values.password,
+          confirm_password: values.confirmPassword,
+        }),
+      );
+      if (resetPasswordOtp.fulfilled.match(result)) {
+        toast.success(result.payload || "Password reset successful!");
+        navigate("/login", { replace: true });
+      }
+    },
   });
 
   return (
     <div className="h-screen flex flex-col lg:flex-row bg-[#ffffff] font-['Outfit'] overflow-hidden">
-      {/* Left side: Branding & Visuals */}
+      {/* Left side: Branding */}
       <div className="hidden lg:flex w-[50%] bg-[#7c3aed] items-center justify-center p-12 relative overflow-hidden h-full">
-        {/* Background Decorative Circles */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-black/10 rounded-full blur-3xl"></div>
 
-        {/* Glassmorphism Card */}
         <div className="relative z-10 w-full max-w-[480px] bg-white/10 backdrop-blur-md border border-white/20 rounded-[40px] p-12 text-center shadow-2xl">
           <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-lg">
             <img
+              draggable="false"
               src={Logo}
               alt="MGB Logo"
               className="w-16 h-16 object-contain"
             />
           </div>
           <h1 className="text-white text-5xl font-bold mb-6 tracking-tight">
-            Mind Gym Book
+            Reset Password
           </h1>
           <p className="text-white/80 text-lg font-medium leading-relaxed max-w-[320px] mx-auto">
-            Your ultimate destination for mental fitness, knowledge management,
-            and growth.
-          </p>
-        </div>
-
-        {/* Footer Text on Left Side */}
-        <div className="absolute bottom-10 left-0 w-full text-center">
-          <p className="text-white/40 text-[10px] font-bold tracking-[0.3em] uppercase">
-            Administrative Access Portal
+            Secure your account with a new strong password to continue accessing
+            your dashboard.
           </p>
         </div>
       </div>
 
-      {/* Right side: Login Form */}
+      {/* Right side: New Password Form */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 bg-white h-full overflow-hidden">
         <div className="w-full max-w-[500px] animate-fade-in">
           {/* Header */}
           <div className="mb-8 text-center lg:text-left">
+            <Link
+              to="/verify-otp"
+              state={{ email }}
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-[#7c3aed] font-medium text-sm mb-6 transition-colors group"
+            >
+              <ArrowLeft
+                size={16}
+                className="transition-transform group-hover:-translate-x-1"
+              />
+              Back
+            </Link>
             <h2 className="text-[42px] font-bold text-[#1e1b4b] mb-1 leading-tight tracking-tight">
-              Welcome Back
+              New Password
             </h2>
             <p className="text-slate-400 text-lg font-medium">
-              Please enter your details to sign in
+              Please enter your new password below.
             </p>
           </div>
 
-          {/* Form Card */}
           <div className="bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-slate-100 border-t-[5px] border-t-[#7c3aed] p-10 lg:p-12 relative">
             <form onSubmit={formik.handleSubmit} className="space-y-6">
               {error && (
@@ -88,47 +112,11 @@ const Login = () => {
                 </div>
               )}
 
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
-                  Email Address
-                </label>
-                <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#7c3aed] transition-colors">
-                    <Mail size={18} />
-                  </div>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="name@company.com"
-                    className={`w-full h-[54px] bg-slate-50 border border-transparent rounded-[18px] pl-14 pr-6 text-[#1e1b4b] font-medium placeholder:text-slate-300 focus:bg-white focus:border-[#7c3aed]/20 focus:ring-4 focus:ring-[#7c3aed]/5 transition-all outline-none ${
-                      formik.touched.email && formik.errors.email
-                        ? "bg-red-50 border-red-200"
-                        : ""
-                    }`}
-                    {...formik.getFieldProps("email")}
-                  />
-                </div>
-                {formik.touched.email && formik.errors.email && (
-                  <p className="text-red-500 text-[10px] font-bold mt-1 px-1 uppercase tracking-wider">
-                    {formik.errors.email}
-                  </p>
-                )}
-              </div>
-
               {/* Password Field */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                    Password
-                  </label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-[11px] font-bold text-[#7c3aed] hover:underline tracking-tight"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
+                  New Password
+                </label>
                 <div className="relative group">
                   <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#7c3aed] transition-colors">
                     <Lock size={18} />
@@ -159,6 +147,47 @@ const Login = () => {
                 )}
               </div>
 
+              {/* Confirm Password Field */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">
+                  Confirm Password
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#7c3aed] transition-colors">
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="••••••••"
+                    className={`w-full h-[54px] bg-slate-50 border border-transparent rounded-[18px] pl-14 pr-14 text-[#1e1b4b] font-medium placeholder:text-slate-300 focus:bg-white focus:border-[#7c3aed]/20 focus:ring-4 focus:ring-[#7c3aed]/5 transition-all outline-none ${
+                      formik.touched.confirmPassword &&
+                      formik.errors.confirmPassword
+                        ? "bg-red-50 border-red-200"
+                        : ""
+                    }`}
+                    {...formik.getFieldProps("confirmPassword")}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#7c3aed] transition-all"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+                {formik.touched.confirmPassword &&
+                  formik.errors.confirmPassword && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 px-1 uppercase tracking-wider">
+                      {formik.errors.confirmPassword}
+                    </p>
+                  )}
+              </div>
+
               {/* Submit Button */}
               <div className="pt-2">
                 <button
@@ -170,9 +199,9 @@ const Login = () => {
                     <Loader2 className="animate-spin" size={18} />
                   ) : (
                     <>
-                      SIGN IN TO DASHBOARD
+                      RESET PASSWORD
                       <div className="p-1 px-1.5 bg-white/20 rounded-md">
-                        <LogIn
+                        <Save
                           size={14}
                           className="transition-transform group-hover:translate-x-0.5"
                         />
@@ -182,16 +211,6 @@ const Login = () => {
                 </button>
               </div>
             </form>
-
-            {/* Footer */}
-            <div className="mt-8 text-center">
-              <p className="text-slate-400 text-[13px] font-medium">
-                Don't have an account?{" "}
-                <button className="text-[#7c3aed] font-bold hover:underline transition-all">
-                  Contact Admin
-                </button>
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -199,4 +218,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPasswordOtp;

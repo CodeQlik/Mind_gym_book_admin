@@ -11,7 +11,6 @@ import {
   Sparkles,
   Bell,
   Package,
-  Store,
 } from "lucide-react";
 
 import { useSelector } from "react-redux";
@@ -60,11 +59,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       title: "Orders",
       icon: <Package size={22} />,
       path: "/orders",
-    },
-    {
-      title: "Marketplace",
-      icon: <Store size={22} />,
-      path: "/marketplace",
     },
     {
       title: "Notifications",

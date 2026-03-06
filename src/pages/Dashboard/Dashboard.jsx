@@ -13,6 +13,7 @@ import {
   Loader2,
   Trophy,
   Activity,
+  Package,
 } from "lucide-react";
 import {
   AreaChart,
@@ -94,8 +95,8 @@ const Dashboard = () => {
       isPositive: true,
     },
     {
-      label: "Active Members",
-      value: engagement.activeUsers?.toLocaleString() || "0",
+      label: "All Users",
+      value: engagement.totalUsers?.toLocaleString() || "0",
       trend: "+8.2%",
       icon: <Users size={18} />,
       color: "bg-slate-500",
@@ -112,10 +113,10 @@ const Dashboard = () => {
       isPositive: true,
     },
     {
-      label: "Retention",
-      value: "84.2%",
-      trend: "+0.5%",
-      icon: <Activity size={18} />,
+      label: "Total Books",
+      value: engagement.totalBooks?.toLocaleString() || "0",
+      trend: "+3.5%",
+      icon: <Package size={18} />,
       color: "bg-slate-500",
       isPositive: true,
     },

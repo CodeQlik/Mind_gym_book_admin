@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import Table from "../../components/Table/Table";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchNotifications,
-  deleteNotification,
+  fetchAdminNotifications,
+  fetchNotificationStats,
+  deleteAdminNotification,
   sendNotification,
 } from "../../store/slices/notificationSlice";
 import CreateNotificationModal, {
@@ -11,6 +13,7 @@ import CreateNotificationModal, {
 } from "../../components/Modal/CreateNotificationModal";
 import Pagination from "../../components/Pagination/Pagination";
 import Button from "../../components/UI/Button";
+import ConfirmationModal from "../../components/Modal/ConfirmationModal";
 import {
   BellRing,
   Plus,
@@ -32,6 +35,7 @@ import {
   Timer,
   Sparkles,
   TrendingUp,
+  RotateCcw,
 } from "lucide-react";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -76,6 +80,10 @@ const TYPE_STYLES = {
   General: {
     icon: <Megaphone size={12} />,
     color: "text-cyan-500 bg-cyan-500/10",
+  },
+  REFUND_REQUEST: {
+    icon: <RotateCcw size={12} />,
+    color: "text-rose-500 bg-rose-500/10",
   },
 };
 
@@ -287,53 +295,123 @@ const AutomationSettings = () => {
   );
 };
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: "automated", label: "Logs", icon: <Bot size={14} /> },
-  { id: "campaign", label: "Campaigns", icon: <Megaphone size={14} /> },
-  { id: "settings", label: "Settings", icon: <Sliders size={14} /> },
+  { id: "All", label: "All", icon: <Filter size={14} /> },
+  { id: "Sent", label: "Sent", icon: <Send size={14} /> },
+  { id: "Broadcasts", label: "Broadcasts", icon: <Megaphone size={14} /> },
+  { id: "Pending", label: "Pending", icon: <Clock size={14} /> },
 ];
 
 const Notifications = () => {
   const dispatch = useDispatch();
   const {
     items: reduxItems,
-    unreadCount,
+    stats,
     loading,
     sending,
+    totalPages: reduxTotalPages,
+    total: reduxTotalItems,
   } = useSelector((s) => s.notifications);
 
-  const [activeTab, setActiveTab] = useState("automated");
+  const [activeTab, setActiveTab] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 10;
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchNotifications());
-  }, [dispatch]);
+    let targetParam = "";
+    let statusParam = "";
 
+    if (activeTab === "Sent") {
+      statusParam = "SENT";
+      targetParam = "USER"; // We'll update backend to handle this or filter here
+    } else if (activeTab === "Broadcasts") {
+      targetParam = "ALL"; // This mapped to userId: null in backend
+    } else if (activeTab === "Pending") {
+      statusParam = "PENDING";
+    }
+
+    dispatch(
+      fetchAdminNotifications({
+        page: currentPage,
+        limit: itemsPerPage,
+        status: statusParam,
+        target: targetParam,
+      }),
+    );
+    dispatch(fetchNotificationStats());
+  }, [dispatch, currentPage, activeTab]);
+
+  // Reset to page 1 when tab or filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, filterStatus]);
+  }, [activeTab]);
 
   useEffect(() => {
-    if (reduxItems && reduxItems.length > 0) {
+    if (reduxItems) {
       setLogs(
-        reduxItems.map((n) => ({
-          id: n.id,
-          type: n.type || "General",
-          message: n.body || n.message || n.title || "",
-          target: n.targeting || n.target || "All Users",
-          trigger: n.sendInstant ? "Instant" : "Scheduled",
-          status: n.status || "Sent",
-          created_at: n.created_at || n.createdAt || new Date().toISOString(),
-          tab: n.tab || (n.is_automated ? "automated" : "campaign"),
-        })),
+        reduxItems.map((n) => {
+          // Robustly determine the target label
+          let rowTarget = "System Auto";
+          if (n.user?.name) {
+            rowTarget = n.user.name;
+          } else {
+            // Parse metadata if it's a string (sometimes happens with DB drivers)
+            let meta = n.metadata;
+            if (typeof meta === "string") {
+              try {
+                meta = JSON.parse(meta);
+              } catch (e) {
+                meta = {};
+              }
+            }
+
+            const broadcastTarget = meta?.target || n.target;
+
+            if (broadcastTarget === "ALL") rowTarget = "All Users";
+            else if (broadcastTarget === "SUBSCRIBED")
+              rowTarget = "Subscribers";
+            else if (broadcastTarget === "WISHLIST")
+              rowTarget = "Wishlist Users";
+            else if (broadcastTarget === "EXPIRING")
+              rowTarget = "Expiring Soon";
+            else if (broadcastTarget === "CATEGORY")
+              rowTarget = "Category Group";
+            else if (!n.user && !n.userId) rowTarget = "All Users"; // Default for broadcast
+          }
+
+          return {
+            id: String(n.id || n._id),
+            type: n.type || "General",
+            message: n.message || n.body || n.title || "",
+            target: rowTarget,
+            trigger: n.scheduled_at ? "Scheduled" : "Instant",
+            status: n.status
+              ? n.status.charAt(0).toUpperCase() +
+                n.status.slice(1).toLowerCase()
+              : n.is_read
+                ? "Read"
+                : "Sent",
+            created_at: n.createdAt || n.created_at || new Date().toISOString(),
+            // Identify broadcast if no specific user is attached
+            isBroadcast: !n.user && !n.userId,
+            userId: n.userId,
+          };
+        }),
       );
     }
   }, [reduxItems]);
+
+  const filteredLogsList = logs.filter((log) => {
+    if (activeTab === "All") return true;
+    if (activeTab === "Broadcasts") return log.isBroadcast;
+    if (activeTab === "Sent") return !log.isBroadcast && log.status === "Sent";
+    if (activeTab === "Pending") return log.status === "Pending";
+    return true;
+  });
 
   const handleSaveNotification = async (form) => {
     const typeMapping = {
@@ -343,6 +421,7 @@ const Notifications = () => {
       "Price Drop": "PRICE_DROP",
       Approval: "APPROVAL",
       General: "NEW_RELEASE",
+      REFUND_REQUEST: "REFUND_REQUEST",
     };
 
     const metadata = {};
@@ -352,8 +431,10 @@ const Notifications = () => {
     const payload = {
       title: form.title,
       message: form.body,
-      type: typeMapping[form.type] || "NEW_RELEASE",
+      type: typeMapping[form.type] || form.type.toUpperCase() || "NEW_RELEASE",
       target: form.targeting.toUpperCase(),
+      status: form.sendInstant ? "SENT" : "PENDING",
+      scheduled_at: form.scheduledAt || null,
       ...(form.targeting === "category" &&
         form.category && { category_id: Number(form.category) }),
       ...(Object.keys(metadata).length > 0 && { metadata }),
@@ -362,36 +443,64 @@ const Notifications = () => {
     const result = await dispatch(sendNotification(payload));
 
     if (sendNotification.fulfilled.match(result)) {
-      dispatch(fetchNotifications());
+      dispatch(
+        fetchAdminNotifications({
+          page: 1,
+          limit: itemsPerPage,
+          status: activeTab === "All" ? "" : activeTab,
+        }),
+      );
+      dispatch(fetchNotificationStats());
       setShowModal(false);
-      setActiveTab("campaign");
-      toast.success("Notification sent successfully");
+      toast.success("Notification created successfully");
+    } else {
+      toast.error(result.payload || "Failed to create notification");
     }
   };
 
-  const handleDelete = async (id) => {
-    const result = await dispatch(deleteNotification(id));
-    if (deleteNotification.fulfilled.match(result)) {
-      setLogs((p) => p.filter((l) => l.id !== id));
+  const handleDelete = (id) => {
+    setDeleteModal({ isOpen: true, id });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.id || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteAdminNotification(deleteModal.id)).unwrap();
+
+      // Close modal immediately for better UX
+      setDeleteModal({ isOpen: false, id: null });
       toast.success("Notification deleted");
+
+      // Re-fetch in background
+      dispatch(
+        fetchAdminNotifications({
+          page: currentPage,
+          limit: itemsPerPage,
+          status: activeTab === "All" ? "" : activeTab,
+        }),
+      );
+      dispatch(fetchNotificationStats());
+    } catch (err) {
+      toast.error(
+        typeof err === "string" ? err : "Failed to delete notification",
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const filteredLogs = logs.filter((l) => {
-    const matchTab = l.tab === activeTab;
-    const matchStatus = filterStatus === "All" || l.status === filterStatus;
-    return matchTab && matchStatus;
-  });
+  const currentLogs = filteredLogsList;
 
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const displayTotal =
+    activeTab === "broadcast"
+      ? Number(stats.broadcastCount || 0)
+      : Number(reduxTotalItems || 0);
 
-  const statsSent = logs.filter((l) => l.status === "Sent").length;
-  const statsPending = logs.filter((l) => l.status === "Pending").length;
-  const statsRecurring = logs.filter((l) => l.status === "Recurring").length;
+  const displayTotalPages =
+    activeTab === "broadcast"
+      ? Math.ceil(displayTotal / itemsPerPage)
+      : Number(reduxTotalPages || 1);
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-10 text-left">
@@ -414,26 +523,26 @@ const Notifications = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatPill
-          label="Sent"
-          value={statsSent}
+          label="Today"
+          value={stats.sentToday || 0}
           icon={<Send size={16} />}
           color="bg-success-surface text-success"
         />
         <StatPill
-          label="Pending"
-          value={statsPending}
+          label="Overall"
+          value={stats.totalNotifications || reduxTotalItems || 0}
           icon={<Timer size={16} />}
           color="bg-amber-500/10 text-amber-500"
         />
         <StatPill
-          label="Recurring"
-          value={statsRecurring}
-          icon={<RefreshCw size={16} />}
+          label="Broadcasts"
+          value={stats.broadcastCount || 0}
+          icon={<Megaphone size={16} />}
           color="bg-primary/10 text-primary"
         />
         <StatPill
-          label="Unread"
-          value={unreadCount}
+          label="System Unread"
+          value={stats.unreadCount || 0}
           icon={<BellRing size={16} />}
           color="bg-pink-500/10 text-pink-500"
         />
@@ -456,107 +565,90 @@ const Notifications = () => {
         ))}
       </div>
 
-      {activeTab === "settings" ? (
-        <AutomationSettings />
-      ) : (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between bg-surface border border-border p-3 rounded-lg gap-4 flex-wrap">
-            <h3 className="text-sm font-bold text-text-primary">
-              {activeTab === "automated" ? "System Logs" : "Campaign History"}
-            </h3>
-            <div className="flex items-center gap-2">
-              <Filter size={14} className="text-text-secondary" />
-              <div className="flex gap-1">
-                {["All", "Sent", "Pending", "Recurring"].map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setFilterStatus(s)}
-                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
-                      filterStatus === s
-                        ? "bg-primary text-white"
-                        : "bg-background text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between bg-surface border border-border p-4 rounded-lg">
+          <h3 className="text-sm font-bold text-text-primary capitalize">
+            {activeTab} Notifications
+          </h3>
+          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+            {reduxTotalItems} Total Records
+          </p>
+        </div>
 
-          <Table
-            loading={loading}
-            emptyMessage="No notifications found."
-            data={paginatedLogs}
-            columns={[
-              {
-                header: "Type",
-                width: "120px",
-                render: (row) => <TypeBadge type={row.type} />,
-              },
-              {
-                header: "Message",
-                render: (row) => (
-                  <p className="text-sm font-bold text-text-primary truncate max-w-[300px]">
-                    {row.message}
-                  </p>
-                ),
-              },
-              {
-                header: "Target",
-                render: (row) => (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                    <Users size={12} /> {row.target}
-                  </span>
-                ),
-              },
-              {
-                header: "Trigger",
-                render: (row) => (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                    <Clock size={12} /> {row.trigger}
-                  </span>
-                ),
-              },
-              {
-                header: "Status",
-                render: (row) => <Badge status={row.status} />,
-              },
-              {
-                header: "Time",
-                width: "100px",
-                render: (row) => (
-                  <span className="text-xs text-text-secondary">
-                    {timeAgo(row.created_at)}
-                  </span>
-                ),
-              },
-              {
-                header: "Action",
-                width: "80px",
-                align: "right",
-                render: (row) => (
-                  <button
-                    onClick={() => handleDelete(row.id)}
-                    className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
-                    title="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                ),
-              },
-            ]}
-          />
+        <Table
+          loading={loading}
+          emptyMessage="No notifications found matching your filter."
+          data={filteredLogsList}
+          columns={[
+            {
+              header: "Type",
+              width: "120px",
+              render: (row) => <TypeBadge type={row.type} />,
+            },
+            {
+              header: "Message",
+              render: (row) => (
+                <p className="text-sm font-bold text-text-primary truncate max-w-[300px]">
+                  {row.message}
+                </p>
+              ),
+            },
+            {
+              header: "Target",
+              render: (row) => (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                  <Users size={12} /> {row.target}
+                </span>
+              ),
+            },
+            {
+              header: "Trigger",
+              render: (row) => (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                  <Clock size={12} /> {row.trigger}
+                </span>
+              ),
+            },
+            {
+              header: "Status",
+              render: (row) => <Badge status={row.status} />,
+            },
+            {
+              header: "Time",
+              width: "100px",
+              render: (row) => (
+                <span className="text-xs text-text-secondary">
+                  {timeAgo(row.created_at)}
+                </span>
+              ),
+            },
+            {
+              header: "Action",
+              width: "80px",
+              align: "right",
+              render: (row) => (
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
+                  title="Delete"
+                >
+                  <Trash2 size={14} />
+                </button>
+              ),
+            },
+          ]}
+        />
 
+        {filteredLogsList.length > 0 && displayTotal > itemsPerPage && (
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
+            totalPages={displayTotalPages}
             onPageChange={setCurrentPage}
-            totalItems={filteredLogs.length}
+            totalItems={displayTotal}
             itemsPerPage={itemsPerPage}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {showModal && (
         <CreateNotificationModal
@@ -567,6 +659,18 @@ const Notifications = () => {
           TypeBadge={TypeBadge}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onConfirm={handleConfirmDelete}
+        title="Delete Notification"
+        message="Are you sure you want to delete this notification? This action cannot be undone."
+        confirmText="Yes, Delete"
+        variant="danger"
+        icon={Trash2}
+        isProcessing={isDeleting}
+      />
     </div>
   );
 };

@@ -15,10 +15,21 @@ API.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token.trim()}`;
       }
     } else {
-      console.warn(
-        "[AXIOS] No token found in localStorage for request:",
-        config.url,
+      const publicRoutes = [
+        "/users/login",
+        "/users/forgot-password",
+        "/users/reset-password",
+      ];
+      const isPublicRoute = publicRoutes.some((route) =>
+        config.url.includes(route),
       );
+
+      if (!isPublicRoute) {
+        console.warn(
+          "[AXIOS] No token found in localStorage for request:",
+          config.url,
+        );
+      }
     }
 
     if (config.data) {

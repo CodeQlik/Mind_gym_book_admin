@@ -26,8 +26,8 @@ const EditCategory = () => {
   const formik = useFormik({
     initialValues: { name: "", description: "", image: null },
     validationSchema: Yup.object({
-      name: Yup.string().min(2).required("Required"),
-      description: Yup.string().min(10).required("Required"),
+      name: Yup.string().min(2).required("Name is required"),
+      description: Yup.string().min(10).required("Description is required"),
     }),
     enableReinitialize: true,
     onSubmit: async (values) => {
