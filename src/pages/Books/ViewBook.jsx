@@ -101,7 +101,10 @@ const ViewBook = () => {
 
   const imageUrl = formatUrl(parseField(book.thumbnail));
   // Use actual PDF URL from file_data or backend read endpoint
-  const pdfUrl = pdfFileUrl || bookApi.getReadBookUrl(book.id || book._id);
+  // prioritize book.read_url as it uses the secure backend proxy
+  const pdfUrl =
+    book.read_url || pdfFileUrl || bookApi.getReadBookUrl(book.id || book._id);
+  const epubDownloadUrl = book.read_url || epubFileUrl;
   const gallery = Array.isArray(book.images) ? book.images : [];
 
   return (
@@ -291,7 +294,7 @@ const ViewBook = () => {
           </div>
           {hasEpub ? (
             <a
-              href={epubFileUrl}
+              href={epubDownloadUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full"

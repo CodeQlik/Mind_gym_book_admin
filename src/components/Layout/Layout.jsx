@@ -33,7 +33,7 @@ const Layout = () => {
         </main>
 
         <footer className="px-8 py-6 text-center text-xs font-bold text-text-secondary opacity-40 uppercase tracking-widest border-t border-border/50">
-          Mind Gym Admin Interface &copy; {new Date().getFullYear()}
+          Mind Gym Book Admin Interface &copy; {new Date().getFullYear()}
         </footer>
       </div>
     </div>

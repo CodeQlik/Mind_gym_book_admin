@@ -46,14 +46,15 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
 
       try {
         let response;
-        const isDirectUrl = pdfUrl.startsWith("http");
+        // Check if it's our backend proxy URL (prevents direct Cloudinary block)
+        const isBackendUrl = pdfUrl.includes("/api/v1/book/readBook/");
 
-        if (isDirectUrl) {
-          // Direct Cloudinary URL — fetch without auth headers
-          response = await axios.get(pdfUrl, { responseType: "blob" });
-        } else {
-          // Backend API path — use authenticated API instance
+        if (isBackendUrl) {
+          // Backend API path — use authenticated API instance to send Token
           response = await API.get(pdfUrl, { responseType: "blob" });
+        } else {
+          // Direct Cloudinary URL — fetch without auth headers (may fail if blocked)
+          response = await axios.get(pdfUrl, { responseType: "blob" });
         }
 
         if (!active) return;
