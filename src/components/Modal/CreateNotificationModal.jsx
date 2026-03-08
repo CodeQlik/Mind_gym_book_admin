@@ -17,7 +17,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { fetchCategories } from "../../store/slices/categorySlice";
+import { searchUsersThunk, fetchAllUsers } from "../../store/slices/userSlice";
 import Button from "../UI/Button";
+import { Search } from "lucide-react";
 
 export const TARGETING_OPTIONS = [
   {
@@ -50,6 +52,12 @@ export const TARGETING_OPTIONS = [
     icon: <Timer size={14} />,
     desc: "Plan expires in 7 days",
   },
+  {
+    value: "user",
+    label: "Single User",
+    icon: <Users size={14} />,
+    desc: "Target a specific person",
+  },
 ];
 
 const CreateNotificationModal = ({
@@ -63,10 +71,24 @@ const CreateNotificationModal = ({
   const { categories, loading: categoriesLoading } = useSelector(
     (state) => state.categories,
   );
+  const { users, loading: usersLoading } = useSelector((state) => state.users);
+
+  const [userQuery, setUserQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     dispatch(fetchCategories());
+    dispatch(fetchAllUsers({ page: 1, limit: 10 }));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (userQuery.length >= 2) {
+      const timer = setTimeout(() => {
+        dispatch(searchUsersThunk(userQuery));
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [userQuery, dispatch]);
 
   const [form, setForm] = useState({
     type: "New Release",
@@ -74,9 +96,12 @@ const CreateNotificationModal = ({
     body: "",
     targeting: "all",
     category: "",
+    user_id: "",
     bookId: "",
     scheduledAt: "",
     sendInstant: true,
+    send_push: true,
+    send_email: false,
   });
   const [step, setStep] = useState(1);
   const totalSteps = 2;
@@ -150,7 +175,20 @@ const CreateNotificationModal = ({
                   {Object.keys(typeStyles).map((t) => (
                     <button
                       key={t}
-                      onClick={() => set("type", t)}
+                      onClick={() => {
+                        set("type", t);
+                        // Auto-toggle email for important types
+                        const important = [
+                          "Subscription",
+                          "Approval",
+                          "REFUND_REQUEST",
+                        ];
+                        if (important.includes(t)) {
+                          set("send_email", true);
+                        } else {
+                          set("send_email", false);
+                        }
+                      }}
                       className={`flex items-center gap-2 px-3 py-2 rounded-md border text-xs font-bold transition-all ${
                         form.type === t
                           ? "border-primary bg-primary/10 text-primary"
@@ -222,6 +260,82 @@ const CreateNotificationModal = ({
                   </select>
                 </div>
               )}
+              {form.targeting === "user" && (
+                <div className="flex flex-col gap-2">
+                  <label className="block text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+                    Search & Select User
+                  </label>
+                  <div className="relative">
+                    <Search
+                      size={14}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Type name or email..."
+                      value={selectedUser ? selectedUser.name : userQuery}
+                      readOnly={!!selectedUser}
+                      onChange={(e) => setUserQuery(e.target.value)}
+                      className="w-full bg-background border border-border rounded-md pl-9 pr-10 py-2 text-xs font-bold text-text-primary outline-none focus:border-primary transition-all"
+                    />
+                    {selectedUser && (
+                      <button
+                        onClick={() => {
+                          setSelectedUser(null);
+                          setUserQuery("");
+                          set("user_id", "");
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-error"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {!selectedUser && userQuery.length >= 2 && (
+                    <div className="max-h-40 overflow-y-auto border border-border rounded-md bg-background divide-y divide-border shadow-lg">
+                      {usersLoading ? (
+                        <div className="p-3 text-center">
+                          <Loader2
+                            size={16}
+                            className="animate-spin inline mr-2 text-primary"
+                          />
+                          <span className="text-[10px] font-bold text-text-secondary uppercase">
+                            Searching...
+                          </span>
+                        </div>
+                      ) : users && users.length > 0 ? (
+                        users.map((u) => (
+                          <button
+                            key={u._id || u.id}
+                            onClick={() => {
+                              setSelectedUser(u);
+                              set("user_id", u._id || u.id);
+                            }}
+                            className="w-full px-4 py-2.5 text-left hover:bg-primary/5 flex items-center gap-3 transition-colors"
+                          >
+                            <div className="w-7 h-7 rounded bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                              {u.name?.substring(0, 1).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-text-primary">
+                                {u.name}
+                              </p>
+                              <p className="text-[10px] text-text-secondary">
+                                {u.email}
+                              </p>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-3 text-center text-text-secondary text-[10px] font-bold uppercase">
+                          No users found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -250,6 +364,41 @@ const CreateNotificationModal = ({
                     value={form.body}
                     onChange={(e) => set("body", e.target.value)}
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center gap-3 p-3 rounded-md border border-border bg-background cursor-pointer hover:border-primary/30 transition-all">
+                    <input
+                      type="checkbox"
+                      checked={form.send_push}
+                      onChange={(e) => set("send_push", e.target.checked)}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-text-primary">
+                        Push Notification
+                      </span>
+                      <span className="text-[10px] text-text-secondary">
+                        Mobile app alert
+                      </span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 rounded-md border border-border bg-background cursor-pointer hover:border-primary/30 transition-all">
+                    <input
+                      type="checkbox"
+                      checked={form.send_email}
+                      onChange={(e) => set("send_email", e.target.checked)}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-text-primary">
+                        Email Notification
+                      </span>
+                      <span className="text-[10px] text-text-secondary">
+                        Inbox message
+                      </span>
+                    </div>
+                  </label>
                 </div>
 
                 <div className="p-3 bg-primary/5 rounded-md border border-primary/10">

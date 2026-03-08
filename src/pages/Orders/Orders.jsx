@@ -14,6 +14,7 @@ import {
   ChevronRight,
   RotateCcw,
   Eye,
+  Tag,
 } from "lucide-react";
 import Table from "../../components/Table/Table";
 import Button from "../../components/UI/Button";
@@ -29,6 +30,7 @@ import {
   setCurrentPage,
 } from "../../store/slices/orderSlice";
 import { toast } from "react-hot-toast";
+import ConfirmationModal from "../../components/Modal/ConfirmationModal";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -205,9 +207,18 @@ const Orders = () => {
     {
       header: "Amount",
       render: (row) => (
-        <span className="font-bold text-text-primary text-sm">
-          ₹{parseFloat(row.total_amount || 0).toLocaleString("en-IN")}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-bold text-text-primary text-sm whitespace-nowrap">
+            ₹{parseFloat(row.total_amount || 0).toLocaleString("en-IN")}
+          </span>
+          {row.coupon && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <div className="bg-success-surface text-success text-[8px] font-black px-1.5 py-0.5 rounded border border-success/20 uppercase tracking-widest flex items-center gap-1">
+                <Tag size={8} /> {row.coupon.code}
+              </div>
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -490,42 +501,17 @@ const Orders = () => {
         )}
       </div>
 
-      {/* ── Delete Confirm Modal ───────────────────────────────── */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-surface w-full max-w-[400px] rounded-2xl border border-border shadow-2xl animate-fade-in p-6 space-y-5">
-            <div className="flex items-start gap-4">
-              <div className="w-11 h-11 rounded-xl bg-error/10 flex items-center justify-center text-error shrink-0">
-                <Trash2 size={20} />
-              </div>
-              <div>
-                <h3 className="font-bold text-text-primary text-base mb-1">
-                  Delete Order
-                </h3>
-                <p className="text-text-secondary text-sm">
-                  This action is permanent and cannot be undone. Are you sure
-                  you want to delete this order?
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 h-[42px] rounded-xl border border-border text-text-secondary font-semibold text-sm hover:bg-border/50 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 h-[42px] rounded-xl bg-error hover:bg-error/90 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDelete}
+        title="Delete Order"
+        message="This action is permanent and cannot be undone. Are you sure you want to delete this order?"
+        confirmText="Yes, Delete"
+        variant="danger"
+        icon={Trash2}
+        warningText="WARNING: This action cannot be reversed"
+      />
     </div>
   );
 };

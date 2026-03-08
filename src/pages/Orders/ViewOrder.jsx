@@ -21,7 +21,10 @@ import {
   X,
   Trash2,
   RotateCcw,
+  Tag,
+  Download,
 } from "lucide-react";
+
 import { orderApi } from "../../api/orderApi";
 import Button from "../../components/UI/Button";
 import ConfirmationModal from "../../components/Modal/ConfirmationModal";
@@ -121,6 +124,24 @@ const ViewOrder = () => {
       toast.error(err || "Failed to update status");
     } finally {
       setStatusModal({ isOpen: false, pendingStatus: "" });
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    const downloadToast = toast.loading("Preparing invoice...");
+    try {
+      const blob = await orderApi.downloadInvoice(id);
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Invoice_${order.order_no || id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success("Invoice downloaded!", { id: downloadToast });
+    } catch (err) {
+      console.error("Invoice download failed:", err);
+      toast.error("Failed to download invoice", { id: downloadToast });
     }
   };
 
@@ -276,6 +297,16 @@ const ViewOrder = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={Download}
+              onClick={handleDownloadInvoice}
+              className="h-10 border-primary/30 text-primary hover:bg-primary/5 rounded-xl font-bold text-[11px] uppercase tracking-wider shadow-sm"
+            >
+              Invoice
+            </Button>
+
             {/* Status Selector */}
             <div className="flex items-center gap-2 group bg-surface/50 border border-border p-1.5 pl-3 rounded-2xl shadow-sm">
               <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-40">
@@ -285,7 +316,7 @@ const ViewOrder = () => {
                 <select
                   value={order.delivery_status || "processing"}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  className="w-full bg-white border border-border rounded-xl py-1.5 pl-3 pr-9 text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-primary/5 transition-all appearance-none cursor-pointer hover:border-primary/40"
+                  className="w-full bg-surface border border-border rounded-xl py-1.5 pl-3 pr-9 text-xs font-bold text-primary outline-none focus:ring-2 focus:ring-primary/5 transition-all appearance-none cursor-pointer hover:border-primary/40"
                 >
                   <option
                     value="processing"
@@ -356,7 +387,7 @@ const ViewOrder = () => {
         {/* ── Main Content Area ────────────────────────────────────────── */}
         <div className="lg:col-span-3 flex flex-col gap-6">
           {/* Purchased Items */}
-          <div className="bg-surface border border-border rounded-[2rem] shadow-sm overflow-hidden flex flex-col bg-white">
+          <div className="bg-surface border border-border rounded-[2rem] shadow-sm overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-primary/[0.02]">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -374,7 +405,7 @@ const ViewOrder = () => {
                 return (
                   <div
                     key={idx}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group"
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-background transition-colors group"
                   >
                     <div className="w-10 h-14 rounded-lg overflow-hidden bg-primary/5 border border-border shrink-0 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform">
                       {cover ? (
@@ -408,10 +439,10 @@ const ViewOrder = () => {
 
           {/* Refund Request Section */}
           {order.refund_requested && (
-            <div className="bg-rose-50 border-2 border-rose-100 rounded-[2rem] shadow-xl shadow-rose-100/30 overflow-hidden animate-in slide-in-from-top-4 duration-500">
-              <div className="px-6 py-4 border-b border-rose-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
+            <div className="bg-error-surface border-2 border-error/10 rounded-[2rem] shadow-xl shadow-error/5 overflow-hidden animate-in slide-in-from-top-4 duration-500">
+              <div className="px-6 py-4 border-b border-error/10 flex items-center justify-between bg-surface/50 backdrop-blur-md">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-200">
+                  <div className="w-10 h-10 rounded-xl bg-error flex items-center justify-center text-white shadow-lg shadow-error/20">
                     <RotateCcw size={18} />
                   </div>
                   <div>
@@ -427,10 +458,10 @@ const ViewOrder = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="md:col-span-3 space-y-2">
-                    <label className="text-[9px] font-black text-rose-500/60 uppercase tracking-widest ml-1">
+                    <label className="text-[9px] font-black text-error/60 uppercase tracking-widest ml-1">
                       Reason for Return
                     </label>
-                    <div className="bg-white p-4 rounded-xl border border-rose-100 text-xs font-semibold italic text-slate-700 leading-relaxed shadow-sm">
+                    <div className="bg-surface p-4 rounded-xl border border-error/10 text-xs font-semibold italic text-text-secondary leading-relaxed shadow-sm">
                       "
                       {order.refund_reason ||
                         "No reason provided by the customer."}
@@ -441,7 +472,7 @@ const ViewOrder = () => {
                     <label className="text-[9px] font-black text-rose-500/60 uppercase tracking-widest ml-1">
                       Date
                     </label>
-                    <div className="bg-white px-4 py-4 rounded-xl border border-rose-100 text-[11px] font-black text-slate-800 flex items-center justify-center shadow-sm whitespace-nowrap">
+                    <div className="bg-surface px-4 py-4 rounded-xl border border-error/10 text-[11px] font-black text-text-primary flex items-center justify-center shadow-sm whitespace-nowrap">
                       {new Date(order.updatedAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -450,7 +481,7 @@ const ViewOrder = () => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-3 pt-6 border-t border-rose-100">
+                <div className="mt-6 flex flex-wrap gap-3 pt-6 border-t border-error/10">
                   <Button
                     variant="primary"
                     size="sm"
@@ -491,9 +522,9 @@ const ViewOrder = () => {
 
           {/* Dispatch Details */}
           {(order.tracking_id || order.courier_name || order.tracking_url) && (
-            <div className="bg-white border border-border rounded-[2rem] shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-blue-50/50">
-                <Truck size={16} className="text-blue-500" />
+            <div className="bg-surface border border-border rounded-[2rem] shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-primary/5">
+                <Truck size={16} className="text-primary" />
                 <h3 className="font-black text-text-primary text-[10px] uppercase tracking-widest">
                   Dispatch Info
                 </h3>
@@ -514,8 +545,8 @@ const ViewOrder = () => {
                   <label className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1 opacity-50">
                     Track URL
                   </label>
-                  <div className="bg-white px-4 py-3 rounded-2xl text-sm border border-border flex items-center gap-3 shadow-sm h-[40px]">
-                    <div className="w-7 h-7 rounded-lg bg-blue-500/5 flex items-center justify-center text-blue-500/40">
+                  <div className="bg-surface px-4 py-3 rounded-2xl text-sm border border-border flex items-center gap-3 shadow-sm h-[40px]">
+                    <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center text-primary/40">
                       <Truck size={12} />
                     </div>
                     {order.tracking_url ? (
@@ -542,7 +573,7 @@ const ViewOrder = () => {
         {/* ── Sidebar: Order Info & Stats ─────────────────────────────── */}
         <div className="lg:col-span-1 flex flex-col gap-6 sticky top-6">
           {/* Customer & Address Card */}
-          <div className="bg-surface border border-border rounded-[2rem] shadow-sm p-6 flex flex-col gap-5 relative overflow-hidden bg-white">
+          <div className="bg-surface border border-border rounded-[2rem] shadow-sm p-6 flex flex-col gap-5 relative overflow-hidden">
             <h3 className="font-black text-text-primary text-[9px] uppercase tracking-[0.2em] opacity-40">
               Customer Info
             </h3>
@@ -586,7 +617,7 @@ const ViewOrder = () => {
               Financial Summary
             </h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center bg-white px-4 py-2.5 rounded-xl border border-primary/10">
+              <div className="flex justify-between items-center bg-surface px-4 py-2.5 rounded-xl border border-primary/10">
                 <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest">
                   Status
                 </span>
@@ -596,15 +627,50 @@ const ViewOrder = () => {
                   {order.payment_status}
                 </span>
               </div>
+              <div className="flex justify-between items-center bg-surface px-4 py-2.5 rounded-xl border border-primary/10">
+                <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest">
+                  Subtotal
+                </span>
+                <span className="text-[11px] font-black text-text-primary tracking-tight">
+                  ₹{order.subtotal_amount || order.total_amount}
+                </span>
+              </div>
+
+              {order.discount_amount > 0 && (
+                <div className="flex flex-col gap-2 bg-success/5 p-4 rounded-xl border border-success/20">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black text-success uppercase tracking-widest flex items-center gap-1.5">
+                      <Tag size={10} /> Discount
+                    </span>
+                    <span className="text-[11px] font-black text-success tracking-tight">
+                      -₹{order.discount_amount}
+                    </span>
+                  </div>
+                  {order.coupon && (
+                    <div className="flex justify-between items-center pt-2 border-t border-success/10">
+                      <span className="text-[8px] font-black text-success/60 uppercase tracking-widest">
+                        Coupon: {order.coupon.code}
+                      </span>
+                      <span className="text-[8px] font-black text-success/60 uppercase tracking-widest">
+                        {order.coupon.discount_type === "percentage"
+                          ? `${order.coupon.discount_value}% OFF`
+                          : `₹${order.coupon.discount_value} OFF`}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-between items-center bg-primary text-white p-4 rounded-xl shadow-lg shadow-primary/20">
                 <span className="text-[10px] font-black uppercase tracking-widest opacity-70">
-                  Total
+                  Total Paid
                 </span>
                 <span className="text-xl font-black tracking-tighter">
                   ₹{order.total_amount}
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-white/50 rounded-xl border border-primary/10 text-[10px] font-bold text-text-secondary">
+
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-background/50 rounded-xl border border-primary/10 text-[10px] font-bold text-text-secondary">
                 <Calendar size={12} className="text-primary/40" />
                 Placed: {new Date(order.createdAt).toLocaleDateString("en-IN")}
               </div>
@@ -622,7 +688,7 @@ const ViewOrder = () => {
         message={
           <>
             Are you sure you want to change the status to{" "}
-            <span className="font-bold uppercase text-slate-800">
+            <span className="font-bold uppercase text-text-primary">
               {statusModal.pendingStatus}
             </span>
             ?
@@ -652,7 +718,7 @@ const InfoField = ({ label, value, icon: Icon, mono = false }) => (
     <label className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] ml-1 opacity-50 group-hover/info:opacity-100 transition-opacity">
       {label}
     </label>
-    <div className="bg-white px-4 py-2.5 rounded-2xl text-[12px] border border-border flex items-center gap-2.5 shadow-sm group-hover/info:border-primary/30 transition-all">
+    <div className="bg-surface px-4 py-2.5 rounded-2xl text-[12px] border border-border flex items-center gap-2.5 shadow-sm group-hover/info:border-primary/30 transition-all">
       <div className="w-7 h-7 rounded-lg bg-primary/[0.03] flex items-center justify-center text-primary/40 group-hover/info:text-primary transition-colors shrink-0">
         {Icon && <Icon size={12} />}
       </div>

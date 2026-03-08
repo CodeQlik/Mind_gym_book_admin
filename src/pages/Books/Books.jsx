@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Eye, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Eye, Pencil, Trash2, ChevronDown, Package } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Table from "../../components/Table/Table";
@@ -7,6 +7,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import ConfirmationModal from "../../components/Modal/ConfirmationModal";
 import SearchInput from "../../components/Search/SearchInput";
 import Button from "../../components/UI/Button";
+import UpdateInventoryModal from "../../components/Modal/UpdateInventoryModal";
 import {
   fetchBooks,
   toggleBookStatus,
@@ -28,6 +29,8 @@ const Books = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+  const [selectedBookForStock, setSelectedBookForStock] = useState(null);
 
   const handleToggleStatus = async (id) => {
     setTogglingId(id);
@@ -156,6 +159,14 @@ const Books = () => {
       ),
     },
     {
+      header: "Stock",
+      render: (row) => (
+        <span className="font-bold text-text-primary text-[17px]">
+          {row.stock || "0"}
+        </span>
+      ),
+    },
+    {
       header: "Price",
       render: (row) => (
         <span className="font-bold text-text-primary text-[17px]">
@@ -213,6 +224,16 @@ const Books = () => {
             }
           >
             <Eye size={14} />
+          </button>
+          <button
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
+            title="Update Stock"
+            onClick={() => {
+              setSelectedBookForStock(row);
+              setIsStockModalOpen(true);
+            }}
+          >
+            <Package size={14} />
           </button>
           <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
@@ -303,6 +324,22 @@ const Books = () => {
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
       />
+
+      {isStockModalOpen && (
+        <UpdateInventoryModal
+          onClose={() => setIsStockModalOpen(false)}
+          initialProduct={selectedBookForStock}
+          refreshAction={() =>
+            dispatch(
+              fetchBooks({
+                page: currentPage,
+                limit: itemsPerPage,
+                status: statusFilter,
+              }),
+            )
+          }
+        />
+      )}
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

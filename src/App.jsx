@@ -39,6 +39,12 @@ import Notifications from "./pages/Notifications/Notifications";
 import Orders from "./pages/Orders/Orders";
 import ViewOrder from "./pages/Orders/ViewOrder";
 import Marketplace from "./pages/Marketplace/Marketplace";
+import Inventory from "./pages/Inventory/Inventory";
+import Coupons from "./pages/Coupons/Coupons";
+import ViewCoupon from "./pages/Coupons/ViewCoupon";
+import Support from "./pages/Support/Support";
+import ChatSupport from "./pages/Support/ChatSupport";
+
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 
@@ -63,6 +69,16 @@ function App() {
       // Listen for real-time notifications to update Redux count/list
       socket.on("notification", (data) => {
         dispatch(receivedRealTimeNotification(data));
+
+        // Display a clean success toast on the right side
+        // Deduplicate to avoid multiple toasts for the same message
+        const message = data.message || data.body || data.title;
+        if (message) {
+          toast.success(message, {
+            id: `notif-${data.id || Date.now()}`, // ID deduplication
+            duration: 4000,
+          });
+        }
       });
     } else {
       disconnectSocket();
@@ -124,6 +140,11 @@ function App() {
             <Route path="orders" element={<Orders />} />
             <Route path="orders/view/:id" element={<ViewOrder />} />
             <Route path="marketplace" element={<Marketplace />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="coupons" element={<Coupons />} />
+            <Route path="coupons/view/:id" element={<ViewCoupon />} />
+            <Route path="support" element={<Support />} />
+            <Route path="support/chat/:id" element={<ChatSupport />} />
           </Route>
         </Route>
 

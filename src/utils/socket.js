@@ -16,13 +16,6 @@ export const connectSocket = (userId, isAdmin = false) => {
 
     socket.on("notification", (data) => {
       console.log("New real-time notification:", data);
-      import("react-hot-toast").then(({ toast }) => {
-        toast.success(data.message || data.title, {
-          duration: 5000,
-          position: "top-right",
-          icon: "🔔",
-        });
-      });
     });
 
     socket.on("disconnect", () => {

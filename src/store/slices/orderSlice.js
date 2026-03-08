@@ -180,13 +180,12 @@ const orderSlice = createSlice({
 
       // ── updateStatus ──
       .addCase(updateStatus.fulfilled, (state, action) => {
-        const { id, updates } = action.payload;
-        const idx = state.orders.findIndex((o) => o.id === id);
-        if (idx !== -1) {
-          state.orders[idx] = {
-            ...state.orders[idx],
-            ...updates,
-          };
+        const { id, data } = action.payload;
+        const idx = state.orders.findIndex(
+          (o) => o.id === id || o.order_id === id,
+        );
+        if (idx !== -1 && data) {
+          state.orders[idx] = { ...state.orders[idx], ...data };
         }
       })
 

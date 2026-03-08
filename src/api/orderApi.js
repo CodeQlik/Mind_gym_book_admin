@@ -50,4 +50,12 @@ export const orderApi = {
     const response = await API.delete(`/orders/admin/delete/${orderId}`);
     return response.data;
   },
+
+  // GET /orders/invoice/:orderId
+  downloadInvoice: async (orderId) => {
+    const response = await API.get(`/orders/invoice/${orderId}`, {
+      responseType: "blob",
+    });
+    return response.data;
+  },
 };

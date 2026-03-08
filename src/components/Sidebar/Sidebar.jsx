@@ -11,13 +11,19 @@ import {
   Sparkles,
   Bell,
   Package,
+  Archive,
+  Ticket,
+  LifeBuoy,
+  LogOut,
 } from "lucide-react";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
 import Logo from "../../assets/mgblogo.jpeg";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const location = useLocation();
   const [openDropdowns, setOpenDropdowns] = useState({});
 
@@ -40,6 +46,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/categories",
     },
     { title: "Books", icon: <BookOpen size={22} />, path: "/books" },
+    {
+      title: "Inventory",
+      icon: <Archive size={22} />,
+      path: "/inventory",
+    },
     { title: "Users", icon: <Users size={22} />, path: "/users" },
     {
       title: "Subscribe",
@@ -65,6 +76,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       icon: <Bell size={22} />,
       path: "/notifications",
     },
+    { title: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
+    { title: "Support", icon: <LifeBuoy size={22} />, path: "/support" },
     { title: "Settings", icon: <Settings size={22} />, path: "/settings" },
   ];
 
@@ -92,7 +105,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   return (
     <aside
-      className={`fixed lg:sticky top-0 left-0 h-screen bg-surface border-r border-border transition-all duration-300 z-[1100] ${
+      className={`fixed lg:sticky top-0 left-0 h-screen bg-surface border-r border-border transition-all duration-300 z-[1100] flex flex-col ${
         isOpen ? "w-[260px]" : "w-[80px] -translate-x-full lg:translate-x-0"
       }`}
     >
@@ -122,7 +135,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       </div>
 
       {/* Navigation section */}
-      <nav className="flex-1 px-3 overflow-y-auto no-scrollbar pb-10">
+      <nav className="flex-1 px-3 overflow-y-auto pb-4">
         <ul className="space-y-1">
           {menuItems.map((item) => {
             const isSubMenuOpenCheck = location.pathname.startsWith(item.path);
@@ -206,6 +219,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           })}
         </ul>
       </nav>
+
+      {/* Footer Area - Logout */}
+      <div className="p-4 border-t border-border mt-auto">
+        <button
+          onClick={() => dispatch(logout())}
+          className={`flex items-center gap-3 w-full transition-all ${
+            isOpen
+              ? "p-2.5 rounded-lg border border-error/20 bg-error/5 text-error hover:bg-error/10"
+              : "p-3 rounded-lg justify-center text-error hover:bg-error/5"
+          }`}
+          title={!isOpen ? "Logout" : ""}
+        >
+          <LogOut size={22} className="shrink-0" />
+          {isOpen && <span className="text-[16px] font-bold">Logout</span>}
+        </button>
+      </div>
     </aside>
   );
 };

@@ -435,6 +435,10 @@ const Notifications = () => {
       target: form.targeting.toUpperCase(),
       status: form.sendInstant ? "SENT" : "PENDING",
       scheduled_at: form.scheduledAt || null,
+      send_push: form.send_push,
+      send_email: form.send_email,
+      ...(form.targeting === "user" &&
+        form.user_id && { user_id: form.user_id }),
       ...(form.targeting === "category" &&
         form.category && { category_id: Number(form.category) }),
       ...(Object.keys(metadata).length > 0 && { metadata }),
