@@ -14,6 +14,7 @@ import {
   Archive,
   Ticket,
   LifeBuoy,
+  FileText,
   LogOut,
 } from "lucide-react";
 
@@ -77,6 +78,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/notifications",
     },
     { title: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
+    {
+      title: "CMS",
+      icon: <FileText size={22} />,
+      path: "/cms",
+      subItems: [
+        { title: "About Us", path: "/cms/edit/about-us" },
+        { title: "Privacy Policy", path: "/cms/edit/privacy-policy" },
+        { title: "Terms & Conditions", path: "/cms/edit/terms-conditions" },
+        { title: "Refund Policy", path: "/cms/edit/refund-policy" },
+        { title: "FAQ", path: "/cms/edit/faq" },
+      ],
+    },
     { title: "Support", icon: <LifeBuoy size={22} />, path: "/support" },
     { title: "Settings", icon: <Settings size={22} />, path: "/settings" },
   ];

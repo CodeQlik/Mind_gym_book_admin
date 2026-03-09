@@ -219,20 +219,13 @@ const ViewBook = () => {
                   <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <FileText size={12} className="text-primary" /> Summary
                   </h4>
-                  <p className="text-sm text-text-primary leading-relaxed bg-background/50 p-4 rounded-lg border border-border">
-                    {book.description || "No description provided."}
-                  </p>
+                  <div
+                    className="text-sm text-text-primary leading-relaxed bg-background/50 p-4 rounded-lg border border-border prose dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: book.description || "No description provided.",
+                    }}
+                  />
                 </div>
-                {book.otherdescription && (
-                  <div className="flex-1">
-                    <h4 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                      <ShieldCheck size={12} /> Internal Description
-                    </h4>
-                    <p className="text-sm text-text-primary leading-relaxed bg-amber-500/5 p-4 rounded-lg border border-amber-500/10 italic">
-                      {book.otherdescription}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -323,50 +316,53 @@ const ViewBook = () => {
         </div>
       </div>
 
-      {(book.cover_image || (gallery && gallery.length > 0)) && (
-        <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-          <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-6 flex items-center gap-2">
-            <ImageIcon size={14} className="text-primary" /> Visual Assets &
-            Gallery
-          </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {book.cover_image && (
-              <div className="space-y-2">
-                <p className="text-[8px] font-black text-primary uppercase tracking-tighter ml-1">
-                  Primary Cover
-                </p>
-                <div className="aspect-[3/4] rounded-lg overflow-hidden border border-primary/20 bg-background group cursor-pointer relative">
-                  <img
-                    src={formatUrl(parseField(book.cover_image))}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    alt="Cover"
-                  />
-                  <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <ExternalLink size={16} className="text-white" />
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {book.cover_image && (
+          <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+            <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-6 flex items-center gap-2">
+              <ImageIcon size={14} className="text-primary" /> Primary Cover
+              Asset
+            </h4>
+            <div className="aspect-[3/4] max-w-[200px] rounded-lg overflow-hidden border border-primary/20 bg-background group cursor-pointer relative mx-auto md:mx-0">
+              <img
+                src={formatUrl(parseField(book.cover_image))}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                alt="Cover"
+              />
+              <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <ExternalLink size={16} className="text-white" />
               </div>
-            )}
-            {gallery.map((img, idx) => (
-              <div key={idx} className="space-y-2">
-                <p className="text-[8px] font-bold text-text-secondary uppercase tracking-tighter ml-1">
-                  Preview {idx + 1}
-                </p>
-                <div className="aspect-square rounded-lg overflow-hidden border border-border bg-background group cursor-pointer relative">
-                  <img
-                    src={formatUrl(parseField(img))}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    alt={`Gallery ${idx}`}
-                  />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <ExternalLink size={16} className="text-white" />
-                  </div>
-                </div>
-              </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {gallery && gallery.length > 0 && (
+          <div
+            className={`bg-surface border border-border rounded-xl p-6 shadow-sm ${!book.cover_image ? "md:col-span-2" : ""}`}
+          >
+            <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-6 flex items-center gap-2">
+              <ImageIcon size={14} className="text-primary" /> Gallery
+              Collection
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {gallery.map((img, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="aspect-square rounded-lg overflow-hidden border border-border bg-background group cursor-pointer relative">
+                    <img
+                      src={formatUrl(parseField(img))}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      alt={`Gallery ${idx}`}
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <ExternalLink size={16} className="text-white" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       <PdfViewerModal
         isOpen={showPdf}

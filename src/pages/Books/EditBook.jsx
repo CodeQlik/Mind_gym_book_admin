@@ -19,6 +19,7 @@ import { bookApi } from "../../api/bookApi";
 import FormInput from "../../components/Form/FormInput";
 import Toggle from "../../components/Form/Toggle";
 import Button from "../../components/UI/Button";
+import RichTextEditor from "../../components/Form/RichTextEditor";
 import { toast } from "react-hot-toast";
 
 const EditBook = () => {
@@ -51,7 +52,6 @@ const EditBook = () => {
       is_bestselling: false,
       is_trending: false,
       highlights: "",
-      otherdescription: "",
       isbn: "",
       language: "",
       dimensions: "",
@@ -151,7 +151,6 @@ const EditBook = () => {
             is_bestselling: book.is_bestselling || false,
             is_trending: book.is_trending || false,
             highlights: book.highlights || "",
-            otherdescription: book.otherdescription || "",
             isbn: book.isbn || "",
             language: book.language || "",
             dimensions: book.dimensions || "",
@@ -312,23 +311,18 @@ const EditBook = () => {
                 required
               />
             </div>
-            <FormInput
+            <RichTextEditor
               label="Description"
-              type="textarea"
-              {...formik.getFieldProps("description")}
-              rows={3}
+              value={formik.values.description}
+              onChange={(val) => formik.setFieldValue("description", val)}
+              error={formik.touched.description && formik.errors.description}
+              required
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+            <div className="mt-5">
               <FormInput
                 label="Highlights"
                 type="textarea"
                 {...formik.getFieldProps("highlights")}
-                rows={2}
-              />
-              <FormInput
-                label="Internal Description"
-                type="textarea"
-                {...formik.getFieldProps("otherdescription")}
                 rows={2}
               />
             </div>

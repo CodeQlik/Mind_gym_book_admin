@@ -55,6 +55,10 @@ const EditPlan = () => {
       .min(1, "Duration must be at least 1 month")
       .required("Duration is required"),
     description: Yup.string().required("Description is required"),
+    device_limit: Yup.number()
+      .typeError("Device limit must be a number")
+      .min(1, "Limit must be at least 1 device")
+      .required("Device limit is required"),
     features: Yup.array().of(Yup.string().required("Feature text is required")),
   });
 
@@ -64,6 +68,7 @@ const EditPlan = () => {
       plan_type: planToEdit?.plan_type || "one_month",
       price: planToEdit?.price || "",
       duration_months: planToEdit?.duration_months || 1,
+      device_limit: planToEdit?.device_limit || 1,
       description: planToEdit?.description || "",
       features: safeParseFeatures(planToEdit?.features),
     },
@@ -76,6 +81,7 @@ const EditPlan = () => {
           plan_type: values.plan_type,
           price: Number(values.price),
           duration_months: Number(values.duration_months),
+          device_limit: Number(values.device_limit),
           description: values.description,
           features: values.features.filter((f) => f.trim() !== ""),
         };
@@ -175,6 +181,19 @@ const EditPlan = () => {
                 error={
                   formik.touched.duration_months &&
                   formik.errors.duration_months
+                }
+                placeholder="1"
+                required
+              />
+              <FormInput
+                label="Device Limit"
+                name="device_limit"
+                type="number"
+                value={formik.values.device_limit}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.device_limit && formik.errors.device_limit
                 }
                 placeholder="1"
                 required

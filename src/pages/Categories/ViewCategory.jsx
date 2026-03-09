@@ -226,11 +226,15 @@ const ViewCategory = () => {
             <span className="w-1 h-4 bg-primary rounded-full"></span>
             Detailed Description
           </h3>
-          <div className="bg-background p-6 rounded-xl border border-border">
-            <p className="text-text-primary text-sm leading-relaxed">
-              {category.description ||
-                "No classification details provided for this genre."}
-            </p>
+          <div className="bg-background p-6 rounded-xl border border-border prose dark:prose-invert max-w-none">
+            <div
+              className="text-text-primary text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html:
+                  category.description ||
+                  "No classification details provided for this genre.",
+              }}
+            />
           </div>
         </div>
       </div>

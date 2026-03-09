@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Trash2,
+  Smartphone,
+  LogOut,
+  Clock,
+  Globe,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import CustomModal from "../../components/Modal/CustomModal";
+import { userApi } from "../../api/userApi";
 import Table from "../../components/Table/Table";
 import Pagination from "../../components/Pagination/Pagination";
 import ConfirmationModal from "../../components/Modal/ConfirmationModal";
@@ -78,6 +89,11 @@ const Users = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [sessionUser, setSessionUser] = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(false);
+  const [terminatingSessionId, setTerminatingSessionId] = useState(null);
 
   useEffect(() => {
     if (!searchQuery) {
@@ -129,6 +145,51 @@ const Users = () => {
     setTogglingId(id);
     await dispatch(toggleUserStatusThunk(id));
     setTogglingId(null);
+  };
+
+  const handleViewSessions = async (user) => {
+    setSessionUser(user);
+    setIsSessionModalOpen(true);
+    setSessionLoading(true);
+    try {
+      const res = await userApi.adminGetUserSessions(user.id || user._id);
+      if (res.success) {
+        setActiveSessions(res.data);
+      } else {
+        toast.error(res.message || "Failed to fetch sessions");
+      }
+    } catch (err) {
+      toast.error("Error loading user sessions");
+    } finally {
+      setSessionLoading(false);
+    }
+  };
+
+  const handleTerminateAdminSession = async (sessionId) => {
+    if (!window.confirm("Are you sure you want to terminate this session?"))
+      return;
+
+    setTerminatingSessionId(sessionId);
+    try {
+      const res = await userApi.adminTerminateSession(
+        sessionUser.id || sessionUser._id,
+        sessionId,
+      );
+      if (res.success) {
+        toast.success("Session terminated successfully");
+        // Refresh session list
+        const updatedRes = await userApi.adminGetUserSessions(
+          sessionUser.id || sessionUser._id,
+        );
+        if (updatedRes.success) setActiveSessions(updatedRes.data);
+      } else {
+        toast.error(res.message || "Failed to terminate session");
+      }
+    } catch (err) {
+      toast.error("Error terminating session");
+    } finally {
+      setTerminatingSessionId(null);
+    }
   };
 
   const currentData = users.filter((u) => {
@@ -229,6 +290,13 @@ const Users = () => {
             <Eye size={14} />
           </button>
           <button
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-amber-100 text-text-secondary hover:text-amber-600 transition-all border border-border"
+            title="Active Devices"
+            onClick={() => handleViewSessions(row)}
+          >
+            <Smartphone size={14} />
+          </button>
+          <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
             title="Edit"
             onClick={() => navigate(`/users/edit/${row.id || row._id}`)}
@@ -292,6 +360,101 @@ const Users = () => {
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
       />
+
+      <CustomModal
+        isOpen={isSessionModalOpen}
+        onClose={() => setIsSessionModalOpen(false)}
+        title="Active Device Sessions"
+        subtitle={sessionUser?.name}
+        icon={Smartphone}
+        maxWidth="max-w-lg"
+      >
+        <div className="p-6">
+          {sessionLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-4">
+              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+              <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
+                Scanning network...
+              </p>
+            </div>
+          ) : activeSessions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
+              <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center text-text-secondary/20">
+                <Smartphone size={24} />
+              </div>
+              <p className="text-text-secondary font-bold uppercase tracking-wider text-xs">
+                No active sessions found.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                  Active Device List ({activeSessions.length})
+                </span>
+              </div>
+              <div className="space-y-3">
+                {activeSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="p-4 bg-background border border-border rounded-xl flex items-center justify-between transition-all hover:border-primary/30 group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-surface border border-border flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <Smartphone size={18} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-bold text-text-primary capitalize leading-none">
+                          {session.device_name}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-text-secondary font-bold flex items-center gap-1">
+                            <Globe size={10} className="opacity-40" />{" "}
+                            {session.ip_address}
+                          </span>
+                          <span className="text-[10px] text-text-secondary font-bold flex items-center gap-1">
+                            <Clock size={10} className="opacity-40" />{" "}
+                            {new Date(session.last_active).toLocaleString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleTerminateAdminSession(session.id)}
+                      disabled={terminatingSessionId === session.id}
+                      className="p-2 rounded-lg bg-error-surface text-error border border-error/10 hover:bg-error hover:text-white transition-all disabled:opacity-50 cursor-pointer"
+                      title="Remote Logout"
+                    >
+                      {terminatingSessionId === session.id ? (
+                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <LogOut size={16} />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-border flex justify-end">
+            <button
+              onClick={() => setIsSessionModalOpen(false)}
+              className="px-6 py-2 rounded-lg bg-primary text-white font-bold text-xs uppercase tracking-widest hover:bg-primary-dark transition-colors border-none cursor-pointer"
+            >
+              Close Status
+            </button>
+          </div>
+        </div>
+      </CustomModal>
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

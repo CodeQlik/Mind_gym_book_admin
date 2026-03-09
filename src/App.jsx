@@ -44,6 +44,8 @@ import Coupons from "./pages/Coupons/Coupons";
 import ViewCoupon from "./pages/Coupons/ViewCoupon";
 import Support from "./pages/Support/Support";
 import ChatSupport from "./pages/Support/ChatSupport";
+import CMS from "./pages/CMS/CMS";
+import EditCMS from "./pages/CMS/EditCMS";
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -145,6 +147,8 @@ function App() {
             <Route path="coupons/view/:id" element={<ViewCoupon />} />
             <Route path="support" element={<Support />} />
             <Route path="support/chat/:id" element={<ChatSupport />} />
+            <Route path="cms" element={<CMS />} />
+            <Route path="cms/edit/:slug" element={<EditCMS />} />
           </Route>
         </Route>
 

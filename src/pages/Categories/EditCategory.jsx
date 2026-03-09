@@ -10,6 +10,7 @@ import {
 } from "../../store/slices/categorySlice";
 import { categoryApi } from "../../api/categoryApi";
 import FormInput from "../../components/Form/FormInput";
+import RichTextEditor from "../../components/Form/RichTextEditor";
 import Button from "../../components/UI/Button";
 import { toast } from "react-hot-toast";
 
@@ -130,13 +131,12 @@ const EditCategory = () => {
             error={formik.touched.name && formik.errors.name}
             required
           />
-          <FormInput
+          <RichTextEditor
             label="Description"
-            type="textarea"
-            {...formik.getFieldProps("description")}
+            value={formik.values.description}
+            onChange={(val) => formik.setFieldValue("description", val)}
             error={formik.touched.description && formik.errors.description}
             required
-            rows={4}
           />
 
           <div className="space-y-2">

@@ -172,8 +172,8 @@ const Coupons = () => {
                     </p>
                     <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider opacity-60">
                       {row.discount_type === "percentage"
-                        ? `${row.discount_value}% OFF`
-                        : `₹${row.discount_value} OFF`}
+                        ? `${parseFloat(row.discount_value || 0).toFixed(2)}% OFF`
+                        : `₹${parseFloat(row.discount_value || 0).toFixed(2)} OFF`}
                     </p>
                   </div>
                 </div>
@@ -183,7 +183,7 @@ const Coupons = () => {
               header: "Min Order",
               render: (row) => (
                 <span className="text-sm font-bold text-text-primary">
-                  ₹{row.min_order_amount}
+                  ₹{parseFloat(row.min_order_amount || 0).toFixed(2)}
                 </span>
               ),
             },

@@ -17,6 +17,7 @@ import { fetchCategories } from "../../store/slices/categorySlice";
 import FormInput from "../../components/Form/FormInput";
 import Toggle from "../../components/Form/Toggle";
 import Button from "../../components/UI/Button";
+import RichTextEditor from "../../components/Form/RichTextEditor";
 import { toast } from "react-hot-toast";
 
 const AddBook = () => {
@@ -45,7 +46,6 @@ const AddBook = () => {
       is_bestselling: false,
       is_trending: false,
       highlights: "",
-      otherdescription: "",
       isbn: "",
       language: "",
       dimensions: "",
@@ -212,30 +212,20 @@ const AddBook = () => {
                 placeholder="e.g. English"
               />
             </div>
-            <FormInput
-              label="Public Description"
-              name="description"
-              type="textarea"
-              {...formik.getFieldProps("description")}
+            <RichTextEditor
+              label="Description"
+              value={formik.values.description}
+              onChange={(val) => formik.setFieldValue("description", val)}
               error={formik.touched.description && formik.errors.description}
               required
-              rows={3}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+            <div className="mt-5">
               <FormInput
                 label="Highlights"
                 name="highlights"
                 type="textarea"
                 {...formik.getFieldProps("highlights")}
                 placeholder="Key takeaways or features..."
-                rows={2}
-              />
-              <FormInput
-                label="Internal Description"
-                name="otherdescription"
-                type="textarea"
-                {...formik.getFieldProps("otherdescription")}
-                placeholder="Additional notes for admins..."
                 rows={2}
               />
             </div>
@@ -311,7 +301,7 @@ const AddBook = () => {
                 }
               />
               <Toggle
-                label="Bestseller"
+                label="Bestselling"
                 description="High demand"
                 checked={formik.values.is_bestselling}
                 onChange={() =>

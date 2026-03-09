@@ -579,69 +579,135 @@ const Notifications = () => {
           </p>
         </div>
 
-        <Table
-          loading={loading}
-          emptyMessage="No notifications found matching your filter."
-          data={filteredLogsList}
-          columns={[
-            {
-              header: "Type",
-              width: "120px",
-              render: (row) => <TypeBadge type={row.type} />,
-            },
-            {
-              header: "Message",
-              render: (row) => (
-                <p className="text-sm font-bold text-text-primary truncate max-w-[300px]">
-                  {row.message}
-                </p>
-              ),
-            },
-            {
-              header: "Target",
-              render: (row) => (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                  <Users size={12} /> {row.target}
-                </span>
-              ),
-            },
-            {
-              header: "Trigger",
-              render: (row) => (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                  <Clock size={12} /> {row.trigger}
-                </span>
-              ),
-            },
-            {
-              header: "Status",
-              render: (row) => <Badge status={row.status} />,
-            },
-            {
-              header: "Time",
-              width: "100px",
-              render: (row) => (
-                <span className="text-xs text-text-secondary">
-                  {timeAgo(row.created_at)}
-                </span>
-              ),
-            },
-            {
-              header: "Action",
-              width: "80px",
-              align: "right",
-              render: (row) => (
-                <button
-                  onClick={() => handleDelete(row.id)}
-                  className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
-                  title="Delete"
-                >
-                  <Trash2 size={14} />
-                </button>
-              ),
-            },
-          ]}
-        />
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <Table
+            loading={loading}
+            emptyMessage="No notifications found matching your filter."
+            data={filteredLogsList}
+            columns={[
+              {
+                header: "Type",
+                width: "120px",
+                render: (row) => <TypeBadge type={row.type} />,
+              },
+              {
+                header: "Message",
+                render: (row) => (
+                  <p className="text-sm font-bold text-text-primary truncate max-w-[300px]">
+                    {row.message}
+                  </p>
+                ),
+              },
+              {
+                header: "Target",
+                render: (row) => (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                    <Users size={12} /> {row.target}
+                  </span>
+                ),
+              },
+              {
+                header: "Trigger",
+                render: (row) => (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                    <Clock size={12} /> {row.trigger}
+                  </span>
+                ),
+              },
+              {
+                header: "Status",
+                render: (row) => <Badge status={row.status} />,
+              },
+              {
+                header: "Time",
+                width: "100px",
+                render: (row) => (
+                  <span className="text-xs text-text-secondary">
+                    {timeAgo(row.created_at)}
+                  </span>
+                ),
+              },
+              {
+                header: "Action",
+                width: "80px",
+                align: "right",
+                render: (row) => (
+                  <button
+                    onClick={() => handleDelete(row.id)}
+                    className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
+                    title="Delete"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                ),
+              },
+            ]}
+          />
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="flex flex-col gap-3 lg:hidden">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-surface rounded-xl border border-border">
+              <RefreshCw
+                className="animate-spin text-primary opacity-40 mb-2"
+                size={32}
+              />
+              <p className="text-sm font-bold text-text-secondary">
+                Loading your notifications...
+              </p>
+            </div>
+          ) : filteredLogsList.length === 0 ? (
+            <div className="bg-surface p-12 text-center rounded-xl border border-border">
+              <BellRing
+                className="mx-auto text-text-secondary/20 mb-4"
+                size={48}
+              />
+              <p className="text-text-secondary font-bold">
+                No notifications to show
+              </p>
+            </div>
+          ) : (
+            filteredLogsList.map((log) => (
+              <div
+                key={log.id}
+                className="bg-surface p-4 rounded-xl border border-border shadow-sm flex flex-col gap-3 relative overflow-hidden active:scale-[0.98] transition-transform"
+              >
+                <div className="flex items-start justify-between">
+                  <TypeBadge type={log.type} />
+                  <span className="text-[10px] font-black text-text-secondary opacity-40 uppercase">
+                    {timeAgo(log.created_at)}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-[15px] font-black text-text-primary leading-tight line-clamp-2">
+                    {log.message}
+                  </h4>
+                  <div className="flex items-center gap-3 text-[11px] font-bold text-text-secondary opacity-70">
+                    <span className="flex items-center gap-1">
+                      <Users size={12} /> {log.target}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} /> {log.trigger}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-1 pt-3 border-t border-border/50">
+                  <Badge status={log.status} />
+                  <button
+                    onClick={() => handleDelete(log.id)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-error/5 text-error hover:bg-error/10 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
 
         {filteredLogsList.length > 0 && displayTotal > itemsPerPage && (
           <Pagination

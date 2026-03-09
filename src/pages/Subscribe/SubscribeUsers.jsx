@@ -9,6 +9,7 @@ import {
   forceUpdateStatus,
 } from "../../store/slices/subscriptionSlice";
 import { toast } from "react-hot-toast";
+import ConfirmationModal from "../../components/Modal/ConfirmationModal";
 
 const SubscribeUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +17,15 @@ const SubscribeUsers = () => {
   const { subscriptions, loading } = useSelector(
     (state) => state.subscriptions,
   );
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    id: null,
+    status: "",
+    title: "",
+    message: "",
+    variant: "primary",
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     dispatch(fetchSubscriptions());
@@ -106,17 +116,14 @@ const SubscribeUsers = () => {
           {row.status !== "active" ? (
             <button
               onClick={() => {
-                if (window.confirm("Force activate this subscription?")) {
-                  dispatch(
-                    forceUpdateStatus({ id: row.id, status: "active" }),
-                  ).then((res) => {
-                    if (forceUpdateStatus.fulfilled.match(res)) {
-                      toast.success("Subscription activated");
-                    } else {
-                      toast.error("Failed to activate");
-                    }
-                  });
-                }
+                setModalConfig({
+                  id: row.id,
+                  status: "active",
+                  title: "Activate Subscription",
+                  message: `Are you sure you want to force activate the subscription for ${row.user?.name || row.user_id}?`,
+                  variant: "primary",
+                });
+                setModalOpen(true);
               }}
               className="p-2 rounded-lg bg-success-surface text-success hover:bg-emerald-500 hover:text-white transition-all border-none cursor-pointer"
               title="Force Activate"
@@ -126,17 +133,14 @@ const SubscribeUsers = () => {
           ) : (
             <button
               onClick={() => {
-                if (window.confirm("Force inactivate this subscription?")) {
-                  dispatch(
-                    forceUpdateStatus({ id: row.id, status: "inactive" }),
-                  ).then((res) => {
-                    if (forceUpdateStatus.fulfilled.match(res)) {
-                      toast.success("Subscription inactivated");
-                    } else {
-                      toast.error("Failed to inactivate");
-                    }
-                  });
-                }
+                setModalConfig({
+                  id: row.id,
+                  status: "inactive",
+                  title: "Inactivate Subscription",
+                  message: `Are you sure you want to force inactivate the subscription for ${row.user?.name || row.user_id}?`,
+                  variant: "danger",
+                });
+                setModalOpen(true);
               }}
               className="p-2 rounded-lg bg-error-surface text-error hover:bg-rose-500 hover:text-white transition-all border-none cursor-pointer"
               title="Force Inactivate"
@@ -148,6 +152,29 @@ const SubscribeUsers = () => {
       ),
     },
   ];
+
+  const handleConfirmAction = async () => {
+    setIsProcessing(true);
+    try {
+      const result = await dispatch(
+        forceUpdateStatus({ id: modalConfig.id, status: modalConfig.status }),
+      );
+      if (forceUpdateStatus.fulfilled.match(result)) {
+        toast.success(
+          `Subscription ${modalConfig.status === "active" ? "activated" : "inactivated"}`,
+        );
+      } else {
+        toast.error(
+          `Failed to ${modalConfig.status === "active" ? "activate" : "inactivate"}`,
+        );
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsProcessing(false);
+      setModalOpen(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in font-['Outfit'] pb-10">
@@ -177,6 +204,19 @@ const SubscribeUsers = () => {
           emptyMessage="No subscribed users found."
         />
       </div>
+
+      <ConfirmationModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleConfirmAction}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        variant={modalConfig.variant}
+        isProcessing={isProcessing}
+        confirmText={
+          modalConfig.status === "active" ? "Activate Now" : "Inactivate Now"
+        }
+      />
     </div>
   );
 };

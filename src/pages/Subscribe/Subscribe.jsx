@@ -149,13 +149,21 @@ const Subscribe = () => {
                   </div>
 
                   <div className="mb-8">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-text-primary">
-                        ₹{plan?.price}
-                      </span>
-                      <span className="text-text-secondary font-medium text-xs">
-                        / {plan?.duration_months} month
-                      </span>
+                    <div className="flex flex-col">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-text-primary">
+                          ₹{plan?.price}
+                        </span>
+                        <span className="text-text-secondary font-medium text-xs">
+                          / {plan?.duration_months} month
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/5 w-fit px-2 py-0.5 rounded-full border border-primary/10">
+                        <span>
+                          Max {plan?.device_limit || 1} Device
+                          {plan?.device_limit > 1 ? "s" : ""}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

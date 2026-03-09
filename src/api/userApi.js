@@ -31,4 +31,16 @@ export const userApi = {
     const response = await API.patch(`/users/toggle-status/${id}`);
     return response.data;
   },
+
+  adminGetUserSessions: async (userId) => {
+    const response = await API.get(`/users/admin/sessions/${userId}`);
+    return response.data;
+  },
+
+  adminTerminateSession: async (userId, sessionId) => {
+    const response = await API.delete(
+      `/users/admin/terminate-session/${userId}/${sessionId}`,
+    );
+    return response.data;
+  },
 };

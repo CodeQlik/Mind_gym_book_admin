@@ -138,8 +138,8 @@ const ViewCoupon = () => {
               </div>
               <h3 className="text-3xl font-black text-text-primary">
                 {coupon.discount_type === "percentage"
-                  ? `${coupon.discount_value}%`
-                  : `\u20B9${parseFloat(coupon.discount_value || 0).toLocaleString("en-IN")}`}
+                  ? `${parseFloat(coupon.discount_value || 0).toFixed(2)}%`
+                  : `\u20B9${parseFloat(coupon.discount_value || 0).toFixed(2)}`}
                 <span className="text-xs text-text-secondary font-bold uppercase tracking-widest ml-2 opacity-40">
                   reduction
                 </span>
@@ -151,9 +151,7 @@ const ViewCoupon = () => {
                       <span className="text-text-secondary">Capped At</span>
                       <span className="text-text-primary">
                         {"\u20B9"}
-                        {parseFloat(coupon.max_discount).toLocaleString(
-                          "en-IN",
-                        )}
+                        {parseFloat(coupon.max_discount || 0).toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -161,9 +159,7 @@ const ViewCoupon = () => {
                   <span className="text-text-secondary">Minimum Spend</span>
                   <span className="text-text-primary">
                     {"\u20B9"}
-                    {parseFloat(coupon.min_order_amount).toLocaleString(
-                      "en-IN",
-                    )}
+                    {parseFloat(coupon.min_order_amount || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -226,14 +222,14 @@ const ViewCoupon = () => {
                 />
                 <DetailRow
                   label="Eligibility"
-                  value={`Minimum purchase of \u20B9${parseFloat(coupon.min_order_amount).toLocaleString("en-IN")} required.`}
+                  value={`Minimum purchase of \u20B9${parseFloat(coupon.min_order_amount || 0).toFixed(2)} required.`}
                   icon={ShoppingBag}
                 />
                 <DetailRow
                   label="Benefit Cap"
                   value={
                     coupon.max_discount
-                      ? `Maximum discount of \u20B9${parseFloat(coupon.max_discount).toLocaleString("en-IN")}.`
+                      ? `Maximum discount of \u20B9${parseFloat(coupon.max_discount || 0).toFixed(2)}.`
                       : "No upper limit applied."
                   }
                   icon={DollarSign}

@@ -209,7 +209,7 @@ const Orders = () => {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-text-primary text-sm whitespace-nowrap">
-            ₹{parseFloat(row.total_amount || 0).toLocaleString("en-IN")}
+            ₹{parseFloat(row.total_amount || 0).toFixed(2)}
           </span>
           {row.coupon && (
             <div className="flex items-center gap-1 mt-0.5">
