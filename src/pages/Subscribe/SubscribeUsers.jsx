@@ -135,9 +135,9 @@ const SubscribeUsers = () => {
               onClick={() => {
                 setModalConfig({
                   id: row.id,
-                  status: "inactive",
-                  title: "Inactivate Subscription",
-                  message: `Are you sure you want to force inactivate the subscription for ${row.user?.name || row.user_id}?`,
+                  status: "expired",
+                  title: "Deactivate Subscription",
+                  message: `Are you sure you want to force deactivate the subscription for ${row.user?.name || row.user_id}?`,
                   variant: "danger",
                 });
                 setModalOpen(true);
@@ -161,11 +161,11 @@ const SubscribeUsers = () => {
       );
       if (forceUpdateStatus.fulfilled.match(result)) {
         toast.success(
-          `Subscription ${modalConfig.status === "active" ? "activated" : "inactivated"}`,
+          `Subscription ${modalConfig.status === "active" ? "activated" : "deactivated"}`,
         );
       } else {
         toast.error(
-          `Failed to ${modalConfig.status === "active" ? "activate" : "inactivate"}`,
+          `Failed to ${modalConfig.status === "active" ? "activate" : "deactivate"}`,
         );
       }
     } catch (err) {
@@ -214,7 +214,7 @@ const SubscribeUsers = () => {
         variant={modalConfig.variant}
         isProcessing={isProcessing}
         confirmText={
-          modalConfig.status === "active" ? "Activate Now" : "Inactivate Now"
+          modalConfig.status === "active" ? "Activate Now" : "Deactivate Now"
         }
       />
     </div>

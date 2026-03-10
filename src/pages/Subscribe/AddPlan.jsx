@@ -38,6 +38,7 @@ const AddPlan = () => {
       .min(1, "Limit must be at least 1 device")
       .required("Device limit is required"),
     features: Yup.array().of(Yup.string().required("Feature text is required")),
+    is_ad_free: Yup.boolean(),
   });
 
   const formik = useFormik({
@@ -46,9 +47,10 @@ const AddPlan = () => {
       plan_type: "one_month",
       price: "",
       duration_months: 1,
-      device_limit: 1,
+      device_limit: 2,
       description: "",
       features: [""],
+      is_ad_free: true,
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -61,6 +63,7 @@ const AddPlan = () => {
           device_limit: Number(values.device_limit),
           description: values.description,
           features: values.features.filter((f) => f.trim() !== ""),
+          is_ad_free: values.is_ad_free,
         };
 
         const resultAction = await dispatch(createPlan(payload));
@@ -122,6 +125,24 @@ const AddPlan = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.plan_type && formik.errors.plan_type}
                 required
+                onChange={(e) => {
+                  formik.handleChange(e);
+                  const type = e.target.value;
+                  // Auto-set limits based on plan type
+                  if (type === "one_month") {
+                    formik.setFieldValue("device_limit", 2);
+                    formik.setFieldValue("is_ad_free", true);
+                  } else if (type === "three_month") {
+                    formik.setFieldValue("device_limit", 3);
+                    formik.setFieldValue("is_ad_free", true);
+                  } else if (type === "one_year") {
+                    formik.setFieldValue("device_limit", 4);
+                    formik.setFieldValue("is_ad_free", true);
+                  } else if (type === "free") {
+                    formik.setFieldValue("device_limit", 1);
+                    formik.setFieldValue("is_ad_free", false);
+                  }
+                }}
               />
             </div>
 
@@ -164,6 +185,21 @@ const AddPlan = () => {
                 placeholder="1"
                 required
               />
+              <div className="flex items-center gap-3 h-[72px] mt-1 pr-4">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_ad_free"
+                    className="sr-only peer"
+                    checked={formik.values.is_ad_free}
+                    onChange={formik.handleChange}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                  <span className="ml-3 text-sm font-bold text-text-primary">
+                    Ad-Free Experience
+                  </span>
+                </label>
+              </div>
             </div>
 
             <FormInput

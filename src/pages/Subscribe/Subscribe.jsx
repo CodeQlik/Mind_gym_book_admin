@@ -158,11 +158,19 @@ const Subscribe = () => {
                           / {plan?.duration_months} month
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/5 w-fit px-2 py-0.5 rounded-full border border-primary/10">
-                        <span>
-                          Max {plan?.device_limit || 1} Device
-                          {plan?.device_limit > 1 ? "s" : ""}
-                        </span>
+                      <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/5 w-fit px-2 py-0.5 rounded-full border border-primary/10">
+                          <span>
+                            Max {plan?.device_limit || 1} Device
+                            {plan?.device_limit > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        {plan?.is_ad_free && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 w-fit px-2 py-0.5 rounded-full border border-emerald-100">
+                            <CheckCircle2 size={10} />
+                            <span>Ad-Free</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
