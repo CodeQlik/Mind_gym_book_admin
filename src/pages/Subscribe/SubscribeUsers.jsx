@@ -101,55 +101,72 @@ const SubscribeUsers = () => {
     },
     {
       header: "Status",
-      render: (row) => (
-        <span
-          className={`text-[12px] font-black uppercase tracking-widest ${row.status === "active" ? "text-success" : "text-error"}`}
-        >
-          {row.status}
-        </span>
-      ),
+      render: (row) => {
+        const status = row.status || "pending";
+        const statusMap = {
+          active: "bg-success-surface text-success border-success/20",
+          pending: "bg-warning-surface text-warning border-warning/20",
+          expired: "bg-error-surface text-error border-error/20",
+          failed: "bg-error-surface text-error border-error/20",
+        };
+
+        return (
+          <span
+            className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest border ${
+              statusMap[status] ||
+              "bg-background text-text-secondary border-border"
+            }`}
+          >
+            {status}
+          </span>
+        );
+      },
     },
     {
       header: "Actions",
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          {row.status !== "active" ? (
-            <button
-              onClick={() => {
-                setModalConfig({
-                  id: row.id,
-                  status: "active",
-                  title: "Activate Subscription",
-                  message: `Are you sure you want to force activate the subscription for ${row.user?.name || row.user_id}?`,
-                  variant: "primary",
-                });
-                setModalOpen(true);
-              }}
-              className="p-2 rounded-lg bg-success-surface text-success hover:bg-emerald-500 hover:text-white transition-all border-none cursor-pointer"
-              title="Force Activate"
-            >
-              <UserCheck size={16} />
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setModalConfig({
-                  id: row.id,
-                  status: "expired",
-                  title: "Deactivate Subscription",
-                  message: `Are you sure you want to force deactivate the subscription for ${row.user?.name || row.user_id}?`,
-                  variant: "danger",
-                });
-                setModalOpen(true);
-              }}
-              className="p-2 rounded-lg bg-error-surface text-error hover:bg-rose-500 hover:text-white transition-all border-none cursor-pointer"
-              title="Force Inactivate"
-            >
-              <UserX size={16} />
-            </button>
-          )}
-        </div>
-      ),
+      render: (row) => {
+        const status = row.status || "pending";
+
+        return (
+          <div className="flex items-center gap-2">
+            {status !== "active" ? (
+              <button
+                onClick={() => {
+                  setModalConfig({
+                    id: row.id,
+                    status: "active",
+                    title: "Activate Subscription",
+                    message: `Are you sure you want to activate the subscription for ${row.user?.name || row.user_id}?`,
+                    variant: "primary",
+                  });
+                  setModalOpen(true);
+                }}
+                className="p-2 rounded-lg bg-success-surface text-success hover:bg-emerald-500 hover:text-white transition-all border-none cursor-pointer"
+                title="Activate"
+              >
+                <UserCheck size={16} />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setModalConfig({
+                    id: row.id,
+                    status: "expired",
+                    title: "Force Expire / Deactivate",
+                    message: `Are you sure you want to immediately expire the subscription for ${row.user?.name || row.user_id}?`,
+                    variant: "danger",
+                  });
+                  setModalOpen(true);
+                }}
+                className="p-2 rounded-lg bg-error-surface text-error hover:bg-rose-500 hover:text-white transition-all border-none cursor-pointer"
+                title="Expire"
+              >
+                <UserX size={16} />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
