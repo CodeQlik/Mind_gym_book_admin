@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-  Eye,
-  Pencil,
-  Trash2,
-  Smartphone,
-  LogOut,
-  Clock,
-  Globe,
-} from "lucide-react";
+import { Eye, Pencil, Smartphone, LogOut, Clock, Globe } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomModal from "../../components/Modal/CustomModal";
 import { userApi } from "../../api/userApi";
@@ -20,7 +12,6 @@ import SearchInput from "../../components/Search/SearchInput";
 import {
   fetchAllUsers,
   clearUserError,
-  deleteUserThunk,
   searchUsersThunk,
   toggleUserStatusThunk,
 } from "../../store/slices/userSlice";
@@ -85,9 +76,6 @@ const Users = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [activeSessions, setActiveSessions] = useState([]);
@@ -117,27 +105,6 @@ const Users = () => {
 
     return () => clearTimeout(timer);
   }, [searchQuery, dispatch, itemsPerPage]);
-
-  const handleDeleteClick = (user) => {
-    setUserToDelete(user);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (userToDelete) {
-      setIsDeleting(true);
-      try {
-        const id = userToDelete.id || userToDelete._id;
-        await dispatch(deleteUserThunk(id));
-        setIsDeleteModalOpen(false);
-        setUserToDelete(null);
-      } catch (err) {
-        console.error("Delete failed:", err);
-      } finally {
-        setIsDeleting(false);
-      }
-    }
-  };
 
   const [togglingId, setTogglingId] = useState(null);
 
@@ -303,13 +270,6 @@ const Users = () => {
           >
             <Pencil size={14} />
           </button>
-          <button
-            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
-            title="Delete"
-            onClick={() => handleDeleteClick(row)}
-          >
-            <Trash2 size={14} />
-          </button>
         </div>
       ),
     },
@@ -455,15 +415,6 @@ const Users = () => {
           </div>
         </div>
       </CustomModal>
-
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete User"
-        message={`Are you sure you want to delete ${userToDelete?.name}?`}
-        isProcessing={isDeleting}
-      />
     </div>
   );
 };

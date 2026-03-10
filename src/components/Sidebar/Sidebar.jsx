@@ -88,6 +88,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { title: "Terms & Conditions", path: "/cms/edit/terms-conditions" },
         { title: "Refund Policy", path: "/cms/edit/refund-policy" },
         { title: "FAQ", path: "/cms/edit/faq" },
+        { title: "Blog", path: "/cms/blog" },
+        { title: "Testimonials", path: "/cms/testimonials" },
       ],
     },
     { title: "Support", icon: <LifeBuoy size={22} />, path: "/support" },

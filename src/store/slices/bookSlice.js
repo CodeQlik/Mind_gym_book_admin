@@ -151,8 +151,14 @@ const bookSlice = createSlice({
       .addCase(updateBookThunk.fulfilled, (state, action) => {
         state.loading = false;
         const updatedBook = action.payload.data || action.payload;
+        const targetId =
+          action.payload.id ||
+          (action.payload.data &&
+            (action.payload.data.id || action.payload.data._id));
         const index = state.books.findIndex(
-          (book) => book.id === updatedBook.id || book._id === updatedBook.id,
+          (book) =>
+            (book.id && book.id === targetId) ||
+            (book._id && book._id === targetId),
         );
         if (index !== -1) {
           state.books[index] = updatedBook;

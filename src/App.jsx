@@ -46,6 +46,10 @@ import Support from "./pages/Support/Support";
 import ChatSupport from "./pages/Support/ChatSupport";
 import CMS from "./pages/CMS/CMS";
 import EditCMS from "./pages/CMS/EditCMS";
+import BlogList from "./pages/CMS/Blog/BlogList";
+import AddBlog from "./pages/CMS/Blog/AddBlog";
+import TestimonialList from "./pages/CMS/Testimonials/TestimonialList";
+import AddTestimonial from "./pages/CMS/Testimonials/AddTestimonial";
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -149,6 +153,15 @@ function App() {
             <Route path="support/chat/:id" element={<ChatSupport />} />
             <Route path="cms" element={<CMS />} />
             <Route path="cms/edit/:slug" element={<EditCMS />} />
+            <Route path="cms/blog" element={<BlogList />} />
+            <Route path="cms/blog/add" element={<AddBlog />} />
+            <Route path="cms/blog/edit/:id" element={<AddBlog />} />
+            <Route path="cms/testimonials" element={<TestimonialList />} />
+            <Route path="cms/testimonials/add" element={<AddTestimonial />} />
+            <Route
+              path="cms/testimonials/edit/:id"
+              element={<AddTestimonial />}
+            />
           </Route>
         </Route>
 

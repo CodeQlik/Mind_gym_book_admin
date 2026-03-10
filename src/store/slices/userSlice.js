@@ -33,20 +33,6 @@ export const updateUserThunk = createAsyncThunk(
   },
 );
 
-export const deleteUserThunk = createAsyncThunk(
-  "users/delete",
-  async (id, { rejectWithValue }) => {
-    try {
-      await userApi.deleteUser(id);
-      return id;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to delete user",
-      );
-    }
-  },
-);
-
 export const searchUsersThunk = createAsyncThunk(
   "users/search",
   async (query, { rejectWithValue }) => {
@@ -127,22 +113,6 @@ const userSlice = createSlice({
         }
       })
       .addCase(updateUserThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Delete User
-      .addCase(deleteUserThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteUserThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.users = state.users.filter(
-          (u) => u.id !== action.payload && u._id !== action.payload,
-        );
-        state.totalItems = Math.max(0, state.totalItems - 1);
-      })
-      .addCase(deleteUserThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

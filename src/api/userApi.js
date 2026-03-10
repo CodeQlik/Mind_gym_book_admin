@@ -18,11 +18,6 @@ export const userApi = {
     return response.data;
   },
 
-  deleteUser: async (id) => {
-    const response = await API.delete(`/users/delete/${id}`);
-    return response.data;
-  },
-
   searchUsers: async (query) => {
     const response = await API.get(`/users/search?query=${query}`);
     return response.data;

@@ -30,7 +30,7 @@ const UpdateInventoryModal = ({
   // State
   const [step, setStep] = useState(initialProduct ? 2 : 1);
   const [selectedProduct, setSelectedProduct] = useState(initialProduct);
-  const [addQuantity, setAddQuantity] = useState(1);
+  const [addQuantity, setAddQuantity] = useState(0);
   const [modalSearchQuery, setModalSearchQuery] = useState("");
   const [modalSearchResults, setModalSearchResults] = useState([]);
   const [isSearchingModal, setIsSearchingModal] = useState(false);
@@ -289,11 +289,15 @@ const UpdateInventoryModal = ({
               {/* Quantity Controls */}
               <div className="space-y-4 pt-2">
                 <label className="block text-[10px] font-bold text-text-secondary uppercase tracking-widest text-center">
-                  Adjustment Quantity
+                  Set New Total Stock
                 </label>
                 <div className="flex items-center justify-center gap-8 bg-background p-6 border border-border rounded-xl shadow-inner">
                   <button
-                    onClick={() => setAddQuantity((p) => Math.max(1, p - 1))}
+                    onClick={() =>
+                      setAddQuantity((p) =>
+                        Math.max(-parseInt(selectedProduct.stock || 0), p - 1),
+                      )
+                    }
                     className="w-12 h-12 rounded bg-surface border border-border flex items-center justify-center text-text-secondary hover:text-primary transition-all active:scale-90"
                   >
                     <Minus size={18} />
@@ -301,14 +305,17 @@ const UpdateInventoryModal = ({
                   <div className="flex flex-col items-center">
                     <input
                       type="number"
-                      value={addQuantity}
-                      onChange={(e) =>
-                        setAddQuantity(parseInt(e.target.value) || 0)
-                      }
-                      className="w-20 text-center bg-transparent text-4xl font-black text-text-primary outline-none"
+                      value={parseInt(selectedProduct.stock || 0) + addQuantity}
+                      onChange={(e) => {
+                        const newTotal = parseInt(e.target.value) || 0;
+                        setAddQuantity(
+                          newTotal - parseInt(selectedProduct.stock || 0),
+                        );
+                      }}
+                      className="w-32 text-center bg-transparent text-4xl font-black text-text-primary outline-none"
                     />
                     <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-40 mt-1">
-                      Units
+                      Total Units
                     </span>
                   </div>
                   <button
@@ -321,10 +328,12 @@ const UpdateInventoryModal = ({
 
                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-md flex items-center justify-between">
                   <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">
-                    New Stock Projection
+                    Adjustment Calculation
                   </span>
-                  <span className="text-lg font-black text-primary">
-                    {parseInt(selectedProduct.stock || 0) + addQuantity}
+                  <span
+                    className={`text-lg font-black ${addQuantity >= 0 ? "text-success" : "text-error"}`}
+                  >
+                    {addQuantity >= 0 ? `+${addQuantity}` : addQuantity}
                   </span>
                 </div>
               </div>
