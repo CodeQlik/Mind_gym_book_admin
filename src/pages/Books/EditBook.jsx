@@ -379,6 +379,7 @@ const EditBook = () => {
                   { v: "new", l: "New" },
                   { v: "good", l: "Good" },
                   { v: "fair", l: "Fair" },
+                  { v: "acceptable", l: "Acceptable" },
                 ].map((o) => ({ value: o.v, label: o.l }))}
               />
             </div>

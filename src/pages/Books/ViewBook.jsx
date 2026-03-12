@@ -200,7 +200,13 @@ const ViewBook = () => {
                 },
                 { label: "Weight", val: book.weight || "N/A" },
                 { label: "Dimensions", val: book.dimensions || "N/A" },
-                { label: "Condition", val: book.condition || "N/A" },
+                {
+                  label: "Condition",
+                  val: book.condition
+                    ? book.condition.charAt(0).toUpperCase() +
+                      book.condition.slice(1)
+                    : "N/A",
+                },
                 { label: "Stock", val: book.stock || "0" },
                 { label: "Release", val: book.published_date || "N/A" },
               ].map((stat, i) => (
