@@ -11,6 +11,7 @@ import {
   Plus,
   X,
   FileText,
+  Music,
 } from "lucide-react";
 import { createBook, clearBookError } from "../../store/slices/bookSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
@@ -54,6 +55,7 @@ const AddBook = () => {
       thumbnail: null,
       cover_image: null,
       images: [],
+      audio_file: null,
     },
     validationSchema: Yup.object({
       title: Yup.string().required("Title is required"),
@@ -66,6 +68,7 @@ const AddBook = () => {
       thumbnail: Yup.mixed().required("Thumbnail required"),
       cover_image: Yup.mixed(),
       images: Yup.array(),
+      audio_file: Yup.mixed().optional(),
     }),
     onSubmit: async (values) => {
       try {
@@ -417,6 +420,55 @@ const AddBook = () => {
                         .endsWith(".pdf")
                         ? "PDF Version"
                         : "EPUB Version"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Audio Upload Section */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
+                  Audio Version (MP3){" "}
+                  <span className="text-text-secondary/50 font-normal italic">
+                    (Optional)
+                  </span>
+                </label>
+                <label
+                  className={`flex items-center justify-between p-3 rounded-md border-2 border-dashed transition-all cursor-pointer ${formik.values.audio_file ? "border-amber-500 bg-amber-500/5" : "border-border hover:border-amber-500/50"}`}
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <Music
+                      size={18}
+                      className={
+                        formik.values.audio_file
+                          ? "text-amber-500"
+                          : "text-text-secondary opacity-40"
+                      }
+                    />
+                    <span
+                      className={`text-[11px] font-bold truncate ${formik.values.audio_file ? "text-amber-500" : "text-text-secondary"}`}
+                    >
+                      {formik.values.audio_file
+                        ? formik.values.audio_file.name
+                        : "Click to upload Audio"}
+                    </span>
+                  </div>
+                  <Upload
+                    size={14}
+                    className="text-text-secondary opacity-40 shrink-0"
+                  />
+                  <input
+                    type="file"
+                    name="audio_file"
+                    accept=".mp3"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+                {formik.values.audio_file && (
+                  <div className="flex gap-2 ml-1">
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase bg-amber-500/10 text-amber-500">
+                      MP3 Version Ready
                     </span>
                   </div>
                 )}

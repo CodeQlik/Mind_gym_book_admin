@@ -121,7 +121,6 @@ const AddPlan = () => {
                 type="select"
                 options={planTypeOptions}
                 value={formik.values.plan_type}
-                onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 error={formik.touched.plan_type && formik.errors.plan_type}
                 required

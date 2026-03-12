@@ -17,6 +17,7 @@ import {
   Info,
   ListChecks,
   Image as ImageIcon,
+  Music,
 } from "lucide-react";
 import { bookApi } from "../../api/bookApi";
 import API from "../../api/axiosInstance";
@@ -105,6 +106,7 @@ const ViewBook = () => {
   const pdfUrl =
     book.read_url || pdfFileUrl || bookApi.getReadBookUrl(book.id || book._id);
   const epubDownloadUrl = book.read_url || epubFileUrl;
+  const audioUrl = formatUrl(parseField(book.audio_file));
   const gallery = Array.isArray(book.images) ? book.images : [];
 
   return (
@@ -214,18 +216,28 @@ const ViewBook = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1">
-                  <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                    <FileText size={12} className="text-primary" /> Summary
+              <div className="flex flex-col md:flex-row gap-6 items-stretch">
+                <div className="flex-1 bg-surface border border-border rounded-xl p-5 shadow-sm flex flex-col">
+                  <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <FileText size={14} className="text-primary" /> Summary
                   </h4>
                   <div
-                    className="text-sm text-text-primary leading-relaxed bg-background/50 p-4 rounded-lg border border-border prose dark:prose-invert max-w-none"
+                    className="text-sm text-text-primary leading-relaxed prose dark:prose-invert max-w-none flex-1"
                     dangerouslySetInnerHTML={{
                       __html: book.description || "No description provided.",
                     }}
                   />
                 </div>
+                {book.highlights && (
+                  <div className="flex-1 bg-surface border border-border rounded-xl p-5 shadow-sm flex flex-col">
+                    <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <ListChecks size={14} className="text-primary" /> Key Highlights
+                    </h4>
+                    <div className="text-sm text-text-primary whitespace-pre-line leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1 flex-1">
+                      {book.highlights}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -233,16 +245,6 @@ const ViewBook = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {book.highlights && (
-          <div className="lg:col-span-1 bg-surface border border-border rounded-xl p-5 shadow-sm">
-            <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
-              <ListChecks size={14} /> Key Highlights
-            </h4>
-            <div className="text-sm text-text-primary whitespace-pre-line leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1">
-              {book.highlights}
-            </div>
-          </div>
-        )}
 
         {/* PDF Section */}
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col justify-between gap-4">
@@ -314,6 +316,29 @@ const ViewBook = () => {
             </Button>
           )}
         </div>
+
+        {/* Audio Section */}
+        {audioUrl && (
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 flex flex-col justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-emerald-500/10">
+                <Music size={20} className="text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-text-primary">
+                  Audio Edition
+                </h4>
+                <p className="text-[9px] font-bold text-text-secondary uppercase opacity-60">
+                  MP3 Audio Asset
+                </p>
+              </div>
+            </div>
+            <audio controls className="w-full h-8 mt-2">
+              <source src={audioUrl} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

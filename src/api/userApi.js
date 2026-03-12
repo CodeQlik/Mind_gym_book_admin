@@ -38,4 +38,8 @@ export const userApi = {
     );
     return response.data;
   },
+  deleteUser: async (id) => {
+    const response = await API.delete(`/users/delete/${id}`);
+    return response.data;
+  },
 };

@@ -12,6 +12,7 @@ import {
   X,
   FileText,
   Loader2,
+  Music,
 } from "lucide-react";
 import { updateBookThunk, clearBookError } from "../../store/slices/bookSlice";
 import { fetchCategories } from "../../store/slices/categorySlice";
@@ -35,6 +36,7 @@ const EditBook = () => {
   const [imagesPreview, setImagesPreview] = useState([]);
   const [existingPdf, setExistingPdf] = useState(null);
   const [existingEpub, setExistingEpub] = useState(null);
+  const [existingAudio, setExistingAudio] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
 
   const formik = useFormik({
@@ -60,6 +62,7 @@ const EditBook = () => {
       thumbnail: null,
       cover_image: null,
       images: [],
+      audio_file: null,
     },
     validationSchema: Yup.object({
       title: Yup.string().required("Title is required"),
@@ -86,7 +89,13 @@ const EditBook = () => {
       const data = new FormData();
 
       // Append scalar fields — skip file keys and empty values
-      const fileKeys = ["book_file", "thumbnail", "cover_image", "images"];
+      const fileKeys = [
+        "book_file",
+        "thumbnail",
+        "cover_image",
+        "images",
+        "audio_file",
+      ];
       Object.entries(values).forEach(([key, val]) => {
         if (fileKeys.includes(key)) return;
         if (val === null || val === undefined || val === "") return;
@@ -100,6 +109,8 @@ const EditBook = () => {
         data.append("thumbnail", values.thumbnail);
       if (values.cover_image instanceof File)
         data.append("cover_image", values.cover_image);
+      if (values.audio_file instanceof File)
+        data.append("audio_file", values.audio_file);
 
       if (Array.isArray(values.images)) {
         values.images.forEach((file) => {
@@ -159,6 +170,7 @@ const EditBook = () => {
             thumbnail: null,
             cover_image: null,
             images: [],
+            audio_file: null,
           });
 
           setExistingPdf(
@@ -171,6 +183,7 @@ const EditBook = () => {
               book.epub_file?.url ||
               book.epub_file,
           );
+          setExistingAudio(book.audio_file?.url || book.audio_file);
           setThumbnailPreview(book.thumbnail?.url || book.thumbnail);
           setCoverImagePreview(book.cover_image?.url || book.cover_image);
 
@@ -310,6 +323,15 @@ const EditBook = () => {
                 error={formik.touched.author && formik.errors.author}
                 required
               />
+              <FormInput
+                label="ISBN (Optional)"
+                {...formik.getFieldProps("isbn")}
+              />
+              <FormInput
+                label="Language"
+                {...formik.getFieldProps("language")}
+                placeholder="e.g. English"
+              />
             </div>
             <RichTextEditor
               label="Description"
@@ -386,7 +408,7 @@ const EditBook = () => {
                 }
               />
               <Toggle
-                label="Bestseller"
+                label="Bestselling"
                 checked={formik.values.is_bestselling}
                 onChange={() =>
                   formik.setFieldValue(
@@ -472,6 +494,40 @@ const EditBook = () => {
                       (!formik.values.book_file && existingPdf)
                         ? "PDF Version"
                         : "EPUB Version"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Audio Upload Section */}
+              <div className="space-y-2 mt-4">
+                <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">
+                  Audio Version (MP3)
+                </label>
+                <label className="flex items-center justify-between p-3 rounded-md border-2 border-dashed border-border hover:border-amber-500 cursor-pointer transition-all mt-1 bg-background">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Music size={16} className="text-amber-500" />
+                    <span className="text-[11px] font-bold truncate">
+                      {formik.values.audio_file
+                        ? formik.values.audio_file.name
+                        : existingAudio
+                          ? "Current: MP3"
+                          : "Upload Audio"}
+                    </span>
+                  </div>
+                  <Upload size={14} className="opacity-40" />
+                  <input
+                    type="file"
+                    name="audio_file"
+                    hidden
+                    onChange={handleFileChange}
+                    accept=".mp3"
+                  />
+                </label>
+                {(formik.values.audio_file || existingAudio) && (
+                  <div className="flex gap-2 mt-2 ml-1">
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase bg-amber-500/10 text-amber-500">
+                      MP3 Version Ready
                     </span>
                   </div>
                 )}

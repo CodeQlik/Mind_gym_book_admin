@@ -63,6 +63,24 @@ export const toggleUserStatusThunk = createAsyncThunk(
   },
 );
 
+export const deleteUserThunk = createAsyncThunk(
+  "users/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await userApi.deleteUser(id);
+      if (response.success) {
+        return id;
+      } else {
+        return rejectWithValue(response.message || "Failed to delete user");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete user",
+      );
+    }
+  },
+);
+
 const initialState = {
   users: [],
   totalItems: 0,
@@ -138,6 +156,22 @@ const userSlice = createSlice({
         if (index !== -1) {
           state.users[index] = { ...state.users[index], ...data };
         }
+      })
+      // Delete User
+      .addCase(deleteUserThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteUserThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.filter(
+          (u) => u.id !== action.payload && u._id !== action.payload,
+        );
+        state.totalItems -= 1;
+      })
+      .addCase(deleteUserThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

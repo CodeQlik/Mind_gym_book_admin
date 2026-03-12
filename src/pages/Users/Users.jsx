@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Eye, Pencil, Smartphone, LogOut, Clock, Globe } from "lucide-react";
+import { Eye, Pencil, Smartphone, LogOut, Clock, Globe, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomModal from "../../components/Modal/CustomModal";
 import { userApi } from "../../api/userApi";
@@ -14,6 +14,7 @@ import {
   clearUserError,
   searchUsersThunk,
   toggleUserStatusThunk,
+  deleteUserThunk,
 } from "../../store/slices/userSlice";
 
 const UserAvatar = ({ user }) => {
@@ -82,6 +83,9 @@ const Users = () => {
   const [sessionUser, setSessionUser] = useState(null);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [terminatingSessionId, setTerminatingSessionId] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!searchQuery) {
@@ -156,6 +160,24 @@ const Users = () => {
       toast.error("Error terminating session");
     } finally {
       setTerminatingSessionId(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await dispatch(
+        deleteUserThunk(userToDelete.id || userToDelete._id),
+      ).unwrap();
+      toast.success("User deleted successfully");
+      setDeleteConfirmOpen(false);
+      setUserToDelete(null);
+    } catch (err) {
+      toast.error(err || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -269,6 +291,16 @@ const Users = () => {
             onClick={() => navigate(`/users/edit/${row.id || row._id}`)}
           >
             <Pencil size={14} />
+          </button>
+          <button
+            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
+            title="Delete"
+            onClick={() => {
+              setUserToDelete(row);
+              setDeleteConfirmOpen(true);
+            }}
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       ),
@@ -415,6 +447,22 @@ const Users = () => {
           </div>
         </div>
       </CustomModal>
+
+      <ConfirmationModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          if (!isDeleting) {
+            setDeleteConfirmOpen(false);
+            setUserToDelete(null);
+          }
+        }}
+        onConfirm={handleDeleteUser}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will delete all associated records (orders, subscriptions, etc.) from the database.`}
+        confirmText={isDeleting ? "Deleting..." : "Delete User"}
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
