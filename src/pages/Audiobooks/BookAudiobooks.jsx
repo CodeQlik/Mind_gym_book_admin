@@ -17,11 +17,13 @@ const BookAudiobooks = () => {
         dispatch(fetchAudiobooks({ page: 1, limit: 1000 }));
     }, [dispatch]);
 
-    const bookChapters = (Array.isArray(audiobooks) ? audiobooks : [])
-        .filter(a => String(a.book_id) === String(bookId))
+    const bookObject = (Array.isArray(audiobooks) ? audiobooks : [])
+        .find(a => String(a.id) === String(bookId));
+        
+    const bookChapters = [...(bookObject?.chapters || [])]
         .sort((a, b) => a.chapter_number - b.chapter_number);
 
-    const bookTitle = bookChapters[0]?.book?.title || "Book Chapters";
+    const bookTitle = bookObject?.title || "Book Chapters";
 
     const handleStatusToggle = async (id) => {
         try {
@@ -57,7 +59,7 @@ const BookAudiobooks = () => {
             header: "Chapter Title",
             render: (row) => (
                 <div className="flex flex-col">
-                    <span className="font-bold text-text-primary text-sm">{row.chapter_title}</span>
+                    <span className="font-bold text-text-primary text-sm">{row.title}</span>
                 </div>
             )
         },

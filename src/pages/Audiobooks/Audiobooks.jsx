@@ -10,7 +10,7 @@ import Button from "../../components/UI/Button";
 import {
   fetchAudiobooks,
   deleteAudiobook,
-  toggleAudiobookStatus,
+  toggleBookAudiobooksStatus,
   clearAudiobookError,
 } from "../../store/slices/audiobookSlice";
 import { toast } from "react-hot-toast";
@@ -56,11 +56,11 @@ const Audiobooks = () => {
     }
   };
 
-  const handleStatusToggle = async (id) => {
+  const handleBookStatusToggle = async (bookId) => {
     try {
-      const resultAction = await dispatch(toggleAudiobookStatus(id));
-      if (toggleAudiobookStatus.fulfilled.match(resultAction)) {
-        toast.success("Status updated successfully");
+      const resultAction = await dispatch(toggleBookAudiobooksStatus(bookId));
+      if (toggleBookAudiobooksStatus.fulfilled.match(resultAction)) {
+        toast.success("Book audiobooks status updated");
       } else {
         toast.error(resultAction.payload || "Failed to update status");
       }
@@ -68,27 +68,6 @@ const Audiobooks = () => {
       toast.error("Internal Server Error");
     }
   };
-
-  // Group audiobooks by book
-  const groupedAudiobooks = React.useMemo(() => {
-    const groups = {};
-    if (!Array.isArray(audiobooks)) return [];
-    
-    audiobooks.forEach((item) => {
-      const bookId = item.book_id;
-      if (!groups[bookId]) {
-        groups[bookId] = {
-          ...item,
-          total_chapters: 1,
-          all_chapters: [item]
-        };
-      } else {
-        groups[bookId].total_chapters += 1;
-        groups[bookId].all_chapters.push(item);
-      }
-    });
-    return Object.values(groups);
-  }, [audiobooks]);
 
   const columns = [
     {
@@ -98,21 +77,21 @@ const Audiobooks = () => {
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-lg overflow-hidden border border-border bg-background flex items-center justify-center shrink-0">
               <img 
-                src={row.book?.thumbnail?.url || row.book?.cover_image?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.book?.title || "A")}&background=6366f1&color=fff&bold=true&format=svg`} 
+                src={row.thumbnail?.url || row.cover_image?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.title || "A")}&background=6366f1&color=fff&bold=true&format=svg`} 
                alt="" 
                className="w-full h-full object-cover" 
              />
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-text-primary text-[16px] line-clamp-1">
-              {row.book?.title || "Unknown Book"}
+              {row.title || "Unknown Book"}
             </span>
             <div className="flex items-center gap-2 mt-0.5">
                <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">
-                 {row.total_chapters} {row.total_chapters > 1 ? "Chapters" : "Chapter"}
+                 {row.chapters?.length || 0} {row.chapters?.length === 1 ? "Chapter" : "Chapters"}
                </span>
                <span className="text-[11px] text-text-secondary font-medium italic">
-                 Narrated by {row.narrator || "N/A"}
+                 Narrated by {row.chapters?.[0]?.narrator || "N/A"}
                </span>
             </div>
           </div>
@@ -123,7 +102,7 @@ const Audiobooks = () => {
       header: "Last Update",
       render: (row) => (
         <span className="text-sm text-text-secondary font-medium">
-          {new Date(row.updatedAt).toLocaleDateString()}
+          {row.chapters?.[0]?.updatedAt ? new Date(row.chapters[0].updatedAt).toLocaleDateString() : "N/A"}
         </span>
       ),
     },
@@ -131,24 +110,33 @@ const Audiobooks = () => {
       header: "Language",
       render: (row) => (
         <span className="text-sm text-text-secondary font-medium uppercase tracking-wider">
-          {row.language || "N/A"}
+          {row.chapters?.[0]?.language || "N/A"}
         </span>
       ),
     },
     {
       header: "Status",
-      render: (row) => (
-        <button
-          onClick={() => handleStatusToggle(row.id)}
-          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all hover:scale-105 active:scale-95 ${
-            row.status
-              ? "bg-success/10 text-success border-success/20 hover:bg-success/20"
-              : "bg-error/10 text-error border-error/20 hover:bg-error/20"
-          }`}
-        >
-          {row.status ? "Active" : "Inactive"}
-        </button>
-      ),
+      render: (row) => {
+        const chapters = row.chapters || [];
+        if (chapters.length === 0) return <span className="text-text-secondary text-xs italic">No Chapters</span>;
+        
+        const activeChapters = chapters.filter(c => c.status).length;
+        const isActive = activeChapters > 0;
+
+        return (
+          <button
+            onClick={() => handleBookStatusToggle(row.id)}
+            className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all hover:scale-105 active:scale-95 ${
+              isActive
+                ? "bg-success/10 text-success border-success/20 hover:bg-success/20"
+                : "bg-error/10 text-error border-error/20 hover:bg-error/20"
+            }`}
+          >
+            {isActive ? "Active" : "Inactive"}
+            {chapters.length > 1 && ` (${activeChapters}/${chapters.length})`}
+          </button>
+        );
+      },
     },
     {
       header: "Actions",
@@ -159,21 +147,14 @@ const Audiobooks = () => {
           <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-primary/10 text-text-secondary hover:text-primary transition-all border border-border"
             title="View Chapters"
-            onClick={() => navigate(`/audiobooks/book/${row.book_id}`)}
+            onClick={() => navigate(`/audiobooks/book/${row.id}`)}
           >
             <Eye size={14} />
           </button>
           <button
-            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success/10 text-text-secondary hover:text-success transition-all border border-border"
-            title="Edit Main"
-            onClick={() => navigate(`/audiobooks/edit/${row.id}`)}
-          >
-            <Pencil size={14} />
-          </button>
-          <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
             title="Delete Entire Audiobook"
-            onClick={() => handleDeleteClick(row.book_id)}
+            onClick={() => handleDeleteClick(row.chapters?.[0]?.id)}
           >
             <Trash2 size={14} />
           </button>
@@ -218,7 +199,7 @@ const Audiobooks = () => {
       <div>
         <Table
           columns={columns}
-          data={groupedAudiobooks}
+          data={audiobooks}
           loading={loading}
           emptyMessage="No audiobooks found."
         />

@@ -61,6 +61,18 @@ export const toggleAudiobookStatus = createAsyncThunk(
   }
 );
 
+export const toggleBookAudiobooksStatus = createAsyncThunk(
+  "audiobooks/toggleBookStatus",
+  async (bookId, { rejectWithValue }) => {
+    try {
+      const response = await audiobookApi.toggleBookAudiobooksStatus(bookId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to toggle status");
+    }
+  }
+);
+
 const initialState = {
   audiobooks: [],
   totalItems: 0,
@@ -87,7 +99,20 @@ const audiobookSlice = createSlice({
       })
       .addCase(fetchAudiobooks.fulfilled, (state, action) => {
         state.loading = false;
-        state.audiobooks = action.payload.audiobooks;
+        
+        // Handle nested object structure from API (Category -> Books)
+        let flattenedBooks = [];
+        if (action.payload.audiobooks && !Array.isArray(action.payload.audiobooks)) {
+          Object.values(action.payload.audiobooks).forEach(categoryBooks => {
+            if (Array.isArray(categoryBooks)) {
+              flattenedBooks = [...flattenedBooks, ...categoryBooks];
+            }
+          });
+          state.audiobooks = flattenedBooks;
+        } else {
+          state.audiobooks = action.payload.audiobooks || [];
+        }
+
         state.totalItems = action.payload.totalItems;
         state.totalPages = action.payload.totalPages;
         state.currentPage = action.payload.currentPage;
@@ -116,10 +141,14 @@ const audiobookSlice = createSlice({
       })
       .addCase(updateAudiobook.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.audiobooks.findIndex((a) => a.id === action.payload.id);
-        if (index !== -1) {
-          state.audiobooks[index] = action.payload;
-        }
+        state.audiobooks.forEach((book) => {
+          if (book.chapters) {
+            const index = book.chapters.findIndex((c) => Number(c.id) === Number(action.payload.id));
+            if (index !== -1) {
+              book.chapters[index] = { ...book.chapters[index], ...action.payload };
+            }
+          }
+        });
       })
       .addCase(updateAudiobook.rejected, (state, action) => {
         state.loading = false;
@@ -132,7 +161,13 @@ const audiobookSlice = createSlice({
       })
       .addCase(deleteAudiobook.fulfilled, (state, action) => {
         state.loading = false;
-        state.audiobooks = state.audiobooks.filter((a) => a.id !== action.payload);
+        state.audiobooks.forEach((book) => {
+          if (book.chapters) {
+            book.chapters = book.chapters.filter((c) => Number(c.id) !== Number(action.payload));
+          }
+        });
+        // Optionally remove books with no chapters
+        state.audiobooks = state.audiobooks.filter(book => book.chapters && book.chapters.length > 0);
       })
       .addCase(deleteAudiobook.rejected, (state, action) => {
         state.loading = false;
@@ -145,12 +180,36 @@ const audiobookSlice = createSlice({
       })
       .addCase(toggleAudiobookStatus.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.audiobooks.findIndex((a) => a.id === action.payload.id);
-        if (index !== -1) {
-          state.audiobooks[index].status = action.payload.status;
-        }
+        // Search through grouped books to find the specific chapter
+        state.audiobooks.forEach((book) => {
+          if (book.chapters) {
+            const index = book.chapters.findIndex((c) => Number(c.id) === Number(action.payload.id));
+            if (index !== -1) {
+              book.chapters[index].status = action.payload.status;
+            }
+          }
+        });
       })
       .addCase(toggleAudiobookStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Toggle Book Status
+      .addCase(toggleBookAudiobooksStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleBookAudiobooksStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        const { book_id, status } = action.payload;
+        const bookIndex = state.audiobooks.findIndex(b => Number(b.id) === Number(book_id));
+        if (bookIndex !== -1 && state.audiobooks[bookIndex].chapters) {
+          state.audiobooks[bookIndex].chapters.forEach(chapter => {
+            chapter.status = status;
+          });
+        }
+      })
+      .addCase(toggleBookAudiobooksStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

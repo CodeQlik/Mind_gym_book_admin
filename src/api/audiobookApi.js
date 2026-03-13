@@ -33,4 +33,8 @@ export const audiobookApi = {
     const response = await API.put(`/audiobook/toggle-status/${id}`);
     return response.data;
   },
+  toggleBookAudiobooksStatus: async (bookId) => {
+    const response = await API.put(`/audiobook/toggle-book-status/${bookId}`);
+    return response.data;
+  },
 };
