@@ -43,8 +43,8 @@ const ViewBook = () => {
         const data = response.data?.data || response.data || response;
         if (data) setBook(data);
       } catch (err) {
-        console.error("Failed to fetch book details", err);
-        toast.error("Failed to load book specifications.");
+        const message = err.response?.data?.message || err.message || "Failed to load book specifications.";
+        toast.error(message);
       } finally {
         setLoading(false);
       }
