@@ -47,7 +47,7 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
       try {
         let response;
         // Check if it's our backend proxy URL (prevents direct Cloudinary block)
-        const isBackendUrl = pdfUrl.includes("/api/v1/book/readBook/");
+        const isBackendUrl = pdfUrl.includes("/book/readBook/");
 
         if (isBackendUrl) {
           // Backend API path — use authenticated API instance to send Token

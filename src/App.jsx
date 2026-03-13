@@ -50,6 +50,10 @@ import BlogList from "./pages/CMS/Blog/BlogList";
 import AddBlog from "./pages/CMS/Blog/AddBlog";
 import TestimonialList from "./pages/CMS/Testimonials/TestimonialList";
 import AddTestimonial from "./pages/CMS/Testimonials/AddTestimonial";
+import Audiobooks from "./pages/Audiobooks/Audiobooks";
+import AddAudiobook from "./pages/Audiobooks/AddAudiobook";
+import EditAudiobook from "./pages/Audiobooks/EditAudiobook";
+import BookAudiobooks from "./pages/Audiobooks/BookAudiobooks";
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -134,6 +138,11 @@ function App() {
             <Route path="users" element={<Users />} />
             <Route path="users/view/:id" element={<ViewUser />} />
             <Route path="users/edit/:id" element={<EditUser />} />
+
+            <Route path="audiobooks" element={<Audiobooks />} />
+            <Route path="audiobooks/add" element={<AddAudiobook />} />
+            <Route path="audiobooks/edit/:id" element={<EditAudiobook />} />
+            <Route path="audiobooks/book/:bookId" element={<BookAudiobooks />} />
 
             <Route path="payments" element={<Payments />} />
             <Route path="subscribe" element={<Subscribe />} />

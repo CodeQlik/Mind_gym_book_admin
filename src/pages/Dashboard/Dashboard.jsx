@@ -31,30 +31,26 @@ import {
 } from "recharts";
 import { analyticsApi } from "../../api/analyticsApi";
 import { toast } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchDashboardStats,
+  fetchWeeklyTopBooks,
+} from "../../store/slices/analyticsSlice";
 
 const Dashboard = () => {
+  const dispatch = useDispatch();
   const [timeRange, setTimeRange] = useState("Last 30 Days");
-  const [statsData, setStatsData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    revenue: revenueStats,
+    engagement: engagementStats,
+    weeklyTopBooks,
+    loading,
+  } = useSelector((state) => state.analytics);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const res = await analyticsApi.getDashboardStats();
-        if (res.success) {
-          setStatsData(res.data);
-        }
-      } catch (error) {
-        console.error("Dashboard data fetch failed", error);
-        toast.error("Failed to load dashboard statistics");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+    dispatch(fetchDashboardStats());
+    dispatch(fetchWeeklyTopBooks(5));
+  }, [dispatch]);
 
   if (loading) {
     return (
@@ -67,8 +63,8 @@ const Dashboard = () => {
     );
   }
 
-  const revenue = statsData?.revenue || {};
-  const engagement = statsData?.engagement || {};
+  const revenue = revenueStats || {};
+  const engagement = engagementStats || {};
 
   const revenueDistributionData = [
     { name: "Subscription", value: revenue.subscriptionIncome || 0 },
@@ -324,24 +320,73 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Audiobook activity placeholder */}
+        {/* Weekly Top Sellers */}
         <div className="bg-surface border border-border p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
-              <PieChartIcon size={18} className="text-primary" />
-              Listener Activity
+              <Trophy size={18} className="text-primary" />
+              Weekly Top Sellers
             </h3>
-            <Activity
-              size={18}
-              className="text-primary opacity-40 animate-pulse"
-            />
+            <div className="px-2 py-0.5 rounded bg-primary text-[10px] font-bold text-white uppercase tracking-wider">
+              This Week
+            </div>
           </div>
-          <div className="h-[200px] flex items-center justify-center border-2 border-dashed border-border rounded-lg bg-background/30 text-center px-4">
-            <p className="text-sm text-text-secondary font-medium opacity-60">
-              Audiobook activity processing... Statistics will be available
-              soon.
-            </p>
+
+          <div className="flex flex-col gap-4">
+            {weeklyTopBooks.length > 0 ? (
+              weeklyTopBooks.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-4 py-3 border-b border-border/50 last:border-none"
+                >
+                  <div className="relative group">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-border bg-background shadow-sm group-hover:shadow-md transition-all">
+                      <img 
+                        src={item.book?.thumbnail?.url || item.book?.thumbnail || "https://via.placeholder.com/150"} 
+                        alt="" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-text-primary text-surface rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-surface shadow-sm">
+                      #{i + 1}
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h5 className="text-sm font-bold text-text-primary truncate" title={item.book?.title}>
+                      {item.book?.title}
+                    </h5>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-text-secondary font-bold uppercase tracking-tight opacity-60">
+                        {item.book?.author}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold text-text-primary">
+                      {item.sales_count}
+                    </p>
+                    <p className="text-[9px] text-text-secondary font-bold uppercase opacity-50">
+                      Sold
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center">
+                <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center mx-auto mb-3 opacity-40">
+                  <Package size={18} className="text-text-secondary" />
+                </div>
+                <p className="text-[11px] text-text-secondary font-medium uppercase tracking-wider opacity-60">
+                  No sales recorded this week
+                </p>
+              </div>
+            )}
           </div>
+          <button className="w-full mt-6 py-2 rounded-lg bg-text-primary text-surface text-[11px] font-bold uppercase tracking-wider hover:opacity-90 transition-all shadow-sm">
+            Detailed Sales Report
+          </button>
         </div>
 
         {/* Engagement bar chart */}

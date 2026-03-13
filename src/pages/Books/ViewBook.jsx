@@ -16,13 +16,13 @@ import {
   Quote,
   Info,
   ListChecks,
-  Image as ImageIcon,
-  Music,
+  ImageIcon,
 } from "lucide-react";
 import { bookApi } from "../../api/bookApi";
 import API from "../../api/axiosInstance";
 import PdfViewerModal from "../../components/Modal/PdfViewerModal";
 import Button from "../../components/UI/Button";
+import { toast } from "react-hot-toast";
 
 const ViewBook = () => {
   const { slug } = useParams();
@@ -101,13 +101,31 @@ const ViewBook = () => {
     : null;
 
   const imageUrl = formatUrl(parseField(book.thumbnail));
-  // Use actual PDF URL from file_data or backend read endpoint
-  // prioritize book.read_url as it uses the secure backend proxy
-  const pdfUrl =
-    book.read_url || pdfFileUrl || bookApi.getReadBookUrl(book.id || book._id);
-  const epubDownloadUrl = book.read_url || epubFileUrl;
-  const audioUrl = formatUrl(parseField(book.audio_file));
+  // Use backend read endpoint strictly to prevent raw URL decryption errors in admin panel
+  const pdfUrl = hasPdf ? bookApi.getReadBookUrl(book.id || book._id) : null;
+  const epubDownloadUrl = hasEpub ? bookApi.getReadBookUrl(book.id || book._id) : null;
   const gallery = Array.isArray(book.images) ? book.images : [];
+
+  const handleDownloadEpub = async () => {
+    try {
+      const toastId = toast.loading("Downloading EPUB from secure vault...");
+      const response = await API.get(epubDownloadUrl, { responseType: "blob" });
+      
+      const blobURL = window.URL.createObjectURL(new Blob([response.data]));
+      const fileLink = document.createElement("a");
+      fileLink.href = blobURL;
+      fileLink.setAttribute("download", `${book.title}_Secure.epub`);
+      document.body.appendChild(fileLink);
+      fileLink.click();
+      document.body.removeChild(fileLink);
+      window.URL.revokeObjectURL(blobURL);
+      
+      toast.success("EPUB downloaded successfully!", { id: toastId });
+    } catch (error) {
+      console.error("EPUB download failed", error);
+      toast.error(error?.response?.status === 401 ? "Session expired. Re-authenticate to download." : "Failed to securely download EPUB file.");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 pb-12 animate-fade-in text-left font-['Outfit']">
@@ -294,22 +312,16 @@ const ViewBook = () => {
             </div>
           </div>
           {hasEpub ? (
-            <a
-              href={epubDownloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full"
+            <Button
+              icon={ExternalLink}
+              size="sm"
+              fullWidth
+              variant="secondary"
+              onClick={handleDownloadEpub}
+              className="!bg-amber-500 !text-white hover:!bg-amber-600 border-none"
             >
-              <Button
-                icon={ExternalLink}
-                size="sm"
-                fullWidth
-                variant="secondary"
-                className="!bg-amber-500 !text-white hover:!bg-amber-600 border-none"
-              >
-                Download EPUB
-              </Button>
-            </a>
+              Download EPUB
+            </Button>
           ) : (
             <Button
               icon={ExternalLink}
@@ -323,28 +335,6 @@ const ViewBook = () => {
           )}
         </div>
 
-        {/* Audio Section */}
-        {audioUrl && (
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 flex flex-col justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-emerald-500/10">
-                <Music size={20} className="text-emerald-600" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-text-primary">
-                  Audio Edition
-                </h4>
-                <p className="text-[9px] font-bold text-text-secondary uppercase opacity-60">
-                  MP3 Audio Asset
-                </p>
-              </div>
-            </div>
-            <audio controls className="w-full h-8 mt-2">
-              <source src={audioUrl} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

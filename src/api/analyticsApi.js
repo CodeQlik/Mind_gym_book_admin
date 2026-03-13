@@ -10,4 +10,13 @@ export const analyticsApi = {
       throw error;
     }
   },
+  getTopSellingBooksWeek: async (limit = 10) => {
+    try {
+      const response = await API.get(`/analytics/top-selling-books-week?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch top selling books for the week", error);
+      throw error;
+    }
+  },
 };

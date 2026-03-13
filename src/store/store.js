@@ -14,6 +14,7 @@ import marketReducer from "./slices/marketSlice";
 import analyticsReducer from "./slices/analyticsSlice";
 import couponReducer from "./slices/couponSlice";
 import supportReducer from "./slices/supportSlice";
+import audiobookReducer from "./slices/audiobookSlice";
 
 export const store = configureStore({
   reducer: {
@@ -31,6 +32,7 @@ export const store = configureStore({
     analytics: analyticsReducer,
     coupons: couponReducer,
     support: supportReducer,
+    audiobooks: audiobookReducer,
   },
 });
 

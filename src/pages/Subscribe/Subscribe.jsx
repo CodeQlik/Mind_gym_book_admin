@@ -75,18 +75,17 @@ const Subscribe = () => {
                 plan && plan.colorType && colorClasses[plan.colorType]
                   ? colorClasses[plan.colorType]
                   : getPlanColor(index);
-              const isPremium =
-                plan && (plan.isPremium || plan.plan_type === "one_year");
+              const isPopular = plan && plan.is_popular;
               return (
                 <div
                   key={plan ? plan.id || plan.name : index}
                   className={`group bg-surface border rounded-2xl p-8 flex flex-col relative transition-all duration-300 hover:shadow-md min-h-[440px] ${
-                    isPremium
+                    isPopular
                       ? `border-primary/50 ring-1 ring-primary/10 shadow-sm shadow-primary/5`
                       : "border-border"
                   }`}
                 >
-                  {isPremium && (
+                  {isPopular && (
                     <div
                       className={`absolute top-4 right-4 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-wider ${colors.bg}`}
                     >
@@ -219,7 +218,7 @@ const Subscribe = () => {
                   </div>
 
                   <Button
-                    variant={isPremium ? "primary" : "secondary"}
+                    variant={isPopular ? "primary" : "secondary"}
                     className="w-full"
                     size="md"
                   >

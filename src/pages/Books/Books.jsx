@@ -300,6 +300,12 @@ const Books = () => {
             size={14}
           />
         </div>
+        <div className="flex items-center gap-2 bg-surface border border-border rounded-md py-2 px-4 shadow-sm">
+          <Package size={16} className="text-primary" />
+          <span className="text-[15px] font-bold text-text-primary">
+            Total: <span className="text-primary">{totalItems}</span>
+          </span>
+        </div>
       </div>
 
       {error && (

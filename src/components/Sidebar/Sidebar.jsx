@@ -16,6 +16,7 @@ import {
   LifeBuoy,
   FileText,
   LogOut,
+  Headphones,
 } from "lucide-react";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -47,6 +48,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/categories",
     },
     { title: "Books", icon: <BookOpen size={22} />, path: "/books" },
+    { title: "Audiobooks", icon: <Headphones size={22} />, path: "/audiobooks" },
     {
       title: "Inventory",
       icon: <Archive size={22} />,
