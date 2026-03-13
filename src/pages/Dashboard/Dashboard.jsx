@@ -47,10 +47,15 @@ const Dashboard = () => {
     loading,
   } = useSelector((state) => state.analytics);
 
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    dispatch(fetchDashboardStats());
-    dispatch(fetchWeeklyTopBooks(5));
-  }, [dispatch]);
+    if (isAuthenticated && user) {
+      dispatch(fetchDashboardStats());
+      dispatch(fetchWeeklyTopBooks(5));
+    }
+  }, [dispatch, isAuthenticated, user]);
+
 
   if (loading) {
     return (

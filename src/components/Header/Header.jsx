@@ -21,7 +21,8 @@ import ThemeToggle from "../Theme/ThemeToggle";
 const Header = ({ toggleSidebar, isOpen }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -29,12 +30,15 @@ const Header = ({ toggleSidebar, isOpen }) => {
   const unreadCount = stats?.unreadCount || 0;
 
   useEffect(() => {
-    if (user?.user_type === "admin") {
-      dispatch(fetchNotifications());
-      dispatch(fetchNotificationStats());
-    } else {
-      dispatch(fetchNotifications());
+    if (isAuthenticated && user) {
+      if (user?.user_type === "admin") {
+        dispatch(fetchNotifications());
+        dispatch(fetchNotificationStats());
+      } else {
+        dispatch(fetchNotifications());
+      }
     }
+
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
@@ -42,7 +46,8 @@ const Header = ({ toggleSidebar, isOpen }) => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated, user]);
+
 
   const handleNotificationClick = () => {
     if (user?.user_type === "admin" && unreadCount > 0) {

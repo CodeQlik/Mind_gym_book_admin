@@ -321,29 +321,34 @@ const Notifications = () => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null });
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { isAuthenticated, user } = useSelector((s) => s.auth);
+
   useEffect(() => {
-    let targetParam = "";
-    let statusParam = "";
+    if (isAuthenticated && user) {
+      let targetParam = "";
+      let statusParam = "";
 
-    if (activeTab === "Sent") {
-      statusParam = "SENT";
-      targetParam = "USER"; // We'll update backend to handle this or filter here
-    } else if (activeTab === "Broadcasts") {
-      targetParam = "ALL"; // This mapped to userId: null in backend
-    } else if (activeTab === "Pending") {
-      statusParam = "PENDING";
+      if (activeTab === "Sent") {
+        statusParam = "SENT";
+        targetParam = "USER"; // We'll update backend to handle this or filter here
+      } else if (activeTab === "Broadcasts") {
+        targetParam = "ALL"; // This mapped to userId: null in backend
+      } else if (activeTab === "Pending") {
+        statusParam = "PENDING";
+      }
+
+      dispatch(
+        fetchAdminNotifications({
+          page: currentPage,
+          limit: itemsPerPage,
+          status: statusParam,
+          target: targetParam,
+        }),
+      );
+      dispatch(fetchNotificationStats());
     }
+  }, [dispatch, currentPage, activeTab, isAuthenticated, user]);
 
-    dispatch(
-      fetchAdminNotifications({
-        page: currentPage,
-        limit: itemsPerPage,
-        status: statusParam,
-        target: targetParam,
-      }),
-    );
-    dispatch(fetchNotificationStats());
-  }, [dispatch, currentPage, activeTab]);
 
   // Reset to page 1 when tab or filter changes
   useEffect(() => {
