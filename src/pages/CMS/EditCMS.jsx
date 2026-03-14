@@ -31,7 +31,6 @@ const EditCMS = () => {
       }
     } catch (err) {
       toast.error("Failed to load page content. Using defaults.");
-      // If page doesn't exist, we might be creating it (though seed ensures it exists)
     } finally {
       setLoading(false);
     }
@@ -225,6 +224,7 @@ const EditCMS = () => {
           color: var(--color-text-secondary) !important;
           opacity: 0.5 !important;
           font-style: normal !important;
+          font-weight: normal !important;
         }
       `}</style>
     </div>
