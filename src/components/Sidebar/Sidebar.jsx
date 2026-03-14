@@ -89,7 +89,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { title: "Privacy Policy", path: "/cms/edit/privacy-policy" },
         { title: "Terms & Conditions", path: "/cms/edit/terms-conditions" },
         { title: "Refund Policy", path: "/cms/edit/refund-policy" },
-        { title: "FAQ", path: "/cms/edit/faq" },
+        { title: "FAQ", path: "/cms/faqs" },
         { title: "Blog", path: "/cms/blog" },
         { title: "Testimonials", path: "/cms/testimonials" },
       ],

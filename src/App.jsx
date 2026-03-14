@@ -50,6 +50,8 @@ import BlogList from "./pages/CMS/Blog/BlogList";
 import AddBlog from "./pages/CMS/Blog/AddBlog";
 import TestimonialList from "./pages/CMS/Testimonials/TestimonialList";
 import AddTestimonial from "./pages/CMS/Testimonials/AddTestimonial";
+import FAQ from "./pages/CMS/FAQ/FAQ";
+import AddEditFAQ from "./pages/CMS/FAQ/AddEditFAQ";
 import Audiobooks from "./pages/Audiobooks/Audiobooks";
 import AddAudiobook from "./pages/Audiobooks/AddAudiobook";
 import EditAudiobook from "./pages/Audiobooks/EditAudiobook";
@@ -171,6 +173,9 @@ function App() {
               path="cms/testimonials/edit/:id"
               element={<AddTestimonial />}
             />
+            <Route path="cms/faqs" element={<FAQ />} />
+            <Route path="cms/faqs/add" element={<AddEditFAQ />} />
+            <Route path="cms/faqs/edit/:id" element={<AddEditFAQ />} />
           </Route>
         </Route>
 
