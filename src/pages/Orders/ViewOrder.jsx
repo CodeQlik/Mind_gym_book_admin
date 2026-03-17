@@ -62,9 +62,9 @@ const ViewOrder = () => {
     tracking_url: "",
   });
   const [refundLoading, setRefundLoading] = useState(false);
-  const [shiprocketLoading, setShiprocketLoading] = useState(false);
   const [showShiprocketConfirm, setShowShiprocketConfirm] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   const fetchOrder = async () => {
     try {
@@ -185,6 +185,24 @@ const ViewOrder = () => {
       });
     } finally {
       setShiprocketLoading(false);
+    }
+  };
+
+  const handleRefreshStatus = async () => {
+    setRefreshLoading(true);
+    const refreshToast = toast.loading("Checking latest status...");
+    try {
+      await orderApi.refreshShiprocketStatus(id);
+      toast.success("Status updated successfully!", { id: refreshToast });
+      fetchOrder();
+      dispatch(fetchOrderStats());
+    } catch (err) {
+      console.error("Refresh failed:", err);
+      toast.error(err.response?.data?.message || "Failed to refresh status", {
+        id: refreshToast,
+      });
+    } finally {
+      setRefreshLoading(false);
     }
   };
 
@@ -596,6 +614,18 @@ const ViewOrder = () => {
                 <h3 className="font-black text-text-primary text-[10px] uppercase tracking-widest">
                   Dispatch Info
                 </h3>
+                {order.courier_name === "Shiprocket" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    loading={refreshLoading}
+                    icon={RotateCcw}
+                    onClick={handleRefreshStatus}
+                    className="ml-auto h-7 text-[9px] font-black uppercase tracking-widest text-primary/60 hover:text-primary hover:bg-primary/5 px-3 rounded-lg border border-primary/10"
+                  >
+                    Refresh Status
+                  </Button>
+                )}
               </div>
               <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <InfoField

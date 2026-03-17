@@ -65,9 +65,14 @@ export const orderApi = {
     return response.data;
   },
 
-  // PATCH /orders/admin/dispatch-shiprocket/:orderId
   dispatchWithShiprocket: async (orderId) => {
     const response = await API.patch(`/orders/admin/dispatch-shiprocket/${orderId}`);
+    return response.data;
+  },
+
+  // GET /orders/admin/refresh-shiprocket/:orderId
+  refreshShiprocketStatus: async (orderId) => {
+    const response = await API.get(`/orders/admin/refresh-shiprocket/${orderId}`);
     return response.data;
   },
 };
