@@ -56,8 +56,12 @@ import Audiobooks from "./pages/Audiobooks/Audiobooks";
 import AddAudiobook from "./pages/Audiobooks/AddAudiobook";
 import EditAudiobook from "./pages/Audiobooks/EditAudiobook";
 import BookAudiobooks from "./pages/Audiobooks/BookAudiobooks";
+import ContactMessages from "./pages/Messages/ContactMessages";
+import ViewContactMessage from "./pages/Messages/ViewContactMessage";
+
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -162,6 +166,9 @@ function App() {
             <Route path="coupons/view/:id" element={<ViewCoupon />} />
             <Route path="support" element={<Support />} />
             <Route path="support/chat/:id" element={<ChatSupport />} />
+            <Route path="messages" element={<ContactMessages />} />
+            <Route path="messages/view/:id" element={<ViewContactMessage />} />
+
             <Route path="cms" element={<CMS />} />
             <Route path="cms/edit/:slug" element={<EditCMS />} />
             <Route path="cms/blog" element={<BlogList />} />

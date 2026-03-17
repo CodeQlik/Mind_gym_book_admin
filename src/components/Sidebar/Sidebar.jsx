@@ -17,6 +17,7 @@ import {
   FileText,
   LogOut,
   Headphones,
+  Mail,
 } from "lucide-react";
 
 import { useSelector, useDispatch } from "react-redux";
@@ -80,6 +81,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/notifications",
     },
     { title: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
+    { title: "Messages", icon: <Mail size={22} />, path: "/messages" },
     {
       title: "CMS",
       icon: <FileText size={22} />,

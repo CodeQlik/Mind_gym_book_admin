@@ -58,4 +58,16 @@ export const orderApi = {
     });
     return response.data;
   },
+
+  // POST /orders/admin/approve-refund/:orderId
+  approveRefund: async (orderId) => {
+    const response = await API.post(`/orders/admin/approve-refund/${orderId}`);
+    return response.data;
+  },
+
+  // PATCH /orders/admin/dispatch-shiprocket/:orderId
+  dispatchWithShiprocket: async (orderId) => {
+    const response = await API.patch(`/orders/admin/dispatch-shiprocket/${orderId}`);
+    return response.data;
+  },
 };

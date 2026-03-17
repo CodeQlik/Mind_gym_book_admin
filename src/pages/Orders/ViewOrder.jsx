@@ -61,6 +61,10 @@ const ViewOrder = () => {
     courier_name: "",
     tracking_url: "",
   });
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [shiprocketLoading, setShiprocketLoading] = useState(false);
+  const [showShiprocketConfirm, setShowShiprocketConfirm] = useState(false);
+  const [showRefundConfirm, setShowRefundConfirm] = useState(false);
 
   const fetchOrder = async () => {
     try {
@@ -142,6 +146,45 @@ const ViewOrder = () => {
     } catch (err) {
       console.error("Invoice download failed:", err);
       toast.error("Failed to download invoice", { id: downloadToast });
+    }
+  };
+
+  const handleApproveRefund = async () => {
+    setShowRefundConfirm(false);
+    setRefundLoading(true);
+    const refundToast = toast.loading("Processing refund via Razorpay...");
+    try {
+      await orderApi.approveRefund(id);
+      toast.success("Refund processed and money returned!", {
+        id: refundToast,
+      });
+      fetchOrder();
+    } catch (err) {
+      console.error("Refund failed:", err);
+      toast.error(err.response?.data?.message || "Failed to process refund", {
+        id: refundToast,
+      });
+    } finally {
+      setRefundLoading(false);
+    }
+  };
+
+  const handleShipWithShiprocket = async () => {
+    setShowShiprocketConfirm(false);
+    setShiprocketLoading(true);
+    const shipToast = toast.loading("Connecting to Shiprocket...");
+    try {
+      await orderApi.dispatchWithShiprocket(id);
+      toast.success("Order dispatched via Shiprocket!", { id: shipToast });
+      fetchOrder();
+      dispatch(fetchOrderStats());
+    } catch (err) {
+      console.error("Shiprocket dispatch failed:", err);
+      toast.error(err.response?.data?.message || "Shiprocket dispatch failed", {
+        id: shipToast,
+      });
+    } finally {
+      setShiprocketLoading(false);
     }
   };
 
@@ -306,6 +349,19 @@ const ViewOrder = () => {
             >
               Invoice
             </Button>
+
+            {order.delivery_status === "processing" && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={Truck}
+                loading={shiprocketLoading}
+                onClick={() => setShowShiprocketConfirm(true)}
+                className="h-10 bg-indigo-600 hover:bg-indigo-700 border-none rounded-xl font-bold text-[11px] uppercase tracking-wider shadow-md"
+              >
+                Ship via Shiprocket
+              </Button>
+            )}
 
             {/* Status Selector */}
             <div className="flex items-center gap-2 group bg-surface/50 border border-border p-1.5 pl-3 rounded-2xl shadow-sm">
@@ -492,6 +548,22 @@ const ViewOrder = () => {
                   >
                     Approve & Restock
                   </Button>
+                  
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="bg-rose-600 hover:bg-rose-700 border-none shadow-lg shadow-rose-100 h-10 px-6 rounded-xl font-bold text-[11px]"
+                    icon={CreditCard}
+                    loading={refundLoading}
+                    disabled={
+                      order.payment_status === "refunded" ||
+                      order.payment_method === "cod"
+                    }
+                    onClick={() => setShowRefundConfirm(true)}
+                  >
+                    Send Refund (Razorpay)
+                  </Button>
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -500,20 +572,16 @@ const ViewOrder = () => {
                     disabled={order.payment_status === "refunded"}
                     onClick={async () => {
                       try {
-                        await dispatch(
-                          updateStatus({
-                            id,
-                            updates: { payment_status: "refunded" },
-                          }),
-                        ).unwrap();
-                        toast.success("Refunded");
+                        const confirmToast = toast.loading("Updating status...");
+                        await orderApi.updateOrderStatus(id, { payment_status: "refunded" });
+                        toast.success("Order marked as refunded locally.", { id: confirmToast });
                         fetchOrder();
                       } catch (err) {
-                        toast.error("Failed");
+                        toast.error("Failed to mark as refunded");
                       }
                     }}
                   >
-                    Mark Refunded
+                    Mark Refunded (Local)
                   </Button>
                 </div>
               </div>
@@ -708,6 +776,31 @@ const ViewOrder = () => {
         formData={dispatchForm}
         setFormData={setDispatchForm}
         isProcessing={false} // You can link this to a loading state if available
+      />
+
+      {/* ── Shiprocket Confirmation Modal ────────────────────────── */}
+      <ConfirmationModal
+        isOpen={showShiprocketConfirm}
+        onClose={() => setShowShiprocketConfirm(false)}
+        onConfirm={handleShipWithShiprocket}
+        title="Ship via Shiprocket"
+        message="Are you sure you want to initiate automated dispatch via Shiprocket? This will create an order in the Shiprocket panel and generate a shipment ID."
+        confirmText="Yes, Ship it!"
+        variant="primary"
+        icon={Truck}
+      />
+
+      {/* ── Refund Confirmation Modal ────────────────────────────── */}
+      <ConfirmationModal
+        isOpen={showRefundConfirm}
+        onClose={() => setShowRefundConfirm(false)}
+        onConfirm={handleApproveRefund}
+        title="Approve Refund"
+        message="Are you sure you want to approve this refund and return the money via Razorpay? This action will immediately initiate the transfer back to the customer's account."
+        confirmText="Confirm Refund"
+        variant="danger"
+        icon={RotateCcw}
+        warningText="CRITICAL ACTION: MONEY WILL BE RETURNED"
       />
     </div>
   );
