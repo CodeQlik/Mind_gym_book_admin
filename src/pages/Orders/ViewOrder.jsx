@@ -62,6 +62,7 @@ const ViewOrder = () => {
     tracking_url: "",
   });
   const [refundLoading, setRefundLoading] = useState(false);
+  const [shiprocketLoading, setShiprocketLoading] = useState(false);
   const [showShiprocketConfirm, setShowShiprocketConfirm] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
   const [refreshLoading, setRefreshLoading] = useState(false);
