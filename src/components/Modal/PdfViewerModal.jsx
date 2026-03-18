@@ -186,7 +186,7 @@ const PdfViewerModal = ({ isOpen, onClose, pdfUrl, title }) => {
                     <button
                       onClick={() => {
                         onClose();
-                        navigate("/subscribe");
+                        navigate("/admin/subscribe");
                       }}
                       className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all border-none cursor-pointer"
                     >

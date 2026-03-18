@@ -53,7 +53,7 @@ const EditUser = () => {
         const result = await dispatch(updateUserThunk({ id, formData: data }));
         if (updateUserThunk.fulfilled.match(result)) {
           toast.success("User updated successfully");
-          navigate("/users");
+          navigate("/admin/users");
         }
       } finally {
         setUpdating(false);
@@ -123,7 +123,7 @@ const EditUser = () => {
             variant="ghost"
             size="sm"
             icon={ArrowLeft}
-            onClick={() => navigate("/users")}
+            onClick={() => navigate("/admin/users")}
             className="mb-2"
           >
             Back to Directory
@@ -136,7 +136,7 @@ const EditUser = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => navigate("/users")}>
+          <Button variant="secondary" onClick={() => navigate("/admin/users")}>
             Cancel
           </Button>
           <Button onClick={formik.handleSubmit} loading={updating} icon={Save}>

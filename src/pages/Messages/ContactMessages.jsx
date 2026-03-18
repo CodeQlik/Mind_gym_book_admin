@@ -197,7 +197,7 @@ const ContactMessages = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
           <button
-            onClick={() => navigate(`/messages/view/${row.id}`)}
+            onClick={() => navigate(`/admin/messages/view/${row.id}`)}
             className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center transition-all group"
             title="View Details"
           >

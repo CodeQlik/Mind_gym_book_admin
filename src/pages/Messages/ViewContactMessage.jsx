@@ -33,7 +33,7 @@ const ViewContactMessage = () => {
           setMessage(found);
         } else {
           toast.error("Message not found");
-          navigate("/messages");
+          navigate("/admin/messages");
         }
       } catch (error) {
         toast.error("Failed to load message details");
@@ -61,7 +61,7 @@ const ViewContactMessage = () => {
       try {
         await deleteContactQuery(id);
         toast.success("Message deleted successfully");
-        navigate("/messages");
+        navigate("/admin/messages");
       } catch (error) {
         toast.error("Failed to delete message");
       }
@@ -84,7 +84,7 @@ const ViewContactMessage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate("/messages")}
+            onClick={() => navigate("/admin/messages")}
             className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary/20 transition-all shadow-sm"
           >
             <ArrowLeft size={18} />

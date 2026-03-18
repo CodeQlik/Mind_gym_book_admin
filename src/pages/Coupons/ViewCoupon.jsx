@@ -69,7 +69,7 @@ const ViewCoupon = () => {
         <p className="text-sm text-text-secondary mb-6 text-center max-w-xs">
           The coupon you are looking for does not exist or has been deleted.
         </p>
-        <Button onClick={() => navigate("/coupons")}>Back to Coupons</Button>
+        <Button onClick={() => navigate("/admin/coupons")}>Back to Coupons</Button>
       </div>
     );
   }
@@ -84,7 +84,7 @@ const ViewCoupon = () => {
       {/* Header Area */}
       <div className="flex flex-col gap-3">
         <button
-          onClick={() => navigate("/coupons")}
+          onClick={() => navigate("/admin/coupons")}
           className="flex items-center gap-2 text-xs font-black text-text-secondary hover:text-primary transition-all uppercase tracking-widest w-fit"
         >
           <ArrowLeft size={14} /> Back to Coupons
@@ -357,7 +357,7 @@ const ViewCoupon = () => {
                 variant="outline"
                 className="w-full border-2 border-primary/20 hover:border-primary text-primary hover:bg-primary/5 transition-all h-12 rounded-2xl font-black text-xs uppercase tracking-widest"
                 icon={Edit2}
-                onClick={() => navigate("/coupons")}
+                onClick={() => navigate("/admin/coupons")}
               >
                 Modify
               </Button>

@@ -195,7 +195,7 @@ const Header = ({ toggleSidebar, isOpen }) => {
                             className={`p-4 hover:bg-background transition-all border-b border-border last:border-0 cursor-pointer group relative ${!notif.is_read ? "bg-primary/[0.02]" : ""}`}
                             onClick={() => {
                               setIsNotificationOpen(false);
-                              navigate("/notifications");
+                              navigate("/admin/notifications");
                             }}
                           >
                             {!notif.is_read && (
@@ -252,7 +252,7 @@ const Header = ({ toggleSidebar, isOpen }) => {
                   <button
                     onClick={() => {
                       setIsNotificationOpen(false);
-                      navigate("/notifications");
+                      navigate("/admin/notifications");
                     }}
                     className="w-full py-3 rounded-xl bg-background border border-border text-center text-[13px] font-bold text-text-primary hover:bg-primary hover:text-white hover:border-primary transition-all flex items-center justify-center gap-2 group shadow-sm active:scale-[0.98]"
                   >
@@ -311,7 +311,7 @@ const Header = ({ toggleSidebar, isOpen }) => {
 
               <div className="p-1">
                 <Link
-                  to="/profile"
+                  to="/admin/profile"
                   className="flex items-center gap-3 p-2.5 rounded-md hover:bg-background transition-all"
                   onClick={() => setIsProfileOpen(false)}
                 >
@@ -321,7 +321,7 @@ const Header = ({ toggleSidebar, isOpen }) => {
                   </span>
                 </Link>
                 <Link
-                  to="/settings"
+                  to="/admin/settings"
                   className="flex items-center gap-3 p-2.5 rounded-md hover:bg-background transition-all"
                   onClick={() => setIsProfileOpen(false)}
                 >

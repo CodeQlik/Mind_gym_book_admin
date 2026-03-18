@@ -125,7 +125,7 @@ const EditBook = () => {
         const result = await dispatch(updateBookThunk({ id: bookId, formData: data }));
         if (updateBookThunk.fulfilled.match(result)) {
           toast.success("Book updated successfully");
-          navigate("/books");
+          navigate("/admin/books");
         } else {
           toast.error(result.payload || "Failed to update");
         }
@@ -250,14 +250,14 @@ const EditBook = () => {
     <div className="max-w-[1400px] mx-auto flex flex-col gap-6 animate-fade-in pb-10 text-left">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <Button variant="ghost" size="sm" icon={ArrowLeft} onClick={() => navigate("/books")} className="mb-2">
+          <Button variant="ghost" size="sm" icon={ArrowLeft} onClick={() => navigate("/admin/books")} className="mb-2">
             Back to Library
           </Button>
           <h1 className="text-xl font-bold text-text-primary tracking-tight">Update Book Details</h1>
           <p className="text-text-secondary text-sm font-medium">Modifying assets for "{formik.values.title}"</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => navigate("/books")}>Cancel</Button>
+          <Button variant="secondary" onClick={() => navigate("/admin/books")}>Cancel</Button>
           <Button onClick={formik.handleSubmit} loading={loading} icon={Save}>Update Edition</Button>
         </div>
       </div>

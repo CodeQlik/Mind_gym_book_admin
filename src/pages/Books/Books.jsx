@@ -220,7 +220,7 @@ const Books = () => {
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-primary/10 text-text-secondary hover:text-primary transition-all border border-border"
             title="View"
             onClick={() =>
-              navigate(`/books/view/${row.slug || row.id || row._id}`)
+              navigate(`/admin/books/view/${row.slug || row.id || row._id}`)
             }
           >
             <Eye size={14} />
@@ -239,7 +239,7 @@ const Books = () => {
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
             title="Edit"
             onClick={() =>
-              navigate(`/books/edit/${row.slug || row.id || row._id}`)
+              navigate(`/admin/books/edit/${row.slug || row.id || row._id}`)
             }
           >
             <Pencil size={14} />
@@ -267,7 +267,7 @@ const Books = () => {
             Manage your digital book collection and metadata.
           </p>
         </div>
-        <Button onClick={() => navigate("/books/add")}>
+        <Button onClick={() => navigate("/admin/books/add")}>
           <Plus size={16} className="mr-2" />
           Add New Book
         </Button>

@@ -70,7 +70,7 @@ const EditAudiobook = () => {
         const resultAction = await dispatch(updateAudiobook({ id, formData }));
         if (updateAudiobook.fulfilled.match(resultAction)) {
           toast.success("Audiobook updated successfully");
-          navigate("/audiobooks");
+          navigate("/admin/audiobooks");
         } else {
           toast.error(resultAction.payload || "Failed to update audiobook");
         }
@@ -96,7 +96,7 @@ const EditAudiobook = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <p className="text-text-secondary font-bold">Audiobook not found</p>
-        <Button onClick={() => navigate("/audiobooks")} className="mt-4">Back to List</Button>
+        <Button onClick={() => navigate("/admin/audiobooks")} className="mt-4">Back to List</Button>
       </div>
     );
   }
@@ -109,7 +109,7 @@ const EditAudiobook = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/audiobooks")}
+          onClick={() => navigate("/admin/audiobooks")}
         >
           Back to List
         </Button>
@@ -273,7 +273,7 @@ const EditAudiobook = () => {
                 <Button
                   variant="secondary"
                   type="button"
-                  onClick={() => navigate("/audiobooks")}
+                  onClick={() => navigate("/admin/audiobooks")}
                   className="flex-1"
                 >
                   Cancel
@@ -299,7 +299,7 @@ const EditAudiobook = () => {
                 <div 
                   key={chapter.id}
                   onClick={() => {
-                    navigate(`/audiobooks/edit/${chapter.id}`);
+                    navigate(`/admin/audiobooks/edit/${chapter.id}`);
                     setAudioPreview(null);
                   }}
                   className={`p-3 rounded-xl mb-1 cursor-pointer transition-all border ${

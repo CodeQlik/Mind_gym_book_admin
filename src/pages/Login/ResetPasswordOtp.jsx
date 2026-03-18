@@ -22,7 +22,7 @@ const ResetPasswordOtp = () => {
 
   // Redirect if no context
   useEffect(() => {
-    if (!email || !resetToken) navigate("/forgot-password");
+    if (!email || !resetToken) navigate("/admin/forgot-password");
   }, [email, resetToken, navigate]);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const ResetPasswordOtp = () => {
       );
       if (resetPasswordOtp.fulfilled.match(result)) {
         toast.success(result.payload || "Password reset successful!");
-        navigate("/login", { replace: true });
+        navigate("/admin/login", { replace: true });
       }
     },
   });
@@ -86,7 +86,7 @@ const ResetPasswordOtp = () => {
           {/* Header */}
           <div className="mb-8 text-center lg:text-left">
             <Link
-              to="/verify-otp"
+              to="/admin/verify-otp"
               state={{ email }}
               className="inline-flex items-center gap-2 text-slate-400 hover:text-[#7c3aed] font-medium text-sm mb-6 transition-colors group"
             >

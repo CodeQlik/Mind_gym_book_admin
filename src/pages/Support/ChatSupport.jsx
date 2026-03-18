@@ -107,7 +107,7 @@ const ChatSupport = () => {
         <h2 className="text-xl font-black text-text-secondary uppercase tracking-widest opacity-60">
           Ticket Not Found
         </h2>
-        <Button onClick={() => navigate("/support")} variant="outline">
+        <Button onClick={() => navigate("/admin/support")} variant="outline">
           Back to Support
         </Button>
       </div>
@@ -122,7 +122,7 @@ const ChatSupport = () => {
 
         <div className="flex items-center gap-4 relative z-10">
           <button
-            onClick={() => navigate("/support")}
+            onClick={() => navigate("/admin/support")}
             className="w-10 h-10 rounded-xl bg-background hover:bg-surface flex items-center justify-center transition-all border border-border shadow-sm group/btn"
           >
             <ArrowLeft
@@ -367,7 +367,7 @@ const ChatSupport = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate(`/orders/view/${ticket.order.id}`)}
+                onClick={() => navigate(`/admin/orders/view/${ticket.order.id}`)}
                 className="w-full h-10 rounded-xl bg-background hover:bg-primary hover:text-white text-[10px] font-black uppercase tracking-widest text-text-secondary hover:border-transparent transition-all border border-border flex items-center justify-center gap-2"
               >
                 Inspect Order <ExternalLink size={12} />

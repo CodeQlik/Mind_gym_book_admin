@@ -273,7 +273,7 @@ const Orders = () => {
         <div className="flex items-center gap-2">
           {/* View */}
           <button
-            onClick={() => navigate(`/orders/view/${row.id}`)}
+            onClick={() => navigate(`/admin/orders/view/${row.id}`)}
             title="View Order"
             className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center transition-all"
           >

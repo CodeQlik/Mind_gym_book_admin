@@ -83,7 +83,7 @@ const AddAudiobook = () => {
         const resultAction = await dispatch(createAudiobook(formData));
         if (createAudiobook.fulfilled.match(resultAction)) {
           toast.success("Audiobook added successfully");
-          navigate("/audiobooks");
+          navigate("/admin/audiobooks");
         } else {
           toast.error(resultAction.payload || "Failed to add audiobook");
         }
@@ -163,7 +163,7 @@ const AddAudiobook = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/audiobooks")}
+          onClick={() => navigate("/admin/audiobooks")}
         >
           Back to List
         </Button>
@@ -359,7 +359,7 @@ const AddAudiobook = () => {
             <Button
               variant="secondary"
               type="button"
-              onClick={() => navigate("/audiobooks")}
+              onClick={() => navigate("/admin/audiobooks")}
               className="flex-1"
             >
               Cancel

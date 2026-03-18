@@ -61,7 +61,7 @@ API.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       const isLoginRequest = error.config.url.includes("/users/login");
-      const isCurrentlyOnLoginPage = window.location.pathname === "/login";
+      const isCurrentlyOnLoginPage = window.location.pathname === "/admin/login";
 
       if (!isLoginRequest && !isCurrentlyOnLoginPage) {
         console.warn(
@@ -77,7 +77,7 @@ API.interceptors.response.use(
           "user",
         ].forEach((key) => localStorage.removeItem(key));
 
-        window.location.href = "/login";
+        window.location.href = "/admin/login";
       } else {
         console.warn(
           "[AXIOS] 401 Unauthorized on login page or from login request. Skip redirect.",

@@ -274,7 +274,7 @@ const Users = () => {
           <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-primary/10 text-text-secondary hover:text-primary transition-all border border-border"
             title="View"
-            onClick={() => navigate(`/users/view/${row.id || row._id}`)}
+            onClick={() => navigate(`/admin/users/view/${row.id || row._id}`)}
           >
             <Eye size={14} />
           </button>
@@ -288,7 +288,7 @@ const Users = () => {
           <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
             title="Edit"
-            onClick={() => navigate(`/users/edit/${row.id || row._id}`)}
+            onClick={() => navigate(`/admin/users/edit/${row.id || row._id}`)}
           >
             <Pencil size={14} />
           </button>

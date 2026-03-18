@@ -105,7 +105,7 @@ const ViewUser = () => {
             variant="primary"
             className="w-full"
             icon={ArrowLeft}
-            onClick={() => navigate("/users")}
+            onClick={() => navigate("/admin/users")}
           >
             Back to Directory
           </Button>
@@ -126,7 +126,7 @@ const ViewUser = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/users")}
+          onClick={() => navigate("/admin/users")}
         >
           Back to Directory
         </Button>
@@ -150,7 +150,7 @@ const ViewUser = () => {
           <Button
             icon={Pencil}
             size="sm"
-            onClick={() => navigate(`/users/edit/${user.id || user._id}`)}
+            onClick={() => navigate(`/admin/users/edit/${user.id || user._id}`)}
           >
             Edit Profile
           </Button>

@@ -71,7 +71,7 @@ const AddPlan = () => {
         const resultAction = await dispatch(createPlan(payload));
         if (createPlan.fulfilled.match(resultAction)) {
           toast.success("Plan created successfully");
-          navigate("/subscribe");
+          navigate("/admin/subscribe");
         } else {
           toast.error(resultAction.payload || "Failed to create plan");
         }
@@ -89,7 +89,7 @@ const AddPlan = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/subscribe")}
+          onClick={() => navigate("/admin/subscribe")}
         >
           Back to Options
         </Button>
@@ -302,7 +302,7 @@ const AddPlan = () => {
               <Button
                 variant="secondary"
                 type="button"
-                onClick={() => navigate("/subscribe")}
+                onClick={() => navigate("/admin/subscribe")}
                 className="flex-1"
               >
                 Cancel

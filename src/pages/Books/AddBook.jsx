@@ -103,7 +103,7 @@ const AddBook = () => {
         const result = await dispatch(createBook(data));
         if (createBook.fulfilled.match(result)) {
           toast.success("Book registered successfully");
-          navigate("/books");
+          navigate("/admin/books");
         } else {
           toast.error(result.payload || "Registration failed");
         }
@@ -183,7 +183,7 @@ const AddBook = () => {
             variant="ghost"
             size="sm"
             icon={ArrowLeft}
-            onClick={() => navigate("/books")}
+            onClick={() => navigate("/admin/books")}
             className="mb-2"
           >
             Back to Library
@@ -196,7 +196,7 @@ const AddBook = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => navigate("/books")}>
+          <Button variant="secondary" onClick={() => navigate("/admin/books")}>
             Cancel
           </Button>
           <Button onClick={formik.handleSubmit} loading={loading} icon={Save}>

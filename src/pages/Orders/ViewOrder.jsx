@@ -305,7 +305,7 @@ const ViewOrder = () => {
             variant="primary"
             className="w-full"
             icon={ArrowLeft}
-            onClick={() => navigate("/orders")}
+            onClick={() => navigate("/admin/orders")}
           >
             Back to Orders
           </Button>
@@ -329,7 +329,7 @@ const ViewOrder = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/orders")}
+          onClick={() => navigate("/admin/orders")}
         >
           Back to Orders
         </Button>

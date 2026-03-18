@@ -41,7 +41,7 @@ const EditCategory = () => {
       );
       if (updateCategory.fulfilled.match(result)) {
         toast.success("Category updated");
-        navigate("/categories");
+        navigate("/admin/categories");
       }
     },
   });
@@ -101,7 +101,7 @@ const EditCategory = () => {
             variant="ghost"
             size="sm"
             icon={ArrowLeft}
-            onClick={() => navigate("/categories")}
+            onClick={() => navigate("/admin/categories")}
             className="mb-2"
           >
             Back to Categories
@@ -114,7 +114,7 @@ const EditCategory = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => navigate("/categories")}>
+          <Button variant="secondary" onClick={() => navigate("/admin/categories")}>
             Cancel
           </Button>
           <Button onClick={formik.handleSubmit} loading={loading} icon={Save}>

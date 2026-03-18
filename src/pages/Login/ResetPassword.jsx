@@ -71,7 +71,7 @@ const ResetPassword = () => {
             </p>
           </div>
           <Link
-            to="/login"
+            to="/admin/login"
             className="inline-flex w-full h-[60px] bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-[20px] font-bold text-[13px] uppercase tracking-[0.15em] shadow-lg transition-all items-center justify-center"
           >
             Back to Login
@@ -113,7 +113,7 @@ const ResetPassword = () => {
           {/* Header */}
           <div className="mb-8 text-center lg:text-left">
             <Link
-              to="/login"
+              to="/admin/login"
               className="inline-flex items-center gap-2 text-slate-400 hover:text-[#7c3aed] font-medium text-sm mb-6 transition-colors group"
             >
               <ArrowLeft

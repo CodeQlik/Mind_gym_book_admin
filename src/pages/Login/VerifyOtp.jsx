@@ -23,7 +23,7 @@ const VerifyOtp = () => {
 
   // Redirect if no email context
   useEffect(() => {
-    if (!email) navigate("/forgot-password");
+    if (!email) navigate("/admin/forgot-password");
   }, [email, navigate]);
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const VerifyOtp = () => {
         return;
       }
       toast.success("OTP verified! Set your new password.");
-      navigate("/reset-password-otp", { state: { email, resetToken } });
+      navigate("/admin/reset-password-otp", { state: { email, resetToken } });
     }
   };
 
@@ -136,7 +136,7 @@ const VerifyOtp = () => {
           {/* Header */}
           <div className="mb-8 text-center lg:text-left">
             <Link
-              to="/forgot-password"
+              to="/admin/forgot-password"
               className="inline-flex items-center gap-2 text-slate-400 hover:text-[#7c3aed] font-medium text-sm mb-6 transition-colors group"
             >
               <ArrowLeft

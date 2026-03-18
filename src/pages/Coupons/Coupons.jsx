@@ -248,7 +248,7 @@ const Coupons = () => {
               render: (row) => (
                 <div className="flex items-center justify-end gap-2">
                   <button
-                    onClick={() => navigate(`/coupons/view/${row.id}`)}
+                    onClick={() => navigate(`/admin/coupons/view/${row.id}`)}
                     className="p-2 border border-border rounded-lg text-text-secondary hover:text-primary hover:bg-primary/5 transition-all"
                   >
                     <Eye size={16} />

@@ -121,16 +121,19 @@ function App() {
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/reset-password-otp" element={<ResetPasswordOtp />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/admin/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin/verify-otp" element={<VerifyOtp />} />
+        <Route path="/admin/reset-password-otp" element={<ResetPasswordOtp />} />
+        <Route path="/admin/reset-password/:token" element={<ResetPassword />} />
+
+        {/* Redirect root to admin dashboard */}
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/admin" element={<Layout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="categories" element={<Categories />} />
             <Route path="categories/add" element={<AddCategory />} />
@@ -187,7 +190,7 @@ function App() {
         </Route>
 
         {/* Redirect unknown routes */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </Router>
   );

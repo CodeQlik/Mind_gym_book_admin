@@ -56,7 +56,7 @@ const Subscribe = () => {
         <Button
           icon={Plus}
           size="md"
-          onClick={() => navigate("/subscribe/add")}
+          onClick={() => navigate("/admin/subscribe/add")}
         >
           Add New Plan
         </Button>
@@ -98,7 +98,7 @@ const Subscribe = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/subscribe/edit/${plan?.id}`);
+                        navigate(`/admin/subscribe/edit/${plan?.id}`);
                       }}
                       className="p-2 rounded-lg bg-background border border-border text-text-primary hover:text-primary transition-colors cursor-pointer"
                       title="Edit Plan"
@@ -240,7 +240,7 @@ const Subscribe = () => {
                   variant="ghost"
                   size="sm"
                   icon={Plus}
-                  onClick={() => navigate("/subscribe/add")}
+                  onClick={() => navigate("/admin/subscribe/add")}
                   className="mt-6"
                 >
                   Create First Plan

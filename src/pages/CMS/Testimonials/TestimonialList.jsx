@@ -162,7 +162,7 @@ const TestimonialList = () => {
           <button
             className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-primary/10 text-text-secondary hover:text-primary transition-all border border-border group"
             title="Edit Testimonial"
-            onClick={() => navigate(`/cms/testimonials/edit/${row.id}`)}
+            onClick={() => navigate(`/admin/cms/testimonials/edit/${row.id}`)}
           >
             <Pencil
               size={14}
@@ -201,7 +201,7 @@ const TestimonialList = () => {
           </div>
         </div>
         <button
-          onClick={() => navigate("/cms/testimonials/add")}
+          onClick={() => navigate("/admin/cms/testimonials/add")}
           className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold transition-all hover:bg-primary-dark shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap"
         >
           <Plus size={20} />

@@ -152,7 +152,7 @@ const FAQ = () => {
           <button
             className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-success/10 text-text-secondary hover:text-success transition-all border border-border group"
             title="Edit FAQ"
-            onClick={() => navigate(`/cms/faqs/edit/${row.id}`)}
+            onClick={() => navigate(`/admin/cms/faqs/edit/${row.id}`)}
           >
             <Pencil
               size={15}
@@ -191,7 +191,7 @@ const FAQ = () => {
           </div>
         </div>
         <button
-          onClick={() => navigate("/cms/faqs/add")}
+          onClick={() => navigate("/admin/cms/faqs/add")}
           className="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95"
         >
           <Plus size={20} />

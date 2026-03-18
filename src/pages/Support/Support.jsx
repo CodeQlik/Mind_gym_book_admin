@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   LifeBuoy,
   MessageSquare,
@@ -225,7 +225,7 @@ const Support = () => {
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
           <button
-            onClick={() => navigate(`/support/chat/${row.id}`)}
+            onClick={() => navigate(`/admin/support/chat/${row.id}`)}
             className="w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary flex items-center justify-center transition-all group"
             title="Respond to Ticket"
           >
@@ -237,9 +237,9 @@ const Support = () => {
           <button
             onClick={() => {
               if (row.order_id) {
-                navigate(`/orders/view/${row.order_id}`);
+                navigate(`/admin/orders/view/${row.order_id}`);
               } else {
-                navigate(`/users/view/${row.user_id}`);
+                navigate(`/admin/users/view/${row.user_id}`);
               }
             }}
             className="w-8 h-8 rounded-lg bg-surface hover:bg-background text-text-secondary flex items-center justify-center transition-all group border border-border"

@@ -91,7 +91,7 @@ const BookAudiobooks = () => {
                     <button
                         className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success/10 text-text-secondary hover:text-success transition-all border border-border"
                         title="Edit Chapter (Change URL)"
-                        onClick={() => navigate(`/audiobooks/edit/${row.id}`)}
+                        onClick={() => navigate(`/admin/audiobooks/edit/${row.id}`)}
                     >
                         <Pencil size={14} />
                     </button>
@@ -115,7 +115,7 @@ const BookAudiobooks = () => {
                     size="sm"
                     icon={ArrowLeft}
                     className="w-fit"
-                    onClick={() => navigate("/audiobooks")}
+                    onClick={() => navigate("/admin/audiobooks")}
                 >
                     Back to Selection
                 </Button>
@@ -129,7 +129,7 @@ const BookAudiobooks = () => {
                     </p>
                 </div>
                 <Button 
-                    onClick={() => navigate("/audiobooks/add", { state: { bookId } })}
+                    onClick={() => navigate("/admin/audiobooks/add", { state: { bookId } })}
                     className="sm:ml-auto"
                 >
                     <Plus size={16} className="mr-2" />

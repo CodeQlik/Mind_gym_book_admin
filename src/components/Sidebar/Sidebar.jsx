@@ -48,7 +48,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       icon: <Tags size={22} />,
       path: "/admin/categories",
     },
-    { title: "Books", icon: <BookOpen size={22} />, path: " /admin/books" },
+    { title: "Books", icon: <BookOpen size={22} />, path: "/admin/books" },
     {
       title: "Audiobooks",
       icon: <Headphones size={22} />,

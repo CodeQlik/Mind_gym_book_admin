@@ -55,7 +55,7 @@ const AddTestimonial = () => {
         setImagePreview(item.image || "");
       } else {
         toast.error("Testimonial not found");
-        navigate("/cms/testimonials");
+        navigate("/admin/cms/testimonials");
       }
     } catch (err) {
       toast.error(err.message || "Failed to fetch details");
@@ -121,7 +121,7 @@ const AddTestimonial = () => {
 
       if (res.success) {
         toast.success(isEdit ? "Testimonial updated!" : "Testimonial created!");
-        navigate("/cms/testimonials");
+        navigate("/admin/cms/testimonials");
       }
     } catch (err) {
       toast.error(err.message || "Something went wrong");
@@ -146,7 +146,7 @@ const AddTestimonial = () => {
       <div className="flex items-center justify-between mb-8 bg-surface p-6 rounded-2xl border border-border shadow-sm">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate("/cms/testimonials")}
+            onClick={() => navigate("/admin/cms/testimonials")}
             className="w-10 h-10 rounded-xl flex items-center justify-center bg-background border border-border text-text-secondary hover:text-primary transition-all active:scale-90"
           >
             <ArrowLeft size={20} />

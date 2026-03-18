@@ -26,7 +26,7 @@ const ForgotPassword = () => {
       const result = await dispatch(forgotPassword(values.email));
       if (forgotPassword.fulfilled.match(result)) {
         toast.success(result.payload || "OTP sent to your email!");
-        navigate("/verify-otp", { state: { email: values.email } });
+        navigate("/admin/verify-otp", { state: { email: values.email } });
       }
     },
   });
@@ -68,7 +68,7 @@ const ForgotPassword = () => {
           {/* Header */}
           <div className="mb-8 text-center lg:text-left">
             <Link
-              to="/login"
+              to="/admin/login"
               className="inline-flex items-center gap-2 text-slate-400 hover:text-[#7c3aed] font-medium text-sm mb-6 transition-colors group"
             >
               <ArrowLeft

@@ -74,7 +74,7 @@ const ViewBook = () => {
         <h2 className="text-xl font-bold text-text-primary mb-2">
           Book Not Found
         </h2>
-        <Button onClick={() => navigate("/books")} variant="secondary">
+        <Button onClick={() => navigate("/admin/books")} variant="secondary">
           Return to Library
         </Button>
       </div>
@@ -144,7 +144,7 @@ const ViewBook = () => {
             variant="ghost"
             size="sm"
             icon={ArrowLeft}
-            onClick={() => navigate("/books")}
+            onClick={() => navigate("/admin/books")}
             className="mb-2 hover:bg-primary/5"
           >
             Back to Library
@@ -167,7 +167,7 @@ const ViewBook = () => {
             icon={Pencil}
             size="sm"
             onClick={() =>
-              navigate(`/books/edit/${book.slug || book.id || book._id}`)
+              navigate(`/admin/books/edit/${book.slug || book.id || book._id}`)
             }
           >
             Edit Edition

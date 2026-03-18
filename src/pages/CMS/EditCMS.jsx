@@ -50,7 +50,7 @@ const EditCMS = () => {
       });
       if (result.success) {
         toast.success(`${formData.title} updated successfully!`);
-        navigate("/cms");
+        navigate("/admin/cms");
       }
     } catch (err) {
       toast.error(err.message || "Update failed");
@@ -88,7 +88,7 @@ const EditCMS = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-surface p-6 rounded-2xl border border-border shadow-sm">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate("/cms")}
+            onClick={() => navigate("/admin/cms")}
             className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center hover:bg-primary/5 hover:text-primary transition-all shadow-sm"
           >
             <ArrowLeft size={20} />
@@ -182,7 +182,7 @@ const EditCMS = () => {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => navigate("/cms")}
+            onClick={() => navigate("/admin/cms")}
             className="px-8 shadow-sm"
           >
             Cancel

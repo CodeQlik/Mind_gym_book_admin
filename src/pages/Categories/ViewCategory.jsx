@@ -75,7 +75,7 @@ const ViewCategory = () => {
             {error || "Category not found"}
           </p>
           <Button
-            onClick={() => navigate("/categories")}
+            onClick={() => navigate("/admin/categories")}
             icon={ArrowLeft}
             variant="primary"
             fullWidth
@@ -97,7 +97,7 @@ const ViewCategory = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/categories")}
+          onClick={() => navigate("/admin/categories")}
         >
           Back to Categories
         </Button>
@@ -115,7 +115,7 @@ const ViewCategory = () => {
           <Button
             icon={Pencil}
             size="md"
-            onClick={() => navigate(`/categories/edit/${category.slug}`)}
+            onClick={() => navigate(`/admin/categories/edit/${category.slug}`)}
           >
             Edit Category
           </Button>

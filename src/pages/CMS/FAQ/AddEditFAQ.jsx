@@ -96,7 +96,7 @@ const AddEditFAQ = () => {
               ? "FAQs added successfully" 
               : "FAQ created successfully"
         );
-        navigate("/cms/faqs");
+        navigate("/admin/cms/faqs");
       }
     } catch (err) {
       toast.error(err.message || "Operation failed");
@@ -137,7 +137,7 @@ const AddEditFAQ = () => {
             </button>
           )}
           <button
-            onClick={() => navigate("/cms/faqs")}
+            onClick={() => navigate("/admin/cms/faqs")}
             className="flex items-center gap-2 px-4 py-2 text-text-secondary hover:text-text-primary transition-colors font-bold"
           >
             <ArrowLeft size={20} />

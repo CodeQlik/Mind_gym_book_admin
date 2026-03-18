@@ -96,7 +96,7 @@ const EditPlan = () => {
         );
         if (updatePlan.fulfilled.match(resultAction)) {
           toast.success("Plan updated successfully");
-          navigate("/subscribe");
+          navigate("/admin/subscribe");
         } else {
           toast.error(resultAction.payload || "Failed to update plan");
         }
@@ -110,7 +110,7 @@ const EditPlan = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-text-secondary font-bold">Plan not found</p>
-        <Button onClick={() => navigate("/subscribe")}>Back to Plans</Button>
+        <Button onClick={() => navigate("/admin/subscribe")}>Back to Plans</Button>
       </div>
     );
   }
@@ -123,7 +123,7 @@ const EditPlan = () => {
           size="sm"
           icon={ArrowLeft}
           className="w-fit"
-          onClick={() => navigate("/subscribe")}
+          onClick={() => navigate("/admin/subscribe")}
         >
           Back to Options
         </Button>
@@ -323,7 +323,7 @@ const EditPlan = () => {
               <Button
                 variant="secondary"
                 type="button"
-                onClick={() => navigate("/subscribe")}
+                onClick={() => navigate("/admin/subscribe")}
                 className="flex-1"
               >
                 Cancel
