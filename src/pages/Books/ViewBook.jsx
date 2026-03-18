@@ -81,9 +81,7 @@ const ViewBook = () => {
     );
   }
 
-  const baseUrl = (
-    API.defaults.baseURL || "http://localhost:5000/api/v1"
-  ).replace(/\/api\/v1$/, "");
+  const baseUrl = API.defaults.baseURL.replace(/\/api\/v1$/, "");
 
   const formatUrl = (url) => {
     if (!url || typeof url !== "string") return null;
