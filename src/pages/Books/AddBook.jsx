@@ -267,20 +267,16 @@ const AddBook = () => {
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-              <FormInput
-                label="Category"
-                name="category_id"
-                type="select"
-                placeholder="Select Category"
-                {...formik.getFieldProps("category_id")}
-                options={categories.map((c) => ({
-                  value: c.id || c._id,
-                  label: c.name,
-                }))}
+              <FormInput label="Category" name="category_id" type="select" placeholder="Select Category" {...formik.getFieldProps("category_id")}
+                options={categories.map((c) => ({ value: c.id || c._id, label: c.name }))}
                 required
                 error={formik.touched.category_id && formik.errors.category_id}
               />
               <FormInput label="Release Date" name="published_date" type="date" {...formik.getFieldProps("published_date")} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+              <FormInput label="Dimensions (e.g. 5x8x1 in)" name="dimensions" {...formik.getFieldProps("dimensions")} />
+              <FormInput label="Weight (kg/lb)" name="weight" type="number" {...formik.getFieldProps("weight")} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-border">
               <Toggle label="Premium" checked={formik.values.is_premium} onChange={() => formik.setFieldValue("is_premium", !formik.values.is_premium)} />

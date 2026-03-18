@@ -22,6 +22,8 @@ import {
   Layers,
   ShoppingBag,
   Zap,
+  Box,
+  Scale,
 } from "lucide-react";
 import { bookApi } from "../../api/bookApi";
 import API from "../../api/axiosInstance";
@@ -275,6 +277,16 @@ const ViewBook = () => {
                   label: "Print Condition",
                   val: book.condition?.toUpperCase() || "NEW",
                   icon: Zap,
+                },
+                {
+                  label: "Dimensions",
+                  val: book.dimensions || "N/A",
+                  icon: Box,
+                },
+                {
+                  label: "Weight",
+                  val: book.weight ? `${book.weight} kg` : "N/A",
+                  icon: Scale,
                 },
               ].map((item, i) => (
                 <div
