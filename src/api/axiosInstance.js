@@ -15,9 +15,9 @@ API.interceptors.request.use(
       }
     } else {
       const publicRoutes = [
-        "/users/login",
-        "/users/forgot-password",
-        "/users/reset-password",
+        "admin/users/login",
+        "admin/users/forgot-password",
+        "admin/users/reset-password",
       ];
       const isPublicRoute = publicRoutes.some((route) =>
         config.url.includes(route),
@@ -60,8 +60,9 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      const isLoginRequest = error.config.url.includes("/users/login");
-      const isCurrentlyOnLoginPage = window.location.pathname === "/admin/login";
+      const isLoginRequest = error.config.url.includes("admin/users/login");
+      const isCurrentlyOnLoginPage =
+        window.location.pathname === "/admin/login";
 
       if (!isLoginRequest && !isCurrentlyOnLoginPage) {
         console.warn(
