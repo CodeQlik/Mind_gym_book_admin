@@ -16,8 +16,8 @@ const AddPlan = () => {
 
   const planTypeOptions = [
     { value: "monthly", label: "Monthly" },
+    { value: "three_month", label: "Three Months" },
     { value: "annual", label: "Annual" },
-    { value: "free", label: "Free" },
   ];
 
   const validationSchema = Yup.object().shape({
@@ -134,10 +134,14 @@ const AddPlan = () => {
                     formik.setFieldValue("duration_months", 1);
                     formik.setFieldValue("device_limit", 2);
                     formik.setFieldValue("is_ad_free", true);
-                  } else if (type === "free") {
-                    formik.setFieldValue("duration_months", 1);
-                    formik.setFieldValue("device_limit", 1);
-                    formik.setFieldValue("is_ad_free", false);
+                  } else if (type === "three_month") {
+                    formik.setFieldValue("duration_months", 3);
+                    formik.setFieldValue("device_limit", 3);
+                    formik.setFieldValue("is_ad_free", true);
+                  } else if (type === "annual") {
+                    formik.setFieldValue("duration_months", 12);
+                    formik.setFieldValue("device_limit", 5);
+                    formik.setFieldValue("is_ad_free", true);
                   }
                 }}
               />

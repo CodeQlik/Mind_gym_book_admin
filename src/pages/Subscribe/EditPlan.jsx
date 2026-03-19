@@ -38,8 +38,8 @@ const EditPlan = () => {
 
   const planTypeOptions = [
     { value: "monthly", label: "Monthly" },
+    { value: "three_month", label: "Three Months" },
     { value: "annual", label: "Annual" },
-    { value: "free", label: "Free" },
   ];
 
   const validationSchema = Yup.object().shape({
