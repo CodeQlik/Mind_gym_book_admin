@@ -37,6 +37,10 @@ const AddPlan = () => {
       .min(1, "Limit must be at least 1 device")
       .required("Device limit is required"),
     features: Yup.array().of(Yup.string().required("Feature text is required")),
+    book_read_limit: Yup.number()
+      .typeError("Book limit must be a number")
+      .min(1, "Limit must be at least 1 book")
+      .required("Book read limit is required"),
     is_ad_free: Yup.boolean(),
     is_popular: Yup.boolean(),
   });
@@ -48,6 +52,7 @@ const AddPlan = () => {
       price: "",
       duration_months: 1,
       device_limit: 2,
+      book_read_limit: 50,
       description: "",
       features: [""],
       is_ad_free: true,
@@ -62,6 +67,7 @@ const AddPlan = () => {
           price: Number(values.price),
           duration_months: Number(values.duration_months),
           device_limit: Number(values.device_limit),
+          book_read_limit: Number(values.book_read_limit),
           description: values.description,
           features: values.features.filter((f) => f.trim() !== ""),
           is_ad_free: values.is_ad_free,
@@ -133,14 +139,17 @@ const AddPlan = () => {
                   if (type === "monthly") {
                     formik.setFieldValue("duration_months", 1);
                     formik.setFieldValue("device_limit", 2);
+                    formik.setFieldValue("book_read_limit", 50);
                     formik.setFieldValue("is_ad_free", true);
                   } else if (type === "three_month") {
                     formik.setFieldValue("duration_months", 3);
                     formik.setFieldValue("device_limit", 3);
+                    formik.setFieldValue("book_read_limit", 150);
                     formik.setFieldValue("is_ad_free", true);
                   } else if (type === "annual") {
                     formik.setFieldValue("duration_months", 12);
                     formik.setFieldValue("device_limit", 5);
+                    formik.setFieldValue("book_read_limit", 1000);
                     formik.setFieldValue("is_ad_free", true);
                   }
                 }}
@@ -184,6 +193,19 @@ const AddPlan = () => {
                   formik.touched.device_limit && formik.errors.device_limit
                 }
                 placeholder="1"
+                required
+              />
+              <FormInput
+                label="Book Read Limit"
+                name="book_read_limit"
+                type="number"
+                value={formik.values.book_read_limit}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.book_read_limit && formik.errors.book_read_limit
+                }
+                placeholder="50"
                 required
               />
             </div>

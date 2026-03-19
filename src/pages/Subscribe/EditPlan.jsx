@@ -59,6 +59,10 @@ const EditPlan = () => {
       .min(1, "Limit must be at least 1 device")
       .required("Device limit is required"),
     features: Yup.array().of(Yup.string().required("Feature text is required")),
+    book_read_limit: Yup.number()
+      .typeError("Book limit must be a number")
+      .min(1, "Limit must be at least 1 book")
+      .required("Book read limit is required"),
     is_ad_free: Yup.boolean(),
     is_popular: Yup.boolean(),
   });
@@ -70,6 +74,7 @@ const EditPlan = () => {
       price: planToEdit?.price || "",
       duration_months: planToEdit?.duration_months || 1,
       device_limit: planToEdit?.device_limit || 1,
+      book_read_limit: planToEdit?.book_read_limit || 50,
       description: planToEdit?.description || "",
       features: safeParseFeatures(planToEdit?.features),
       is_ad_free: planToEdit?.is_ad_free ?? true,
@@ -85,6 +90,7 @@ const EditPlan = () => {
           price: Number(values.price),
           duration_months: Number(values.duration_months),
           device_limit: Number(values.device_limit),
+          book_read_limit: Number(values.book_read_limit),
           description: values.description,
           features: values.features.filter((f) => f.trim() !== ""),
           is_ad_free: values.is_ad_free,
@@ -201,6 +207,19 @@ const EditPlan = () => {
                   formik.touched.device_limit && formik.errors.device_limit
                 }
                 placeholder="1"
+                required
+              />
+              <FormInput
+                label="Book Read Limit"
+                name="book_read_limit"
+                type="number"
+                value={formik.values.book_read_limit}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={
+                  formik.touched.book_read_limit && formik.errors.book_read_limit
+                }
+                placeholder="50"
                 required
               />
             </div>
