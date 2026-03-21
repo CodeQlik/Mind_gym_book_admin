@@ -728,12 +728,23 @@ const ViewOrder = () => {
               </div>
               <div className="flex justify-between items-center bg-surface px-4 py-2.5 rounded-xl border border-primary/10">
                 <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest">
-                  Subtotal
+                  Subtotal (Base)
                 </span>
                 <span className="text-[11px] font-black text-text-primary tracking-tight">
-                  ₹{order.subtotal_amount || order.total_amount}
+                  ₹{order.subtotal_amount || 0}
                 </span>
               </div>
+
+              {parseFloat(order.total_tax) > 0 && (
+                <div className="flex justify-between items-center bg-surface px-4 py-2.5 rounded-xl border border-primary/10">
+                  <span className="text-[9px] font-black text-text-secondary uppercase tracking-widest">
+                    Total Tax
+                  </span>
+                  <span className="text-[11px] font-black text-text-primary tracking-tight">
+                    +₹{order.total_tax}
+                  </span>
+                </div>
+              )}
 
               {order.discount_amount > 0 && (
                 <div className="flex flex-col gap-2 bg-success/5 p-4 rounded-xl border border-success/20">

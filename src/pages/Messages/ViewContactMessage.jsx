@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageSquare,
+  Copy,
 } from "lucide-react";
 import { getAllContactQueries, updateQueryStatus, deleteContactQuery } from "../../api/contactApi";
 import Button from "../../components/UI/Button";
@@ -43,6 +44,23 @@ const ViewContactMessage = () => {
     };
     fetchMessage();
   }, [id, navigate]);
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(message.email);
+    toast.success("Email ID copied to clipboard!");
+  };
+
+  const handleReplyEmail = () => {
+    const mailtoUrl = `mailto:${message.email}?subject=${encodeURIComponent("Re: " + message.subject)}`;
+    window.location.href = mailtoUrl;
+    toast.success("Opening email application...");
+  };
+
+  const handleReplyGmail = () => {
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${message.email}&su=${encodeURIComponent("Re: " + message.subject)}`;
+    window.open(gmailUrl, "_blank");
+    toast.success("Opening Gmail...");
+  };
 
   const handleStatusChange = async (newStatus) => {
     try {
@@ -208,9 +226,12 @@ const ViewContactMessage = () => {
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 border border-blue-500/20">
                   <Mail size={24} />
                 </div>
-                <div className="overflow-hidden">
+                <div className="overflow-hidden flex-1">
                   <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-40">Email Address</p>
-                  <p className="text-sm font-bold text-text-primary truncate">{message.email}</p>
+                  <div className="flex items-center gap-2 group cursor-pointer" onClick={handleCopyEmail} title="Click to copy">
+                    <p className="text-sm font-bold text-text-primary truncate">{message.email}</p>
+                    <Copy size={12} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </div>
                 </div>
               </div>
 
@@ -225,16 +246,6 @@ const ViewContactMessage = () => {
                   </div>
                 </div>
               )}
-
-              <div className="pt-4 border-t border-border">
-                <a 
-                  href={`mailto:${message.email}?subject=Re: ${message.subject}`}
-                  className="w-full h-12 rounded-xl bg-primary text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
-                >
-                  <Mail size={16} />
-                  Reply via Email
-                </a>
-              </div>
             </div>
           </div>
 

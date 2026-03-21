@@ -18,7 +18,16 @@ const EditAudiobook = () => {
   const { books } = useSelector((state) => state.books);
   const [audioPreview, setAudioPreview] = useState(null);
 
-  const audiobookToEdit = audiobooks.find((a) => String(a.id) === String(id));
+  const audiobookToEdit = React.useMemo(() => {
+    let found = null;
+    (Array.isArray(audiobooks) ? audiobooks : []).forEach(book => {
+      const chapter = book.chapters?.find(c => String(c.id) === String(id));
+      if (chapter) {
+        found = { ...chapter, book: book, book_id: book.id };
+      }
+    });
+    return found;
+  }, [audiobooks, id]);
 
   useEffect(() => {
     if (audiobooks.length === 0) {
@@ -46,7 +55,7 @@ const EditAudiobook = () => {
     initialValues: {
       book_id: audiobookToEdit?.book_id || "",
       chapter_number: audiobookToEdit?.chapter_number || "",
-      chapter_title: audiobookToEdit?.chapter_title || "",
+      chapter_title: audiobookToEdit?.title || audiobookToEdit?.chapter_title || "",
       narrator: audiobookToEdit?.narrator || "",
       language: audiobookToEdit?.language || "Hindi",
       audio_file: null,

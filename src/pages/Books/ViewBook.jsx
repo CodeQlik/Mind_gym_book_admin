@@ -288,6 +288,21 @@ const ViewBook = () => {
                   val: book.weight ? `${book.weight} kg` : "N/A",
                   icon: Scale,
                 },
+                {
+                  label: "Tax Applicable",
+                  val: book.tax_applicable ? "YES" : "NO",
+                  icon: ShieldCheck,
+                },
+                {
+                  label: "Tax Type",
+                  val: book.tax_type?.toUpperCase() || "NONE",
+                  icon: Info,
+                },
+                {
+                  label: "Tax Rate",
+                  val: `${book.tax_rate || 0}%`,
+                  icon: Tag,
+                },
               ].map((item, i) => (
                 <div
                   key={i}

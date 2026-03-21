@@ -55,6 +55,9 @@ const AddBook = () => {
       language: "Hindi",
       dimensions: "",
       weight: "",
+      tax_applicable: false,
+      tax_type: "none",
+      tax_rate: 0,
       // Digital
       book_file: null,
       // Media
@@ -278,10 +281,61 @@ const AddBook = () => {
               <FormInput label="Dimensions (e.g. 5x8x1 in)" name="dimensions" {...formik.getFieldProps("dimensions")} />
               <FormInput label="Weight (kg/lb)" name="weight" type="number" {...formik.getFieldProps("weight")} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-border">
-              <Toggle label="Premium" checked={formik.values.is_premium} onChange={() => formik.setFieldValue("is_premium", !formik.values.is_premium)} />
-              <Toggle label="Bestselling" checked={formik.values.is_bestselling} onChange={() => formik.setFieldValue("is_bestselling", !formik.values.is_bestselling)} />
-              <Toggle label="Trending" checked={formik.values.is_trending} onChange={() => formik.setFieldValue("is_trending", !formik.values.is_trending)} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+              <FormInput
+                label="Tax Type"
+                name="tax_type"
+                type="select"
+                {...formik.getFieldProps("tax_type")}
+                options={[
+                  { value: "none", label: "None" },
+                  { value: "inclusive", label: "Inclusive" },
+                  { value: "exclusive", label: "Exclusive" },
+                ]}
+              />
+              <FormInput
+                label="Tax Rate (%)"
+                name="tax_rate"
+                type="number"
+                {...formik.getFieldProps("tax_rate")}
+                disabled={formik.values.tax_type === "none"}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6 pt-6 border-t border-border focus-within:">
+              <Toggle
+                label="Premium"
+                checked={formik.values.is_premium}
+                onChange={() =>
+                  formik.setFieldValue("is_premium", !formik.values.is_premium)
+                }
+              />
+              <Toggle
+                label="Bestselling"
+                checked={formik.values.is_bestselling}
+                onChange={() =>
+                  formik.setFieldValue(
+                    "is_bestselling",
+                    !formik.values.is_bestselling,
+                  )
+                }
+              />
+              <Toggle
+                label="Trending"
+                checked={formik.values.is_trending}
+                onChange={() =>
+                  formik.setFieldValue("is_trending", !formik.values.is_trending)
+                }
+              />
+              <Toggle
+                label="Tax Applicable"
+                checked={formik.values.tax_applicable}
+                onChange={() =>
+                  formik.setFieldValue(
+                    "tax_applicable",
+                    !formik.values.tax_applicable,
+                  )
+                }
+              />
             </div>
           </div>
         </div>

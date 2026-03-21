@@ -62,7 +62,7 @@ import ViewContactMessage from "./pages/Messages/ViewContactMessage";
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 
 import {
   connectSocket,
