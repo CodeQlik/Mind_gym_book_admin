@@ -118,14 +118,10 @@ const Header = ({ toggleSidebar, isOpen }) => {
     <header className="h-[var(--header-height)] px-6 flex items-center justify-between sticky top-0 bg-surface border-b border-border z-[1001]">
       <div className="flex items-center gap-4">
         <button
-          className="w-9 h-9 flex items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border"
+          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border"
           onClick={toggleSidebar}
         >
-          <Menu size={18} className="lg:hidden" />
-          <ChevronRight
-            size={18}
-            className={`hidden lg:block transition-transform ${isOpen ? "rotate-180" : ""}`}
-          />
+          <Menu size={18} />
         </button>
       </div>
 

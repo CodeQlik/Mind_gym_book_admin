@@ -7,6 +7,7 @@ import {
   Settings,
   Tags,
   ChevronDown,
+  ChevronLeft,
   CreditCard,
   Sparkles,
   Bell,
@@ -141,9 +142,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     >
       {/* Brand Section */}
       <div
-        className={`h-[80px] flex items-center mb-2 px-6 ${!isOpen && "justify-center px-0"}`}
+        className={`flex items-center mb-2 px-6 justify-between ${!isOpen ? "h-[120px] flex-col justify-center gap-6 px-0" : "h-[80px]"}`}
       >
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center gap-3 ${!isOpen && "flex-col"}`}>
           <div className="w-8 h-8 bg-primary rounded shadow-sm flex items-center justify-center shrink-0 p-1">
             <img
               src={Logo}
@@ -152,7 +153,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             />
           </div>
           {isOpen && (
-            <div className="flex flex-col">
+            <div className="flex flex-col animate-fade-in">
               <span className="text-lg font-bold text-text-primary tracking-tight leading-none">
                 Mind Gym
               </span>
@@ -162,6 +163,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </div>
           )}
         </div>
+
+        <button
+          onClick={toggleSidebar}
+          className={`hidden lg:flex w-8 h-8 items-center justify-center rounded-lg bg-background text-text-secondary hover:text-primary transition-all border border-border shrink-0`}
+        >
+          <ChevronLeft
+            size={18}
+            className={`transition-transform duration-300 ${!isOpen ? "rotate-180" : ""}`}
+          />
+        </button>
       </div>
 
       {/* Navigation section */}
