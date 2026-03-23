@@ -147,13 +147,7 @@ const ViewUser = () => {
               </div>
             </div>
           </div>
-          <Button
-            icon={Pencil}
-            size="sm"
-            onClick={() => navigate(`/admin/users/edit/${user.id || user._id}`)}
-          >
-            Edit Profile
-          </Button>
+
         </div>
       </div>
 
@@ -238,9 +232,9 @@ const ViewUser = () => {
                   </label>
                   <div className="bg-background px-4 py-3 rounded-xl text-sm font-bold text-text-primary border border-border flex items-center gap-3">
                     <Clock size={16} className="text-primary/40" />
-                    {user.createdAt
+                    {user.created_at || user.createdAt || user.joinedAt
                       ? new Date(
-                          user.createdAt || user.joinedAt,
+                          user.created_at || user.createdAt || user.joinedAt,
                         ).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",

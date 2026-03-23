@@ -20,6 +20,16 @@ export const authApi = {
     return response.data;
   },
 
+  sendRegistrationOtp: async (email) => {
+    const response = await API.post("/users/send-registration-otp", { email });
+    return response.data;
+  },
+
+  verifyRegistrationOtp: async (email, otp) => {
+    const response = await API.post("/users/verify-registration-otp", { email, otp });
+    return response.data;
+  },
+
   forgotPassword: async (email) => {
     const response = await API.post("/users/forgot-password", { email });
     return response.data;

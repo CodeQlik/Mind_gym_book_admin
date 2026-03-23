@@ -285,13 +285,7 @@ const Users = () => {
           >
             <Smartphone size={14} />
           </button>
-          <button
-            className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-success-surface text-text-secondary hover:text-success transition-all border border-border"
-            title="Edit"
-            onClick={() => navigate(`/admin/users/edit/${row.id || row._id}`)}
-          >
-            <Pencil size={14} />
-          </button>
+
           <button
             className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-error-surface text-text-secondary hover:text-error transition-all border border-border"
             title="Delete"

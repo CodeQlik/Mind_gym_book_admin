@@ -20,6 +20,8 @@ import * as Yup from "yup";
 import {
   updateProfile,
   changePassword,
+  sendUpdateEmailOtp,
+  verifyUpdateEmailOtp,
   clearError,
 } from "../../store/slices/authSlice";
 import FormInput from "../../components/Form/FormInput";
@@ -42,6 +44,13 @@ const Profile = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Email Verification States
+  const [verificationToken, setVerificationToken] = useState(null);
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -80,6 +89,49 @@ const Profile = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "email") {
+      if (value !== user?.email) {
+        setEmailVerified(false);
+        setVerificationToken(null);
+      } else {
+        setEmailVerified(true);
+      }
+    }
+  };
+
+  const handleSendOTP = async () => {
+    if (!formData.email) return toast.error("Please enter an email address");
+    setIsVerifyingEmail(true);
+    try {
+      const result = await dispatch(sendUpdateEmailOtp(formData.email));
+      if (sendUpdateEmailOtp.fulfilled.match(result)) {
+        setShowOtpInput(true);
+        toast.success("OTP sent successfully to your new email");
+      } else {
+        toast.error(result.payload || "Failed to send OTP");
+      }
+    } finally {
+      setIsVerifyingEmail(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) return toast.error("Please enter a valid 6-digit OTP");
+    setIsVerifyingEmail(true);
+    try {
+      const result = await dispatch(verifyUpdateEmailOtp({ email: formData.email, otp }));
+      if (verifyUpdateEmailOtp.fulfilled.match(result)) {
+        setVerificationToken(result.payload.verificationToken);
+        setEmailVerified(true);
+        setShowOtpInput(false);
+        toast.success("Email verified successfully!");
+      } else {
+        toast.error(result.payload || "Invalid or expired OTP");
+      }
+    } finally {
+      setIsVerifyingEmail(false);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -101,6 +153,10 @@ const Profile = () => {
       "phone",
       formData.phone ? formData.phone.replace(/\D/g, "") : "",
     );
+
+    if (verificationToken) {
+      data.append("verificationToken", verificationToken);
+    }
 
     if (imageFile) data.append("profile_image", imageFile);
 
@@ -255,13 +311,62 @@ const Profile = () => {
                     onChange={handleInputChange}
                     icon={User}
                   />
-                  <FormInput
-                    label="Email Address"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    icon={Mail}
-                  />
+                  <div className="relative space-y-2">
+                    <FormInput
+                      label="Email Address"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      icon={Mail}
+                      className={!emailVerified ? "border-amber-400" : ""}
+                    />
+                    {!emailVerified && !showOtpInput && (
+                      <button
+                        type="button"
+                        onClick={handleSendOTP}
+                        disabled={isVerifyingEmail}
+                        className="absolute right-3 top-[34px] bg-primary/10 text-primary text-[10px] font-bold px-3 py-1.5 rounded-md hover:bg-primary/20 transition-all uppercase tracking-wider disabled:opacity-50"
+                      >
+                        {isVerifyingEmail ? "Sending..." : "Verify Now"}
+                      </button>
+                    )}
+                    {emailVerified && formData.email !== user?.email && (
+                      <div className="absolute right-3 top-[38px] text-green-500">
+                        <Save size={16} />
+                      </div>
+                    )}
+                    {showOtpInput && (
+                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg mt-2 flex flex-col gap-2 animate-slide-up">
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                          Verification Sent! Enter OTP:
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            placeholder="XXXXXX"
+                            className="w-full h-9 bg-surface border border-primary/30 rounded-md px-3 text-sm focus:border-primary outline-none text-center tracking-[0.5em] font-mono font-bold"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOTP}
+                            disabled={isVerifyingEmail}
+                            className="bg-primary text-white text-[10px] font-bold px-4 rounded-md hover:bg-primary-hover transition-all uppercase whitespace-nowrap"
+                          >
+                            {isVerifyingEmail ? "checking..." : "Confirm"}
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => { setShowOtpInput(false); setOtp(""); }}
+                          className="text-[9px] text-text-secondary hover:text-primary transition-all uppercase font-bold text-left ml-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <FormInput
                     label="Contact Number"
                     name="phone"

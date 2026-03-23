@@ -135,6 +135,41 @@ export const updateProfile = createAsyncThunk(
   },
 );
 
+export const sendUpdateEmailOtp = createAsyncThunk(
+  "auth/sendUpdateEmailOtp",
+  async (email, { rejectWithValue }) => {
+    try {
+      const data = await authApi.sendRegistrationOtp(email);
+      if (data.success) {
+        return data.message;
+      } else {
+        return rejectWithValue(data.message || "Failed to send OTP");
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Error sending OTP");
+    }
+  },
+);
+
+export const verifyUpdateEmailOtp = createAsyncThunk(
+  "auth/verifyUpdateEmailOtp",
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const data = await authApi.verifyRegistrationOtp(email, otp);
+      if (data.success) {
+        return {
+          message: data.message,
+          verificationToken: data.data?.verificationToken || null,
+        };
+      } else {
+        return rejectWithValue(data.message || "Invalid OTP");
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Invalid or expired OTP");
+    }
+  },
+);
+
 export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (email, { rejectWithValue }) => {
