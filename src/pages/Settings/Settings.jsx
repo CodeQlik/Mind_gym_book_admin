@@ -23,9 +23,11 @@ const Settings = () => {
   });
   const [logo, setLogo] = useState(null);
   const [favicon, setFavicon] = useState(null);
+  const [signature, setSignature] = useState(null);
   const [previews, setPreviews] = useState({
     logo: null,
     favicon: null,
+    signature: null,
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -48,6 +50,7 @@ const Settings = () => {
         setPreviews({
           logo: response.data.logo?.url || null,
           favicon: response.data.favicon?.url || null,
+          signature: response.data.admin_signature?.url || null,
         });
       }
     } catch (err) {
@@ -68,6 +71,9 @@ const Settings = () => {
       if (type === "logo") {
         setLogo(file);
         setPreviews((prev) => ({ ...prev, logo: URL.createObjectURL(file) }));
+      } else if (type === "signature") {
+        setSignature(file);
+        setPreviews((prev) => ({ ...prev, signature: URL.createObjectURL(file) }));
       } else {
         setFavicon(file);
         setPreviews((prev) => ({ ...prev, favicon: URL.createObjectURL(file) }));
@@ -84,6 +90,7 @@ const Settings = () => {
       });
       if (logo) data.append("logo", logo);
       if (favicon) data.append("favicon", favicon);
+      if (signature) data.append("admin_signature", signature);
 
       const response = await settingApi.updateSettings(data);
       if (response.success) {
@@ -258,6 +265,42 @@ const Settings = () => {
                     Choose Favicon
                   </label>
                   <p className="text-[10px] text-text-secondary">Recommended size: 32x32px or 64x64px</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Signature Upload */}
+            <div className="space-y-4">
+              <label className="text-xs font-bold text-text-secondary uppercase flex items-center gap-2">
+                Authorized Signature
+              </label>
+              <div className="flex items-center gap-6">
+                <div className="w-48 h-24 border-2 border-dashed border-border rounded-xl flex items-center justify-center overflow-hidden bg-background">
+                  {previews.signature ? (
+                    <img src={previews.signature} alt="Signature Preview" className="max-w-full max-h-full object-contain" />
+                  ) : (
+                    <div className="text-center p-4">
+                      <Upload size={20} className="mx-auto text-text-secondary opacity-40 mb-1" />
+                      <span className="text-[9px] text-text-secondary font-medium">No Signature</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="file"
+                    id="signature-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "signature")}
+                  />
+                  <label
+                    htmlFor="signature-upload"
+                    className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary/20 cursor-pointer transition-all"
+                  >
+                    <Upload size={14} />
+                    Choose Signature
+                  </label>
+                  <p className="text-[10px] text-text-secondary">Recommended: Transparent PNG (approx. 200x80px)</p>
                 </div>
               </div>
             </div>
