@@ -158,13 +158,17 @@ const Books = () => {
         </span>
       ),
     },
+
     {
-      header: "Stock",
-      render: (row) => (
-        <span className="font-bold text-text-primary text-[17px]">
-          {row.stock || "0"}
-        </span>
-      ),
+      header: "Available",
+      render: (row) => {
+        const available = (parseInt(row.stock) || 0) - (parseInt(row.reserved) || 0);
+        return (
+          <span className="font-bold text-primary text-[17px]">
+            {available}
+          </span>
+        );
+      },
     },
     {
       header: "Price",
