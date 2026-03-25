@@ -89,7 +89,7 @@ const ConfirmationModal = ({
           <button
             onClick={onConfirm}
             disabled={isProcessing}
-            className={`flex-1 h-12 rounded-2xl ${currentStyles.buttonBg} text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2`}
+            className={`flex-1 h-12 rounded-2xl ${currentStyles.buttonBg} text-white font-black uppercase tracking-widest text-[11px] shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2`}
           >
             {isProcessing ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -80,7 +80,7 @@ function App() {
     if (isAuthenticated) {
       dispatch(fetchProfile());
       // Connect to real-time notification server
-      connectSocket(user?.id, user?.user_type === "admin");
+      connectSocket();
 
       // Listen for real-time notifications to update Redux count/list
       socket.on("notification", (data) => {

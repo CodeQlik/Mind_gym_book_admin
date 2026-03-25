@@ -31,6 +31,7 @@ import {
 } from "../../store/slices/orderSlice";
 import { toast } from "react-hot-toast";
 import ConfirmationModal from "../../components/Modal/ConfirmationModal";
+import socket from "../../utils/socket";
 
 const TABS = [
   { label: "All", value: "all" },
@@ -47,18 +48,13 @@ const Orders = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [deleteConfirm, setDeleteConfirm] = useState(null); // order id
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { orders, loading, stats, statsLoading, totalPages, currentPage } =
     useSelector((state) => state.orders);
 
-  // ─── Load stats once ──────────────────────────────────────────
-  useEffect(() => {
-    dispatch(fetchOrderStats());
-  }, [dispatch]);
-
-  // ─── Load orders whenever tab or page changes ─────────────────
   const loadOrders = useCallback(
     (page = 1) => {
       const params = { page, limit: PAGE_LIMIT };
@@ -69,6 +65,26 @@ const Orders = () => {
     [dispatch, activeTab, searchQuery],
   );
 
+  // ─── Load stats once ──────────────────────────────────────────
+  useEffect(() => {
+    dispatch(fetchOrderStats());
+  }, [dispatch]);
+
+  // ─── Real-time Refresh via Socket ─────────────────────────────
+  useEffect(() => {
+    const handleDataRefresh = (data) => {
+      console.log(`[REAL-TIME] Refreshing data for: ${data.type}`);
+      loadOrders(currentPage);
+      dispatch(fetchOrderStats());
+    };
+
+    socket.on("data_refresh", handleDataRefresh);
+    return () => {
+      socket.off("data_refresh", handleDataRefresh);
+    };
+  }, [loadOrders, dispatch, currentPage]);
+
+  // ─── Load orders whenever tab or page changes ─────────────────
   useEffect(() => {
     // Reset to page 1 when tab changes
     dispatch(setCurrentPage(1));
@@ -113,6 +129,7 @@ const Orders = () => {
   };
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
       await dispatch(deleteOrder(deleteConfirm)).unwrap();
       toast.success("Order deleted");
@@ -120,6 +137,8 @@ const Orders = () => {
       dispatch(fetchOrderStats());
     } catch (err) {
       toast.error(err || "Failed to delete order");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -505,6 +524,7 @@ const Orders = () => {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDelete}
+        isProcessing={isDeleting}
         title="Delete Order"
         message="This action is permanent and cannot be undone. Are you sure you want to delete this order?"
         confirmText="Yes, Delete"

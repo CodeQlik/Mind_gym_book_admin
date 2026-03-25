@@ -66,6 +66,8 @@ const ViewOrder = () => {
   const [showShiprocketConfirm, setShowShiprocketConfirm] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+
 
   const fetchOrder = async () => {
     try {
@@ -90,7 +92,12 @@ const ViewOrder = () => {
     if (newStatus === "shipped") {
       setDispatchModal(true);
     } else {
-      setStatusModal({ isOpen: true, pendingStatus: newStatus });
+      // Small delay to ensure the select dropdown is fully closed before opening the modal
+      // This prevents "click-stealing" issues in some browsers where the first click
+      // after a dropdown closure is consumed by the focus shift.
+      setTimeout(() => {
+        setStatusModal({ isOpen: true, pendingStatus: newStatus });
+      }, 100);
     }
   };
 
@@ -118,17 +125,19 @@ const ViewOrder = () => {
 
   const confirmStatusChange = async () => {
     const newStatus = statusModal.pendingStatus;
+    setIsStatusUpdating(true);
     try {
       await dispatch(
         updateStatus({ id, updates: { delivery_status: newStatus } }),
       ).unwrap();
       toast.success(`Status updated to ${newStatus}`);
-      fetchOrder();
+      await fetchOrder();
       dispatch(fetchOrderStats());
+      setStatusModal({ isOpen: false, pendingStatus: "" });
     } catch (err) {
       toast.error(err || "Failed to update status");
     } finally {
-      setStatusModal({ isOpen: false, pendingStatus: "" });
+      setIsStatusUpdating(false);
     }
   };
 
@@ -794,6 +803,7 @@ const ViewOrder = () => {
         isOpen={statusModal.isOpen}
         onClose={() => setStatusModal({ isOpen: false, pendingStatus: "" })}
         onConfirm={confirmStatusChange}
+        isProcessing={isStatusUpdating}
         title="Update Order Status"
         message={
           <>
@@ -825,6 +835,7 @@ const ViewOrder = () => {
         isOpen={showShiprocketConfirm}
         onClose={() => setShowShiprocketConfirm(false)}
         onConfirm={handleShipWithShiprocket}
+        isProcessing={shiprocketLoading}
         title="Ship via Shiprocket"
         message="Are you sure you want to initiate automated dispatch via Shiprocket? This will create an order in the Shiprocket panel and generate a shipment ID."
         confirmText="Yes, Ship it!"
@@ -837,6 +848,7 @@ const ViewOrder = () => {
         isOpen={showRefundConfirm}
         onClose={() => setShowRefundConfirm(false)}
         onConfirm={handleApproveRefund}
+        isProcessing={refundLoading}
         title="Approve Refund"
         message="Are you sure you want to approve this refund and return the money via Razorpay? This action will immediately initiate the transfer back to the customer's account."
         confirmText="Confirm Refund"

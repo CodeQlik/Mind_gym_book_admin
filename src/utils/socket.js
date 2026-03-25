@@ -8,6 +8,9 @@ const socket = io(SOCKET_URL, {
   path: "/socket.io/",
   transports: ["polling", "websocket"],
   withCredentials: false,
+  auth: {
+    token: localStorage.getItem("token"),
+  },
 });
 
 // Global listeners
@@ -27,28 +30,17 @@ socket.on("connect_error", (err) => {
   console.error("Socket connection error:", err.message);
 });
 
-const joinRoomHandler = (userId, isAdmin) => {
-  if (socket.connected && userId) {
-    socket.emit("join", { userId, isAdmin });
-  }
-};
-
-export const connectSocket = (userId, isAdmin = false) => {
+export const connectSocket = () => {
   if (!SOCKET_URL) {
     console.error("SOCKET_URL is missing");
     return;
   }
 
+  // Update token before connecting in case it changed
+  socket.auth.token = localStorage.getItem("token");
+
   if (!socket.connected) {
     socket.connect();
-
-    socket.off("connect");
-    socket.on("connect", () => {
-      console.log("Connected to notification server");
-      joinRoomHandler(userId, isAdmin);
-    });
-  } else {
-    joinRoomHandler(userId, isAdmin);
   }
 };
 
