@@ -521,34 +521,34 @@ const ViewOrder = () => {
             </div>
           </div>
 
-          {/* Refund Request Section */}
-          {order.refund_requested && (
-            <div className="bg-error-surface border-2 border-error/10 rounded-[2rem] shadow-xl shadow-error/5 overflow-hidden animate-in slide-in-from-top-4 duration-500">
-              <div className="px-6 py-4 border-b border-error/10 flex items-center justify-between bg-surface/50 backdrop-blur-md">
+          {/* Refund/Cancellation Section */}
+          {(order.refund_requested || order.delivery_status === "cancelled") && (
+            <div className={`border-2 rounded-[2rem] shadow-xl overflow-hidden animate-in slide-in-from-top-4 duration-500 ${order.delivery_status === "cancelled" ? "bg-slate-50 border-slate-200 shadow-slate-100" : "bg-error-surface border-error/10 shadow-error/5"}`}>
+              <div className={`px-6 py-4 border-b flex items-center justify-between bg-surface/50 backdrop-blur-md ${order.delivery_status === "cancelled" ? "border-slate-200 text-slate-600" : "border-error/10 text-rose-600"}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-error flex items-center justify-center text-white shadow-lg shadow-error/20">
-                    <RotateCcw size={18} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${order.delivery_status === "cancelled" ? "bg-slate-500 shadow-slate-200" : "bg-error shadow-error/20"}`}>
+                    {order.delivery_status === "cancelled" ? <X size={18} /> : <RotateCcw size={18} />}
                   </div>
                   <div>
-                    <h3 className="font-black text-rose-600 text-xs uppercase tracking-widest">
-                      Return Request
+                    <h3 className="font-black text-xs uppercase tracking-widest">
+                      {order.delivery_status === "cancelled" ? "Cancellation Details" : "Return Request"}
                     </h3>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-rose-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md">
-                  Action Required
+                <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md ${order.delivery_status === "cancelled" ? "bg-slate-500 text-white" : "bg-rose-500 text-white"}`}>
+                  {order.delivery_status === "cancelled" ? "Order Cancelled" : "Action Required"}
                 </div>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="md:col-span-3 space-y-2">
-                    <label className="text-[9px] font-black text-error/60 uppercase tracking-widest ml-1">
-                      Reason for Return
+                    <label className={`text-[9px] font-black uppercase tracking-widest ml-1 ${order.delivery_status === "cancelled" ? "text-slate-400" : "text-error/60"}`}>
+                      Reason for {order.delivery_status === "cancelled" ? "Cancellation" : "Return"}
                     </label>
-                    <div className="bg-surface p-4 rounded-xl border border-error/10 text-xs font-semibold italic text-text-secondary leading-relaxed shadow-sm">
+                    <div className={`bg-surface p-4 rounded-xl border text-xs font-semibold italic text-text-secondary leading-relaxed shadow-sm ${order.delivery_status === "cancelled" ? "border-slate-100" : "border-error/10"}`}>
                       "
                       {order.refund_reason ||
-                        "No reason provided by the customer."}
+                        "No reason provided."}
                       "
                     </div>
                   </div>
