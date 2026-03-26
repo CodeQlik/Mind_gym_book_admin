@@ -95,6 +95,18 @@ const Settings = () => {
       const response = await settingApi.updateSettings(data);
       if (response.success) {
         toast.success("Settings updated successfully");
+        
+        // Update previews with new URLs from server
+        setPreviews({
+          logo: response.data.logo?.url || null,
+          favicon: response.data.favicon?.url || null,
+          signature: response.data.admin_signature?.url || null,
+        });
+
+        // Clear local file states after successful upload
+        setLogo(null);
+        setFavicon(null);
+        setSignature(null);
       }
     } catch (err) {
       toast.error(err.message || "Failed to save settings");
@@ -102,6 +114,7 @@ const Settings = () => {
       setLoading(false);
     }
   };
+
 
   if (fetching) return <div className="p-10 text-center">Loading Settings...</div>;
 
